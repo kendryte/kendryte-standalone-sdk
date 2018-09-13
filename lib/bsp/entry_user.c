@@ -1,0 +1,112 @@
+/* Copyright 2018 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <stdlib.h>
+#include "atomic.h"
+#include "clint.h"
+#include "dmac.h"
+#include "entry.h"
+#include "fpioa.h"
+#include "platform.h"
+#include "plic.h"
+#include "sysclock.h"
+#include "sysctl.h"
+#include "syslog.h"
+#include "uarths.h"
+
+volatile char * const ram = (volatile char*)RAM_BASE_ADDR;
+
+extern char _heap_start[];
+extern char _heap_end[];
+
+uint32_t g_wake_up[2] = {1};
+
+void thread_entry(int core_id)
+{
+    /* Clear IPI flag if pending */
+    clint_ipi_clear(core_id);
+    /* Enable software interrupt */
+    clint_ipi_enable();
+    /* Wait for interrupt form core 0 */
+    asm volatile("wfi");
+    atomic_set(&g_wake_up[core_id], 1);
+}
+
+void core_enable(int core_id)
+{
+    clint_ipi_send(core_id);
+    uint32_t cpu_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_CPU);
+    uint32_t old_cycle = read_csr(mcycle);
+    while (!atomic_read(&g_wake_up[core_id]))
+    {
+        if (read_csr(mcycle) - old_cycle > cpu_freq / 1000) /* wait for 1ms */
+        {
+            clint_ipi_send(core_id); /* wakeup again */
+            old_cycle = read_csr(mcycle);
+        }
+    }
+}
+
+int __attribute__((weak)) os_entry(int core_id, int number_of_cores, int (*user_main)(int, char**))
+{
+    /* Call main if there is no OS */
+    return user_main(0, 0);
+}
+
+void _init_bsp(int core_id, int number_of_cores)
+{
+    extern int main(int argc, char* argv[]);
+    extern void __libc_init_array(void);
+    extern void __libc_fini_array(void);
+    /* Initialize thread local data */
+    init_tls();
+
+    if (core_id == 0)
+    {
+        /* Copy lma data to memory */
+        init_lma();
+        /* Initialize bss data to 0 */
+        init_bss();
+        /* Init FPIOA */
+        fpioa_init();
+        /* PLL init */
+        sys_clock_init();
+        /* Init UART */
+        uart_init();
+        /* Dmac init */
+        dmac_init();
+        /* Plic init */
+        plic_init();
+        /* Register finalization function */
+        atexit(__libc_fini_array);
+        /* Init libc array for C++ */
+        __libc_init_array();
+    }
+    else
+    {
+        thread_entry(core_id);
+    }
+
+    if (core_id == 0)
+    {
+        /* Enable Core 1 to run main */
+        core_enable(1);
+    }
+
+    int ret = os_entry(core_id, number_of_cores, main);
+
+    exit(ret);
+}
+

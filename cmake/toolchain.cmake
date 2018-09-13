@@ -1,0 +1,22 @@
+if (NOT TOOLCHAIN)
+    message(FATAL_ERROR "TOOLCHAIN must be set, to absolute path of kendryte-toolchain dist/bin folder.")
+endif ()
+
+if (WIN32)
+    set(EXT ".exe")
+else ()
+    set(EXT "")
+endif ()
+
+condition_set(CMAKE_C_COMPILER "${TOOLCHAIN}/riscv64-unknown-elf-gcc${EXT}" CACHE INTERNAL "")
+condition_set(CMAKE_CXX_COMPILER "${TOOLCHAIN}/riscv64-unknown-elf-g++${EXT}" CACHE INTERNAL "")
+condition_set(CMAKE_LINKER "${TOOLCHAIN}/riscv64-unknown-elf-ld${EXT}" CACHE INTERNAL "")
+condition_set(CMAKE_AR "${TOOLCHAIN}/riscv64-unknown-elf-ar${EXT}" CACHE INTERNAL "")
+condition_set(CMAKE_CXX_COMPILER_AR "${CMAKE_AR}${EXT}" CACHE INTERNAL "")
+condition_set(CMAKE_C_COMPILER_AR "${CMAKE_AR}${EXT}" CACHE INTERNAL "")
+condition_set(CMAKE_OBJCOPY "${TOOLCHAIN}/riscv64-unknown-elf-objcopy${EXT}" CACHE INTERNAL "")
+
+get_filename_component(_BIN_DIR "${CMAKE_C_COMPILER}" DIRECTORY)
+if (NOT "${TOOLCHAIN}" STREQUAL "${_BIN_DIR}")
+    message(FATAL_ERROR "CMAKE_C_COMPILER is not in kendryte-toolchain dist/bin folder.")
+endif ()
