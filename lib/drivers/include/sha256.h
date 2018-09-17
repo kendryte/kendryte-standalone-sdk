@@ -16,7 +16,7 @@
 #define _SHA256_H
 
 #include <stdint.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "platform.h"
 
 #define DISABLE_SHA_DMA 0

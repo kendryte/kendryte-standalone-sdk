@@ -58,7 +58,7 @@
 #define _DRIVER_PLIC_H
 
 #include <stdint.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "platform.h"
 
 /* For c++ compatibility */
@@ -286,7 +286,7 @@ struct plic_target_enables_t
     {
         uint32_t enable[32];/* Offset 0x00-0x7C: Bit 0 is zero, Bits 1-1023 is bits*/
     } target[15872];
-    
+
     /* 0x0C1F2000-0x0C1FFFFC: Reserved, size 0xE000 */
     uint8_t resv[0xE000];
 } __attribute__((packed, aligned(4)));

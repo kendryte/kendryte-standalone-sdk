@@ -105,7 +105,7 @@ static void dvp_io_init(void)
 {
     /* Init DVP IO map and function settings */
     fpioa_set_function(15, FUNC_CMOS_RST);
-    fpioa_set_function(17, FUNC_CMOS_PWND);
+    fpioa_set_function(17, FUNC_CMOS_PWDN);
     fpioa_set_function(20, FUNC_CMOS_XCLK);
     fpioa_set_function(18, FUNC_CMOS_VSYNC);
     fpioa_set_function(19, FUNC_CMOS_HREF);

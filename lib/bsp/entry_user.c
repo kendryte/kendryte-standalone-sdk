@@ -31,32 +31,17 @@ volatile char * const ram = (volatile char*)RAM_BASE_ADDR;
 extern char _heap_start[];
 extern char _heap_end[];
 
-uint32_t g_wake_up[2] = {1};
+extern volatile unsigned int g_wake_up[2];
 
 void thread_entry(int core_id)
 {
-    /* Clear IPI flag if pending */
-    clint_ipi_clear(core_id);
-    /* Enable software interrupt */
-    clint_ipi_enable();
-    /* Wait for interrupt form core 0 */
-    asm volatile("wfi");
-    atomic_set(&g_wake_up[core_id], 1);
+    while (!atomic_read(&g_wake_up[core_id]));
 }
 
 void core_enable(int core_id)
 {
     clint_ipi_send(core_id);
-    uint32_t cpu_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_CPU);
-    uint32_t old_cycle = read_csr(mcycle);
-    while (!atomic_read(&g_wake_up[core_id]))
-    {
-        if (read_csr(mcycle) - old_cycle > cpu_freq / 1000) /* wait for 1ms */
-        {
-            clint_ipi_send(core_id); /* wakeup again */
-            old_cycle = read_csr(mcycle);
-        }
-    }
+    atomic_set(&g_wake_up[core_id], 1);
 }
 
 int __attribute__((weak)) os_entry(int core_id, int number_of_cores, int (*user_main)(int, char**))

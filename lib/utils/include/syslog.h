@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "printf.h"
-#include "env/encoding.h"
+#include "encoding.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -118,11 +118,11 @@ enum kendryte_log_level_e {
 #endif
 
 #ifdef CONFIG_LOG_ENABLE
-#define LOGE(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_ERROR)   LOG_PRINTF(LOG_FORMAT(E, format), read_csr(mcycle), tag, ##__VA_ARGS__); } while (0)
-#define LOGW(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_WARN)    LOG_PRINTF(LOG_FORMAT(W, format), read_csr(mcycle), tag, ##__VA_ARGS__); } while (0)
-#define LOGI(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_INFO)    LOG_PRINTF(LOG_FORMAT(I, format), read_csr(mcycle), tag, ##__VA_ARGS__); } while (0)
-#define LOGD(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_DEBUG)   LOG_PRINTF(LOG_FORMAT(D, format), read_csr(mcycle), tag, ##__VA_ARGS__); } while (0)
-#define LOGV(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_VERBOSE) LOG_PRINTF(LOG_FORMAT(V, format), read_csr(mcycle), tag, ##__VA_ARGS__); } while (0)
+#define LOGE(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_ERROR)   LOG_PRINTF(LOG_FORMAT(E, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
+#define LOGW(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_WARN)    LOG_PRINTF(LOG_FORMAT(W, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
+#define LOGI(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_INFO)    LOG_PRINTF(LOG_FORMAT(I, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
+#define LOGD(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_DEBUG)   LOG_PRINTF(LOG_FORMAT(D, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
+#define LOGV(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_VERBOSE) LOG_PRINTF(LOG_FORMAT(V, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
 #else
 #define LOGE(tag, format, ...)
 #define LOGW(tag, format, ...)

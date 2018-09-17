@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 #if defined(__riscv)
-#include "env/encoding.h"
+#include "encoding.h"
 #endif
 
 #ifdef __cplusplus
@@ -70,9 +70,9 @@ extern "C" {
 #define stats(code, iter)                                                                         \
     do                                                                                            \
     {                                                                                             \
-        unsigned long _c = -read_csr(mcycle), _i = -read_csr(minstret);                           \
+        unsigned long _c = -read_cycle(), _i = -read_csr(minstret);                           \
         code;                                                                                     \
-        _c += read_csr(mcycle), _i += read_csr(minstret);                                         \
+        _c += read_cycle(), _i += read_csr(minstret);                                         \
         if (cid == 0)                                                                             \
             printf("\n%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n",                        \
                 stringify(code), _c, _c / iter, 10 * _c / iter % 10, _c / _i, 10 * _c / _i % 10); \

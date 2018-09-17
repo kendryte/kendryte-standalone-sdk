@@ -14,7 +14,7 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "hard_fft.h"
 #include "platform.h"
 #include "syscalls.h"
