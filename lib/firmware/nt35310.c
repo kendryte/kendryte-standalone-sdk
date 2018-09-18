@@ -53,7 +53,7 @@ void pin_mux_init(void)
 {
     fpioa_set_function(31, SPI_SS);
     fpioa_set_function(32, SPI(SCLK));
-    sysctl->misc.reserved0 = 1;
+    sysctl_spi0_dvp_data_set(1);
 }
 
 void tft_hard_init(void)

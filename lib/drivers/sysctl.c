@@ -1724,3 +1724,10 @@ uint32_t sysctl_pll_fast_enable_pll(void)
 
     return 0;
 }
+
+uint32_t sysctl_spi0_dvp_data_set(uint8_t en)
+{
+    sysctl->misc.spi_dvp_data_enable = en;
+    return 0;
+}
+

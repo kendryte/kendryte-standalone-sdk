@@ -619,7 +619,8 @@ struct sysctl_clk_th6_t
 struct sysctl_misc_t
 {
     uint32_t debug_sel : 6;
-    uint32_t reserved0 : 5;
+    uint32_t reserved0 : 4;
+    uint32_t spi_dvp_data_enable: 1;
     uint32_t reserved1 : 21;
 } __attribute__((packed, aligned(4)));
 
@@ -1008,6 +1009,17 @@ int sysctl_dma_select(enum sysctl_dma_channel_e channel, enum sysctl_dma_select_
  *     - Other  Fail
  */
 uint32_t sysctl_pll_fast_enable_pll(void);
+
+/**
+ * @brief       Set SPI0_D0-D7 DVP_D0-D7 as spi and dvp data pin
+ *
+ * @param[in]   en     Enable or not
+ *
+ * @return      Result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+uint32_t sysctl_spi0_dvp_data_set(uint8_t en);
 
 #ifdef __cplusplus
 }
