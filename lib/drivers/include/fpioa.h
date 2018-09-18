@@ -188,7 +188,7 @@ extern "C" {
  * | 131       | I2C2_SDA         | I2C2 Serial Data                  |
  * | 132       | CMOS_XCLK        | DVP System Clock                  |
  * | 133       | CMOS_RST         | DVP System Reset                  |
- * | 134       | CMOS_PWND        | DVP Power Down Mode               |
+ * | 134       | CMOS_PWDN        | DVP Power Down Mode               |
  * | 135       | CMOS_VSYNC       | DVP Vertical Sync                 |
  * | 136       | CMOS_HREF        | DVP Horizontal Reference output   |
  * | 137       | CMOS_PCLK        | Pixel Clock                       |
@@ -258,7 +258,26 @@ extern "C" {
  * | 201       | TIMER2_TOGGLE4   | TIMER2 Toggle Output 4            |
  * | 202       | CLK_SPI2         | Clock SPI2                        |
  * | 203       | CLK_I2C2         | Clock I2C2                        |
+ * | 204       | INTERNAL0        | Internal function signal 0        |
+ * | 205       | INTERNAL1        | Internal function signal 1        |
+ * | 206       | INTERNAL2        | Internal function signal 2        |
+ * | 207       | INTERNAL3        | Internal function signal 3        |
+ * | 208       | INTERNAL4        | Internal function signal 4        |
+ * | 209       | INTERNAL5        | Internal function signal 5        |
+ * | 210       | INTERNAL6        | Internal function signal 6        |
+ * | 211       | INTERNAL7        | Internal function signal 7        |
+ * | 212       | INTERNAL8        | Internal function signal 8        |
+ * | 213       | INTERNAL9        | Internal function signal 9        |
+ * | 214       | INTERNAL10       | Internal function signal 10       |
+ * | 215       | INTERNAL11       | Internal function signal 11       |
+ * | 216       | INTERNAL12       | Internal function signal 12       |
+ * | 217       | INTERNAL13       | Internal function signal 13       |
+ * | 218       | INTERNAL14       | Internal function signal 14       |
+ * | 219       | INTERNAL15       | Internal function signal 15       |
+ * | 220       | INTERNAL16       | Internal function signal 16       |
+ * | 221       | INTERNAL17       | Internal function signal 17       |
  * | 222       | CONSTANT         | Constant function                 |
+ * | 223       | INTERNAL18       | Internal function signal 18       |
  * | 224       | DEBUG0           | Debug function 0                  |
  * | 225       | DEBUG1           | Debug function 1                  |
  * | 226       | DEBUG2           | Debug function 2                  |
@@ -434,7 +453,7 @@ enum fpioa_function_e
     FUNC_I2C2_SDA         = 131,    /*!< I2C2 Serial Data */
     FUNC_CMOS_XCLK        = 132,    /*!< DVP System Clock */
     FUNC_CMOS_RST         = 133,    /*!< DVP System Reset */
-    FUNC_CMOS_PWND        = 134,    /*!< DVP Power Down Mode */
+    FUNC_CMOS_PWDN        = 134,    /*!< DVP Power Down Mode */
     FUNC_CMOS_VSYNC       = 135,    /*!< DVP Vertical Sync */
     FUNC_CMOS_HREF        = 136,    /*!< DVP Horizontal Reference output */
     FUNC_CMOS_PCLK        = 137,    /*!< Pixel Clock */
@@ -517,11 +536,13 @@ enum fpioa_function_e
     FUNC_INTERNAL10       = 214,    /*!< Internal function signal 10 */
     FUNC_INTERNAL11       = 215,    /*!< Internal function signal 11 */
     FUNC_INTERNAL12       = 216,    /*!< Internal function signal 12 */
-    FUNC_INTERNAL13       = 219,    /*!< Internal function signal 13 */
-    FUNC_INTERNAL14       = 220,    /*!< Internal function signal 14 */
-    FUNC_INTERNAL15       = 221,    /*!< Internal function signal 15 */
+    FUNC_INTERNAL13       = 217,    /*!< Internal function signal 13 */
+    FUNC_INTERNAL14       = 218,    /*!< Internal function signal 14 */
+    FUNC_INTERNAL15       = 219,    /*!< Internal function signal 15 */
+    FUNC_INTERNAL16       = 220,    /*!< Internal function signal 16 */
+    FUNC_INTERNAL17       = 221,    /*!< Internal function signal 17 */
     FUNC_CONSTANT         = 222,    /*!< Constant function */
-    FUNC_INTERNAL16       = 223,    /*!< Internal function signal 16 */
+    FUNC_INTERNAL18       = 223,    /*!< Internal function signal 18 */
     FUNC_DEBUG0           = 224,    /*!< Debug function 0 */
     FUNC_DEBUG1           = 225,    /*!< Debug function 1 */
     FUNC_DEBUG2           = 226,    /*!< Debug function 2 */

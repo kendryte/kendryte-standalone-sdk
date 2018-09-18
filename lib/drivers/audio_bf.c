@@ -14,7 +14,7 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "audio_bf.h"
 #include "syscalls.h"
 #include "sysctl.h"

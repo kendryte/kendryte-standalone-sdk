@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include <stddef.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "common.h"
 
 void set_bit(volatile uint32_t* bits, uint32_t mask, uint32_t value)

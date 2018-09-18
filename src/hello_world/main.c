@@ -14,9 +14,10 @@
  */
 #include <stdio.h>
 #include "sleep.h"
+#include "encoding.h"
 int main()
 {
-    uint64_t core_id = read_csr(mhartid);
+    uint64_t core_id = read_hartid();
     if (core_id == 0)
     {
         printf("Core 0 Hello, world!\n");

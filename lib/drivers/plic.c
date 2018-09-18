@@ -14,7 +14,7 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "plic.h"
 #include "syscalls.h"
 #include "syslog.h"
@@ -34,7 +34,7 @@ int plic_init(void)
     int i = 0;
 
     /* Get current hart id */
-    unsigned long hart_id = read_csr(mhartid);
+    unsigned long hart_id = read_hartid();
 
     /* Disable all interrupts for the current hart. */
     for (i = 0; i < ((PLIC_NUM_SOURCES + 32u) / 32u); i++)
@@ -80,7 +80,7 @@ int plic_irq_enable(plic_irq_t irq_number)
     /* Check parameters */
     if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
-    unsigned long hart_id = read_csr(mhartid);
+    unsigned long hart_id = read_hartid();
     /* Get current enable bit array by IRQ number */
     uint32_t current = plic->target_enables.target[hart_id].enable[irq_number / 32];
     /* Set enable bit in enable bit array */
@@ -95,7 +95,7 @@ int plic_irq_disable(plic_irq_t irq_number)
     /* Check parameters */
     if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
-    unsigned long hart_id = read_csr(mhartid);
+    unsigned long hart_id = read_hartid();
     /* Get current enable bit array by IRQ number */
     uint32_t current = plic->target_enables.target[hart_id].enable[irq_number / 32];
     /* Clear enable bit in enable bit array */
@@ -126,14 +126,14 @@ uint32_t plic_get_priority(plic_irq_t irq_number)
 
 uint32_t plic_irq_claim(void)
 {
-    unsigned long hart_id = read_csr(mhartid);
+    unsigned long hart_id = read_hartid();
     /* Perform IRQ claim */
     return plic->targets.target[hart_id].claim_complete;
 }
 
 int plic_irq_complete(uint32_t source)
 {
-    unsigned long hart_id = read_csr(mhartid);
+    unsigned long hart_id = read_hartid();
     /* Perform IRQ complete */
     plic->targets.target[hart_id].claim_complete = source;
     return 0;
@@ -142,7 +142,7 @@ int plic_irq_complete(uint32_t source)
 int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
 {
     /* Read hart id */
-    unsigned long hart_id = read_csr(mhartid);
+    unsigned long hart_id = read_hartid();
     /* Set user callback function */
     plic_instance[hart_id][irq].callback = callback;
     /* Assign user context */
@@ -172,7 +172,7 @@ uintptr_t handle_irq_m_ext(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
     if (read_csr(mip) & MIP_MEIP)
     {
         /* Get current hart id */
-        uint64_t hart_id = read_csr(mhartid);
+        uint64_t hart_id = read_hartid();
         /* Get primitive interrupt enable flag */
         uint64_t ie_flag = read_csr(mie);
         /* Get current IRQ num */

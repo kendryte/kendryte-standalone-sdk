@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <stdlib.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "sysctl.h"
 #include "rtc.h"
 
@@ -167,9 +167,9 @@ int rtc_timer_set_tm(const struct tm *tm)
         /* Set threshold to 1/26000000 s */
         freq = freq / 26000000;
         /* Get current CPU cycle */
-        unsigned long start_cycle = read_csr(mcycle);
+        unsigned long start_cycle = read_cycle();
         /* Wait for 1/26000000 s to sync data */
-        while (read_csr(mcycle) - start_cycle < freq)
+        while (read_cycle() - start_cycle < freq)
             continue;
         /* Set RTC mode to timer running mode */
         rtc_timer_set_mode(RTC_TIMER_RUNNING);

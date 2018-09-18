@@ -12,14 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#ifndef _BSP_ENV_ENCODING_H
-#define _BSP_ENV_ENCODING_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef RISCV_CSR_ENCODING_H
 #define RISCV_CSR_ENCODING_H
 
@@ -217,9 +209,9 @@ extern "C" {
     asm volatile ("csrrc %0, " #reg ", %1" : "=r"(__tmp) : "r"(bit)); \
   __tmp; })
 
-#define rdtime() read_csr(time)
-#define rdcycle() read_csr(cycle)
-#define rdinstret() read_csr(instret)
+#define read_time()         read_csr(mtime)
+#define read_cycle()        read_csr(mcycle)
+#define read_hartid()       read_csr(mhartid)
 
 #endif
 
@@ -1331,10 +1323,4 @@ DECLARE_CAUSE("supervisor_ecall", CAUSE_SUPERVISOR_ECALL)
 DECLARE_CAUSE("hypervisor_ecall", CAUSE_HYPERVISOR_ECALL)
 DECLARE_CAUSE("machine_ecall", CAUSE_MACHINE_ECALL)
 #endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif    /* _BSP_ENV_ENCODING_H */
 

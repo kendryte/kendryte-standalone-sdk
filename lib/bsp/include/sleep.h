@@ -16,7 +16,7 @@
 #ifndef _BSP_SLEEP_H
 #define _BSP_SLEEP_H
 
-#include "env/encoding.h"
+#include "encoding.h"
 #include "clint.h"
 #include "syscalls.h"
 

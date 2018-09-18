@@ -14,7 +14,7 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include "env/encoding.h"
+#include "encoding.h"
 #include "sha256.h"
 #include "syscalls.h"
 #include "sysctl.h"

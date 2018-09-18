@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#include "env/encoding.h"
+#include "encoding.h"
 
 # define LREG ld
 # define SREG sd
@@ -27,6 +27,11 @@
 _start:
   j 1f
   .word 0xdeadbeef
+  .align 3
+  .global g_wake_up
+  g_wake_up:
+      .dword 1
+      .dword 0
 1:
   csrw mideleg, 0
   csrw medeleg, 0
