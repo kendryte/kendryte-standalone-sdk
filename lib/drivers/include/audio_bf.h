@@ -19,9 +19,7 @@
 extern "C" {
 #endif
 
-extern volatile struct audio_bf_reg_t* const audio_bf;
-
-enum en_bf_dir
+typedef enum _en_bf_dir
 {
     BF_DIR0 = 0,
     BF_DIR1,
@@ -39,9 +37,9 @@ enum en_bf_dir
     BF_DIR13,
     BF_DIR14,
     BF_DIR15,
-};
+} en_bf_dir;
 
-struct audio_bf_ch_cfg_t
+typedef struct _audio_bf_ch_cfg_t
 {
     /**
      * BF unit sound channel enable control bits.
@@ -101,9 +99,9 @@ struct audio_bf_ch_cfg_t
      * 0x1: allowing updates made to 'data_src_mode'.
      */
     uint32_t we_data_src_mode : 1;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_ch_cfg_t;
 
-struct audio_bf_ctl_t
+typedef struct _audio_bf_ctl_t
 {
     /**
      * Sound direction searching enable bit.
@@ -149,9 +147,9 @@ struct audio_bf_ctl_t
     uint32_t we_update_voice_dir : 1;
     uint32_t reserved2 : 19;
 
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_ctl_t;
 
-struct audio_bf_dir_bidx_t
+typedef struct _audio_bf_dir_bidx_t
 {
     uint32_t dir_rd_idx0 : 6;
     uint32_t reserved : 2;
@@ -161,15 +159,15 @@ struct audio_bf_dir_bidx_t
     uint32_t reserved2 : 2;
     uint32_t dir_rd_idx3 : 6;
     uint32_t reserved3 : 2;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_dir_bidx_t;
 
-struct audio_bf_fir_coef_t
+typedef struct _audio_bf_fir_coef_t
 {
     uint32_t fir_tap0 : 16;
     uint32_t fir_tap1 : 16;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_fir_coef_t;
 
-struct audio_bf_dwsz_cfg_t
+typedef struct _audio_bf_dwsz_cfg_t
 {
     /**
      * TThe down-sizing ratio used for direction searching.
@@ -201,17 +199,17 @@ struct audio_bf_dwsz_cfg_t
      */
     uint32_t smpl_shift_bits : 5;
     uint32_t reserved : 19;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_dwsz_cfg_t;
 
-struct audio_bf_fft_cfg_t
+typedef struct _audio_bf_fft_cfg_t
 {
     uint32_t fft_shift_factor : 9;
     uint32_t reserved1 : 3;
     uint32_t fft_enable : 1;
     uint32_t reserved2 : 19;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_fft_cfg_t;
 
-struct audio_bf_int_stat_t
+typedef struct _audio_bf_int_stat_t
 {
     /**
      * sound direction searching data ready interrupt event.
@@ -228,9 +226,9 @@ struct audio_bf_int_stat_t
      */
     uint32_t voc_buf_data_rdy : 1;
     uint32_t reserved : 30;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_int_stat_t;
 
-struct audio_bf_int_mask_t
+typedef struct _audio_bf_int_mask_t
 {
     /**
      * This is the interrupt mask to dir searching data ready interrupt.
@@ -244,28 +242,28 @@ struct audio_bf_int_mask_t
      */
     uint32_t voc_buf_rdy_msk : 1;
     uint32_t reserved : 30;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_int_mask_t;
 
-struct audio_bf_reg_t
+typedef struct _audio_bf_reg_t
 {
     /* 0x200 */
-    struct audio_bf_ch_cfg_t bf_ch_cfg_reg;
+    audio_bf_ch_cfg_t bf_ch_cfg_reg;
     /* 0x204 */
-    struct audio_bf_ctl_t bf_ctl_reg;
+    audio_bf_ctl_t bf_ctl_reg;
     /* 0x208 */
-    struct audio_bf_dir_bidx_t bf_dir_bidx[16][2];
+    audio_bf_dir_bidx_t bf_dir_bidx[16][2];
     /* 0x288 */
-    struct audio_bf_fir_coef_t bf_pre_fir0_coef[9];
+    audio_bf_fir_coef_t bf_pre_fir0_coef[9];
     /* 0x2ac */
-    struct audio_bf_fir_coef_t bf_post_fir0_coef[9];
+    audio_bf_fir_coef_t bf_post_fir0_coef[9];
     /* 0x2d0 */
-    struct audio_bf_fir_coef_t bf_pre_fir1_coef[9];
+    audio_bf_fir_coef_t bf_pre_fir1_coef[9];
     /* 0x2f4 */
-    struct audio_bf_fir_coef_t bf_post_fir1_coef[9];
+    audio_bf_fir_coef_t bf_post_fir1_coef[9];
     /* 0x318 */
-    struct audio_bf_dwsz_cfg_t bf_dwsz_cfg_reg;
+    audio_bf_dwsz_cfg_t bf_dwsz_cfg_reg;
     /* 0x31c */
-    struct audio_bf_fft_cfg_t bf_fft_cfg_reg;
+    audio_bf_fft_cfg_t bf_fft_cfg_reg;
     /* 0x320 */
     /**
      * This is the read register for system DMA to read data stored in
@@ -281,14 +279,16 @@ struct audio_bf_reg_t
      */
     volatile uint32_t vobuf_dma_rdata;
     /* 0x328 */
-    struct audio_bf_int_stat_t bf_int_stat_reg;
+    audio_bf_int_stat_t bf_int_stat_reg;
     /* 0x32c */
-    struct audio_bf_int_mask_t bf_int_mask_reg;
+    audio_bf_int_mask_t bf_int_mask_reg;
     /* 0x330 */
     uint32_t saturation_counter;
     /* 0x334 */
     uint32_t saturation_limits;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) audio_bf_reg_t;
+
+extern volatile audio_bf_reg_t* const audio_bf;
 
 void audio_bf_set_audio_gain(uint16_t gain);
 void audio_bf_set_smpl_shift(uint8_t smpl_shift);
@@ -309,7 +309,7 @@ void audio_bf_dir_clear_int_state(void);
 
 void audio_bf_voc_enable(uint8_t enable_flag);
 void audio_bf_voc_reset(void);
-void audio_bf_voc_set_direction(enum en_bf_dir direction);
+void audio_bf_voc_set_direction(en_bf_dir direction);
 void audio_bf_voc_set_prev_fir(uint16_t* fir_coef);
 void audio_bf_voc_set_post_fir(uint16_t* fir_coef);
 void audio_bf_voc_set_down_size(uint8_t voc_dwn_size);

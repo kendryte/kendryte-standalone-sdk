@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
-struct spi_t {
+typedef struct _spi_t {
     /* SPI Control Register 0                                    (0x00)*/
     volatile uint32_t ctrlr0;
     /* SPI Control Register 1                                    (0x04)*/
@@ -96,11 +96,11 @@ struct spi_t {
     /* SPI XIP time out register for continuous transfers        (0x114)*/
     volatile uint32_t xip_cnt_time_out;
     volatile uint32_t endian;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) spi_t;
 /* clang-format on */
 
 
-typedef enum
+typedef enum _spi_mode
 {
     SPI_MODE_0,
     SPI_MODE_1,
@@ -108,7 +108,7 @@ typedef enum
     SPI_MODE_3,
 } spi_mode;
 
-typedef enum
+typedef enum _spi_frame_format
 {
     SPI_FF_STANDARD,
     SPI_FF_DUAL,
@@ -116,20 +116,20 @@ typedef enum
     SPI_FF_OCTAL
 } spi_frame_format;
 
-typedef enum
+typedef enum _spi_addr_inst_trans_mode
 {
     SPI_AITM_STANDARD,
     SPI_AITM_ADDR_STANDARD,
     SPI_AITM_AS_FRAME_FORMAT
 } spi_addr_inst_trans_mode;
 
-typedef enum
+typedef enum _spi_transfer_mode
 {
     SPI_TMOD_TRANS_RECV,
     SPI_TMOD_TRANS,
     SPI_TMOD_RECV,
     SPI_TMOD_EEROM
-}spi_transfer_mode;
+} spi_transfer_mode;
 
 
 typedef enum _spi_transfer_width
@@ -137,10 +137,10 @@ typedef enum _spi_transfer_width
     SPI_TRANS_CHAR  = 0x0,
     SPI_TRANS_SHORT = 0x1,
     SPI_TRANS_INT   = 0x2,
-}spi_transfer_width;
+} spi_transfer_width;
 
 
-extern volatile struct spi_t *const spi[4];
+extern volatile spi_t *const spi[4];
 
 
 /**

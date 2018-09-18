@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+typedef struct tm tm;
+
 /**
  * @brief      RTC timer mode
  *
@@ -49,7 +51,7 @@ typedef enum _rtc_timer_mode_e
     RTC_TIMER_SETTING,
     /* Max count of this enum*/
     RTC_TIMER_MAX
-}rtc_timer_mode_e;
+} rtc_timer_mode_e;
 
 /*
  * @brief      RTC tick interrupt mode
@@ -74,14 +76,14 @@ typedef enum _rtc_tick_interrupt_mode_e
     RTC_INT_DAY,
     /* Max count of this enum*/
     RTC_INT_MAX
-}rtc_tick_interrupt_mode_e;
+} rtc_tick_interrupt_mode_e;
 
 /**
  * @brief      RTC mask structure
  *
  *             RTC mask structure for common use
  */
-struct rtc_mask_t {
+typedef struct _rtc_mask_t {
     /* Reserved */
     uint32_t resv : 1;
     /* Second mask */
@@ -98,7 +100,7 @@ struct rtc_mask_t {
     uint32_t month : 1;
     /* Year mask */
     uint32_t year : 1;
-} __attribute__((packed, aligned(1)));
+} __attribute__((packed, aligned(1))) rtc_mask_t;
 
 /**
  * @brief       RTC register
@@ -127,7 +129,7 @@ struct rtc_mask_t {
  *
  *              No. 0 Register (0x00)
  */
-struct rtc_date_t
+typedef struct _rtc_date_t
 {
     /* Week. Range [0,6]. 0 is Sunday. */
     uint32_t week : 3;
@@ -141,14 +143,14 @@ struct rtc_date_t
     uint32_t month : 4;
     /* Year. Range [0,99] */
     uint32_t year : 12;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_date_t;
 
 /**
  * @brief       Timer time information
  *
  *              No. 1 Register (0x04)
  */
-struct rtc_time_t
+typedef struct _rtc_time_t
 {
     /* Reserved */
     uint32_t resv0 : 10;
@@ -162,14 +164,14 @@ struct rtc_time_t
     uint32_t hour : 5;
     /* Reserved */
     uint32_t resv2 : 3;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_time_t;
 
 /**
  * @brief       Alarm date information
  *
  *              No. 2 Register (0x08)
  */
-struct rtc_alarm_date_t
+typedef struct _rtc_alarm_date_t
 {
     /* Alarm Week. Range [0,6]. 0 is Sunday. */
     uint32_t week : 3;
@@ -183,14 +185,14 @@ struct rtc_alarm_date_t
     uint32_t month : 4;
     /* Alarm Year. Range [0,99] */
     uint32_t year : 12;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_alarm_date_t;
 
 /**
  * @brief       Alarm time information
  *
  *              No. 3 Register (0x0c)
  */
-struct rtc_alarm_time_t
+typedef struct _rtc_alarm_time_t
 {
     /* Reserved */
     uint32_t resv0 : 10;
@@ -204,36 +206,36 @@ struct rtc_alarm_time_t
     uint32_t hour : 5;
     /* Reserved */
     uint32_t resv2 : 3;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_alarm_time_t;
 
 /**
  * @brief       Timer counter initial value
  *
  *              No. 4 Register (0x10)
  */
-struct rtc_initial_count_t
+typedef struct _rtc_initial_count_t
 {
     /* RTC counter initial value */
     uint32_t count : 32;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_initial_count_t;
 
 /**
  * @brief       Timer counter current value
  *
  *              No. 5 Register (0x14)
  */
-struct rtc_current_count_t
+typedef struct _rtc_current_count_t
 {
     /* RTC counter current value */
     uint32_t count : 32;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_current_count_t;
 
 /**
  * @brief      RTC interrupt settings
  *
  *             No. 6 Register (0x18)
  */
-struct rtc_interrupt_ctrl_t
+typedef struct _rtc_interrupt_ctrl_t
 {
     /* Reserved */
     uint32_t tick_enable : 1;
@@ -245,14 +247,14 @@ struct rtc_interrupt_ctrl_t
     uint32_t resv : 20;
     /* Alarm compare mask for interrupt */
     uint32_t alarm_compare_mask : 8;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_interrupt_ctrl_t;
 
 /**
  * @brief       RTC register settings
  *
  *              No. 7 Register (0x1c)
  */
-struct rtc_register_ctrl_t
+typedef struct _rtc_register_ctrl_t
 {
     /* RTC timer read enable */
     uint32_t read_enable : 1;
@@ -270,36 +272,36 @@ struct rtc_register_ctrl_t
     uint32_t interrupt_register_mask : 1;
     /* Reserved */
     uint32_t resv1 : 1;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_register_ctrl_t;
 
 /**
  * @brief       Reserved
  *
  *              No. 8 Register (0x20)
  */
-struct rtc_reserved0_t
+typedef struct _rtc_reserved0_t
 {
     /* Reserved */
     uint32_t resv : 32;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_reserved0_t;
 
 /**
  * @brief      Reserved
  *
  *             No. 9 Register (0x24)
  */
-struct rtc_reserved1_t
+typedef struct _rtc_reserved1_t
 {
     /* Reserved */
     uint32_t resv : 32;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_reserved1_t;
 
 /**
  * @brief      Timer extended information
  *
  *             No. 10 Register (0x28)
  */
-struct rtc_extended_t
+typedef struct _rtc_extended_t
 {
     /* Century. Range [0,31] */
     uint32_t century : 5;
@@ -307,7 +309,7 @@ struct rtc_extended_t
     uint32_t leap_year : 1;
     /* Reserved */
     uint32_t resv : 26;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) rtc_extended_t;
 
 
 /**
@@ -316,37 +318,37 @@ struct rtc_extended_t
  *              A real-time clock (RTC) is a computer clock that keeps track of
  *              the current time.
  */
-struct rtc_t
+typedef struct _rtc_t
 {
     /* No. 0 (0x00): Timer date information */
-    struct rtc_date_t date;
+    rtc_date_t date;
     /* No. 1 (0x04): Timer time information */
-    struct rtc_time_t time;
+    rtc_time_t time;
     /* No. 2 (0x08): Alarm date information */
-    struct rtc_alarm_date_t alarm_date;
+    rtc_alarm_date_t alarm_date;
     /* No. 3 (0x0c): Alarm time information */
-    struct rtc_alarm_time_t alarm_time;
+    rtc_alarm_time_t alarm_time;
     /* No. 4 (0x10): Timer counter initial value */
-    struct rtc_initial_count_t initial_count;
+    rtc_initial_count_t initial_count;
     /* No. 5 (0x14): Timer counter current value */
-    struct rtc_current_count_t current_count;
+    rtc_current_count_t current_count;
     /* No. 6 (0x18): RTC interrupt settings */
-    struct rtc_interrupt_ctrl_t interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl;
     /* No. 7 (0x1c): RTC register settings */
-    struct rtc_register_ctrl_t register_ctrl;
+    rtc_register_ctrl_t register_ctrl;
     /* No. 8 (0x20): Reserved */
-    struct rtc_reserved0_t reserved0;
+    rtc_reserved0_t reserved0;
     /* No. 9 (0x24): Reserved */
-    struct rtc_reserved1_t reserved1;
+    rtc_reserved1_t reserved1;
     /* No. 10 (0x28): Timer extended information */
-    struct rtc_extended_t extended;
-} __attribute__((packed, aligned(4)));
+    rtc_extended_t extended;
+} __attribute__((packed, aligned(4))) rtc_t;
 
 
 /**
  * @brief       Real-time clock object
  */
-extern volatile struct rtc_t *const rtc;
+extern volatile rtc_t *const rtc;
 extern volatile uint32_t *const rtc_base;
 /**
  * @brief       Set RTC timer mode
@@ -375,14 +377,14 @@ rtc_timer_mode_e rtc_timer_get_mode(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_timer_set_tm(const struct tm *tm);
+int rtc_timer_set_tm(const tm *tm);
 
 /**
  * @brief       Get date time from RTC
  *
  * @return      The Broken-down date time
  */
-struct tm *rtc_timer_get_tm(void);
+tm *rtc_timer_get_tm(void);
 
 /**
  * @brief       Set date time to Alarm
@@ -393,14 +395,14 @@ struct tm *rtc_timer_get_tm(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_timer_set_alarm_tm(const struct tm *tm);
+int rtc_timer_set_alarm_tm(const tm *tm);
 
 /**
  * @brief       Get date time from Alarm
  *
  * @return      The Broken-down date time
  */
-struct tm *rtc_timer_get_alarm_tm(void);
+tm *rtc_timer_get_alarm_tm(void);
 
 /**
  * @brief       Check if it is a leap year
@@ -567,14 +569,14 @@ int rtc_alarm_interrupt_get(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_alarm_interrupt_mask_set(struct rtc_mask_t mask);
+int rtc_alarm_interrupt_mask_set(rtc_mask_t mask);
 
 /**
  * @brief       Get alarm interrupt mask
  *
  * @return      Alarm interrupt mask
  */
-struct rtc_mask_t rtc_alarm_interrupt_mask_get(void);
+rtc_mask_t rtc_alarm_interrupt_mask_get(void);
 
 /**
  * @brief       Initialize RTC

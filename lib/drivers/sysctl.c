@@ -46,7 +46,7 @@ const uint8_t get_source_aclk[] =
     [1] = SYSCTL_SOURCE_PLL0,
 };
 
-volatile struct sysctl_t *const sysctl = (volatile struct sysctl_t *)SYSCTL_BASE_ADDR;
+volatile sysctl_t *const sysctl = (volatile sysctl_t *)SYSCTL_BASE_ADDR;
 
 uint32_t sysctl_get_git_id(void)
 {
@@ -58,7 +58,7 @@ uint32_t sysctl_get_freq(void)
     return sysctl->clk_freq.clk_freq;
 }
 
-static void sysctl_reset_ctl(enum sysctl_reset_e reset, uint8_t rst_value)
+static void sysctl_reset_ctl(sysctl_reset_e reset, uint8_t rst_value)
 {
     switch (reset)
     {
@@ -155,13 +155,13 @@ static void sysctl_reset_ctl(enum sysctl_reset_e reset, uint8_t rst_value)
     }
 }
 
-void sysctl_reset(enum sysctl_reset_e reset)
+void sysctl_reset(sysctl_reset_e reset)
 {
     sysctl_reset_ctl(reset, 1);
     sysctl_reset_ctl(reset, 0);
 }
 
-static int sysctl_clock_bus_en(enum sysctl_clock_e clock, uint8_t en)
+static int sysctl_clock_bus_en(sysctl_clock_e clock, uint8_t en)
 {
     /*
      * The timer is under APB0, to prevent apb0_clk_en1 and apb0_clk_en0
@@ -231,7 +231,7 @@ static int sysctl_clock_bus_en(enum sysctl_clock_e clock, uint8_t en)
     return 0;
 }
 
-static int sysctl_clock_device_en(enum sysctl_clock_e clock, uint8_t en)
+static int sysctl_clock_device_en(sysctl_clock_e clock, uint8_t en)
 {
     switch (clock)
     {
@@ -381,7 +381,7 @@ static int sysctl_clock_device_en(enum sysctl_clock_e clock, uint8_t en)
     return 0;
 }
 
-int sysctl_clock_enable(enum sysctl_clock_e clock)
+int sysctl_clock_enable(sysctl_clock_e clock)
 {
     if (clock >= SYSCTL_CLOCK_MAX)
         return -1;
@@ -390,7 +390,7 @@ int sysctl_clock_enable(enum sysctl_clock_e clock)
     return 0;
 }
 
-int sysctl_clock_disable(enum sysctl_clock_e clock)
+int sysctl_clock_disable(sysctl_clock_e clock)
 {
     if (clock >= SYSCTL_CLOCK_MAX)
         return -1;
@@ -399,7 +399,7 @@ int sysctl_clock_disable(enum sysctl_clock_e clock)
     return 0;
 }
 
-int sysctl_clock_set_threshold(enum sysctl_threshold_e which, int threshold)
+int sysctl_clock_set_threshold(sysctl_threshold_e which, int threshold)
 {
     switch (which)
     {
@@ -504,7 +504,7 @@ int sysctl_clock_set_threshold(enum sysctl_threshold_e which, int threshold)
     return 0;
 }
 
-int sysctl_clock_get_threshold(enum sysctl_threshold_e which)
+int sysctl_clock_get_threshold(sysctl_threshold_e which)
 {
     int threshold = 0;
 
@@ -602,7 +602,7 @@ int sysctl_clock_get_threshold(enum sysctl_threshold_e which)
     return threshold;
 }
 
-int sysctl_clock_set_clock_select(enum sysctl_clock_select_e which, int select)
+int sysctl_clock_set_clock_select(sysctl_clock_select_e which, int select)
 {
     switch (which)
     {
@@ -651,7 +651,7 @@ int sysctl_clock_set_clock_select(enum sysctl_clock_select_e which, int select)
     return 0;
 }
 
-int sysctl_clock_get_clock_select(enum sysctl_clock_select_e which)
+int sysctl_clock_get_clock_select(sysctl_clock_select_e which)
 {
     int clock_select = 0;
 
@@ -698,7 +698,7 @@ int sysctl_clock_get_clock_select(enum sysctl_clock_select_e which)
     return clock_select;
 }
 
-uint32_t sysctl_clock_source_get_freq(enum sysctl_clock_source_e input)
+uint32_t sysctl_clock_source_get_freq(sysctl_clock_source_e input)
 {
     uint32_t result;
 
@@ -727,7 +727,7 @@ uint32_t sysctl_clock_source_get_freq(enum sysctl_clock_source_e input)
     return result;
 }
 
-int sysctl_pll_is_lock(enum sysctl_pll_e pll)
+int sysctl_pll_is_lock(sysctl_pll_e pll)
 {
     /*
      * All bit enable means PLL lock
@@ -770,7 +770,7 @@ int sysctl_pll_is_lock(enum sysctl_pll_e pll)
     return 0;
 }
 
-int sysctl_pll_clear_slip(enum sysctl_pll_e pll)
+int sysctl_pll_clear_slip(sysctl_pll_e pll)
 {
     if (pll >= SYSCTL_PLL_MAX)
         return -1;
@@ -796,7 +796,7 @@ int sysctl_pll_clear_slip(enum sysctl_pll_e pll)
     return sysctl_pll_is_lock(pll) ? 0 : -1;
 }
 
-int sysctl_pll_enable(enum sysctl_pll_e pll)
+int sysctl_pll_enable(sysctl_pll_e pll)
 {
     /*
      *       ---+
@@ -884,7 +884,7 @@ int sysctl_pll_enable(enum sysctl_pll_e pll)
     return 0;
 }
 
-int sysctl_pll_disable(enum sysctl_pll_e pll)
+int sysctl_pll_disable(sysctl_pll_e pll)
 {
     if (pll >= SYSCTL_PLL_MAX)
         return -1;
@@ -931,7 +931,7 @@ int sysctl_pll_disable(enum sysctl_pll_e pll)
     return 0;
 }
 
-uint32_t sysctl_pll_get_freq(enum sysctl_pll_e pll)
+uint32_t sysctl_pll_get_freq(sysctl_pll_e pll)
 {
     uint32_t freq_in = 0, freq_out = 0;
     uint32_t nr = 0, nf = 0, od = 0;
@@ -983,7 +983,7 @@ uint32_t sysctl_pll_get_freq(enum sysctl_pll_e pll)
     return freq_out;
 }
 
-uint32_t sysctl_pll_set_freq(enum sysctl_pll_e pll, enum sysctl_clock_source_e source, uint32_t freq)
+uint32_t sysctl_pll_set_freq(sysctl_pll_e pll, sysctl_clock_source_e source, uint32_t freq)
 {
     uint32_t freq_in = 0;
 
@@ -1229,9 +1229,9 @@ uint32_t sysctl_pll_set_freq(enum sysctl_pll_e pll, enum sysctl_clock_source_e s
      * Begin write PLL registers' value,
      * Using atomic write method.
      */
-    struct sysctl_pll0_t pll0;
-    struct sysctl_pll1_t pll1;
-    struct sysctl_pll2_t pll2;
+    sysctl_pll0_t pll0;
+    sysctl_pll1_t pll1;
+    sysctl_pll2_t pll2;
 
     switch (pll)
     {
@@ -1281,7 +1281,7 @@ uint32_t sysctl_pll_set_freq(enum sysctl_pll_e pll, enum sysctl_clock_source_e s
     return sysctl_pll_get_freq(pll);
 }
 
-uint32_t sysctl_clock_get_freq(enum sysctl_clock_e clock)
+uint32_t sysctl_clock_get_freq(sysctl_clock_e clock)
 {
     uint32_t source = 0;
     uint32_t result = 0;
@@ -1619,10 +1619,10 @@ uint32_t sysctl_clock_get_freq(enum sysctl_clock_e clock)
     return result;
 }
 
-int sysctl_dma_select(enum sysctl_dma_channel_e channel, enum sysctl_dma_select_e select)
+int sysctl_dma_select(sysctl_dma_channel_e channel, sysctl_dma_select_e select)
 {
-    struct sysctl_dma_sel0_t dma_sel0;
-    struct sysctl_dma_sel1_t dma_sel1;
+    sysctl_dma_sel0_t dma_sel0;
+    sysctl_dma_sel1_t dma_sel1;
 
     /* Read register from bus */
     dma_sel0 = sysctl->dma_sel0;
@@ -1670,9 +1670,9 @@ uint32_t sysctl_pll_fast_enable_pll(void)
      * Begin write PLL registers' value,
      * Using atomic write method.
      */
-    struct sysctl_pll0_t pll0;
-    struct sysctl_pll1_t pll1;
-    struct sysctl_pll2_t pll2;
+    sysctl_pll0_t pll0;
+    sysctl_pll1_t pll1;
+    sysctl_pll2_t pll2;
 
     /* Read register from bus */
     pll0 = sysctl->pll0;

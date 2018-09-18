@@ -19,7 +19,7 @@
 #include "fpioa.h"
 #include "sysctl.h"
 
-volatile struct dvp_t* const dvp = (volatile struct dvp_t*)DVP_BASE_ADDR;
+volatile dvp_t* const dvp = (volatile dvp_t*)DVP_BASE_ADDR;
 static uint8_t reg_len = 8;
 
 void mdelay(uint32_t ms)

@@ -20,12 +20,14 @@
 
 volatile gpiohs_t* const gpiohs = (volatile gpiohs_t*)GPIOHS_BASE_ADDR;
 
-struct gpiohs_pin_context
+typedef struct _gpiohs_pin_context
 {
     size_t pin;
     gpio_pin_edge edge;
     void (*callback)();
-} pin_context[32];
+} gpiohs_pin_context;
+
+gpiohs_pin_context pin_context[32];
 
 int gpiohs_init(void)
 {
@@ -48,7 +50,7 @@ void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode mode)
     int io_number = fpioa_get_io_by_func(FUNC_GPIOHS0 + pin);
     configASSERT(io_number > 0);
 
-    enum fpioa_pull_e pull;
+    fpioa_pull_e pull;
     uint32_t dir;
 
     switch (mode)
@@ -123,7 +125,7 @@ void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge edge)
 
 int gpiohs_pin_onchange_isr(void* userdata)
 {
-    struct gpiohs_pin_context* ctx = (struct gpiohs_pin_context*)userdata;
+    gpiohs_pin_context* ctx = (gpiohs_pin_context*)userdata;
     size_t pin = ctx->pin;
     uint32_t rise, fall;
     switch (ctx->edge)

@@ -19,7 +19,7 @@
 #include "sysctl.h"
 #include "encoding.h"
 
-volatile struct uarths_t *const uarths = (volatile struct uarths_t *)UARTHS_BASE_ADDR;
+volatile uarths_t *const uarths = (volatile uarths_t *)UARTHS_BASE_ADDR;
 
 static inline int uart_putc(char c)
 {
@@ -56,7 +56,7 @@ static inline int uart_putc(char c)
 int uart_getc(void)
 {
     /* while not empty */
-    struct uarths_rxdata_t recv = uarths->rxdata;
+    uarths_rxdata_t recv = uarths->rxdata;
 
     if (recv.empty)
         return EOF;

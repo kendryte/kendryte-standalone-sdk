@@ -38,7 +38,7 @@ void gpio_set_drive_mode(size_t pin, gpio_drive_mode mode)
     int io_number = fpioa_get_io_by_func(FUNC_GPIO0 + pin);
     configASSERT(io_number > 0);
 
-    enum fpioa_pull_e pull;
+    fpioa_pull_e pull;
     uint32_t dir;
 
     switch (mode)

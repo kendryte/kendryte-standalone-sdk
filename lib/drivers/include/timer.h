@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
-struct timer_channel_t
+typedef struct _timer_channel_t
 {
     /* TIMER_N Load Count Register              (0x00+(N-1)*0x14) */
     volatile uint32_t load_count;
@@ -34,12 +34,12 @@ struct timer_channel_t
     volatile uint32_t eoi;
     /* TIMER_N Interrupt Status Register        (0x10+(N-1)*0x14) */
     volatile uint32_t intr_stat;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) timer_channel_t;
 
-struct timer_t
+typedef struct _kendryte_timer_t
 {
     /* TIMER_N Register                         (0x00-0x4c) */
-    volatile struct timer_channel_t channel[4];
+    volatile timer_channel_t channel[4];
     /* reserverd                                (0x50-0x9c) */
     volatile uint32_t resv1[20];
     /* TIMER Interrupt Status Register          (0xa0) */
@@ -52,7 +52,7 @@ struct timer_t
     volatile uint32_t comp_version;
     /* TIMER_N Load Count2 Register             (0xb0-0xbc) */
     volatile uint32_t load_count2[4];
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) kendryte_timer_t;
 
 /* TIMER Control Register */
 #define TIMER_CR_ENABLE             0x00000001
@@ -63,7 +63,7 @@ struct timer_t
 #define TIMER_CR_PWM_ENABLE         0x00000008
 /* clang-format on */
 
-extern volatile struct timer_t *const timer[3];
+extern volatile kendryte_timer_t *const timer[3];
 
 /**
  * @brief       Set timer clock frequency

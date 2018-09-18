@@ -26,7 +26,7 @@
  * @brief       AES
  *
  */
-struct sha256_t
+typedef struct _sha256_t
 {
     uint32_t sha_result[8];
     uint32_t sha_data_in1;
@@ -35,7 +35,7 @@ struct sha256_t
     uint32_t sha_status;
     uint32_t reserved0;
     uint32_t sha_input_ctrl;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sha256_t;
 
 #define SHA256_HASH_SIZE 32
 

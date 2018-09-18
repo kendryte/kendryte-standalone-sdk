@@ -19,15 +19,15 @@
 #include "syscalls.h"
 #include "syslog.h"
 
-volatile struct plic_t* const plic = (volatile struct plic_t*)PLIC_BASE_ADDR;
+volatile plic_t* const plic = (volatile plic_t*)PLIC_BASE_ADDR;
 
-struct plic_instance_t
+typedef struct _plic_instance_t
 {
     plic_irq_callback_t callback;
     void* ctx;
-};
+} plic_instance_t;
 
-static struct plic_instance_t plic_instance[PLIC_NUM_HARTS][IRQN_MAX];
+static plic_instance_t plic_instance[PLIC_NUM_HARTS][IRQN_MAX];
 
 int plic_init(void)
 {
@@ -51,7 +51,7 @@ int plic_init(void)
     for (i = 0; i < IRQN_MAX; i++)
     {
         /* clang-format off */
-        plic_instance[hart_id][i] = (const struct plic_instance_t){
+        plic_instance[hart_id][i] = (const plic_instance_t){
             .callback = NULL,
             .ctx      = NULL,
         };

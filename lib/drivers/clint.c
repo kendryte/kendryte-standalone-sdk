@@ -18,24 +18,9 @@
 #include "clint.h"
 #include "sysctl.h"
 
-struct clint_timer_instance_t
-{
-    uint64_t interval;
-    uint64_t cycles;
-    uint64_t single_shot;
-    clint_timer_callback_t callback;
-    void* ctx;
-};
-
-struct clint_ipi_instance_t
-{
-    clint_ipi_callback_t callback;
-    void* ctx;
-};
-
-volatile struct clint_t* const clint = (volatile struct clint_t*)CLINT_BASE_ADDR;
-static struct clint_timer_instance_t clint_timer_instance[CLINT_NUM_HARTS];
-static struct clint_ipi_instance_t clint_ipi_instance[CLINT_NUM_HARTS];
+volatile clint_t* const clint = (volatile clint_t*)CLINT_BASE_ADDR;
+static clint_timer_instance_t clint_timer_instance[CLINT_NUM_HARTS];
+static clint_ipi_instance_t clint_ipi_instance[CLINT_NUM_HARTS];
 
 uint64_t clint_get_time(void)
 {
@@ -52,7 +37,7 @@ int clint_timer_init(void)
     /* Fill hart's instance with original data */
 
     /* clang-format off */
-    clint_timer_instance[hart_id] = (const struct clint_timer_instance_t)
+    clint_timer_instance[hart_id] = (const clint_timer_instance_t)
     {
         .interval    = 0,
         .cycles      = 0,
@@ -170,7 +155,7 @@ int clint_ipi_init(void)
     clear_csr(mie, MIP_MSIP);
     /* Fill hart's instance with original data */
     /* clang-format off */
-    clint_ipi_instance[hart_id] = (const struct clint_ipi_instance_t){
+    clint_ipi_instance[hart_id] = (const clint_ipi_instance_t){
         .callback    = NULL,
         .ctx         = NULL,
     };

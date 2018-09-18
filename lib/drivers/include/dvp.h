@@ -23,7 +23,7 @@ extern "C" {
 /**
  * @brief       DVP object
  */
-struct dvp_t
+typedef struct _dvp_t
 {
     volatile uint32_t dvp_cfg;
     volatile uint32_t r_addr;
@@ -36,7 +36,7 @@ struct dvp_t
     volatile uint32_t sts;
     volatile uint32_t reverse;
     volatile uint32_t rgb_addr;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) dvp_t;
 
 /* DVP Config Register */
 #define DVP_CFG_START_INT_ENABLE                0x00000001
@@ -98,7 +98,7 @@ struct dvp_t
 /**
  * @brief       DVP object instance
  */
-extern volatile struct dvp_t* const dvp;
+extern volatile dvp_t* const dvp;
 
 /**
  * @brief       Initialize DVP

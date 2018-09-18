@@ -19,11 +19,11 @@
 #include "plic.h"
 #include "io.h"
 
-volatile struct timer_t *const timer[3] =
+volatile kendryte_timer_t *const timer[3] =
 {
-    (volatile struct timer_t *)TIMER0_BASE_ADDR,
-    (volatile struct timer_t *)TIMER1_BASE_ADDR,
-    (volatile struct timer_t *)TIMER2_BASE_ADDR
+    (volatile kendryte_timer_t *)TIMER0_BASE_ADDR,
+    (volatile kendryte_timer_t *)TIMER1_BASE_ADDR,
+    (volatile kendryte_timer_t *)TIMER2_BASE_ADDR
 };
 
 void timer_init(uint32_t tim)

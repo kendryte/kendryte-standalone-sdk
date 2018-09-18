@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
-struct wdt_t
+typedef struct _wdt_t
 {
     /* WDT Control Register                     (0x00) */
     volatile uint32_t cr;
@@ -58,7 +58,7 @@ struct wdt_t
     volatile uint32_t comp_version;
     /* WDT Component Type Register              (0xfc) */
     volatile uint32_t comp_type;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) wdt_t;
 
 
 #define WDT_RESET_ALL                                       0x00000000U
@@ -78,7 +78,7 @@ struct wdt_t
 #define WDT_CCVR_MASK                                       0xFFFFFFFFU
 /* WDT Counter Restart Register */
 #define WDT_CRR_MASK                                        0x00000076U
-/* WDT Interrupt Status Register */                                   
+/* WDT Interrupt Status Register */
 #define WDT_STAT_MASK                                       0x00000001U
 /* WDT Interrupt Clear Register */
 #define WDT_EOI_MASK                                        0x00000001U
@@ -115,7 +115,7 @@ struct wdt_t
 /**
  * @brief       WDT object instanse
  */
-extern volatile struct wdt_t *const wdt[2];
+extern volatile wdt_t *const wdt[2];
 
 /**
  * @brief       Feed wdt

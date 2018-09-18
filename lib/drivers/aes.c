@@ -27,8 +27,8 @@ void aes_clkinit()
 }
 
 int aes_init(uint8_t* key_addr, uint8_t key_length, uint8_t* aes_iv,
-    uint8_t iv_length, uint8_t* aes_aad, enum aes_cipher_mod cipher_mod,
-    enum aes_encrypt_sel encrypt_sel, uint32_t add_size, uint32_t data_size)
+    uint8_t iv_length, uint8_t* aes_aad, aes_cipher_mod cipher_mod,
+    aes_encrypt_sel encrypt_sel, uint32_t add_size, uint32_t data_size)
 {
     int i, remainder, num, cnt;
     uint32_t u32data;
@@ -234,7 +234,7 @@ int aes_clear_chk_tag(void)
 int aes_process_less_80_bytes(uint8_t* aes_in_data,
     uint8_t* aes_out_data,
     uint32_t data_size,
-    enum aes_cipher_mod cipher_mod)
+    aes_cipher_mod cipher_mod)
 {
     int padding_size;
     int num, i, remainder, cnt;
@@ -328,7 +328,7 @@ int aes_process_less_80_bytes(uint8_t* aes_in_data,
 int aes_process(uint8_t* aes_in_data,
     uint8_t* aes_out_data,
     uint32_t data_size,
-    enum aes_cipher_mod cipher_mod)
+    aes_cipher_mod cipher_mod)
 {
     uint32_t i, temp_size;
 

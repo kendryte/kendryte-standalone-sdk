@@ -21,7 +21,7 @@
 
 #define BEAFORMING_BASE_ADDR (0x50250200U)
 
-volatile struct audio_bf_reg_t* const audio_bf = (volatile struct audio_bf_reg_t*)BEAFORMING_BASE_ADDR;
+volatile audio_bf_reg_t* const audio_bf = (volatile audio_bf_reg_t*)BEAFORMING_BASE_ADDR;
 
 /**
  * Voice strength average value right shift factor.  When performing sound direction detect,
@@ -34,7 +34,7 @@ volatile struct audio_bf_reg_t* const audio_bf = (volatile struct audio_bf_reg_t
 */
 void audio_bf_set_audio_gain(uint16_t gain)
 {
-    struct audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
+    audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
 
     ch_cfg.we_bf_target_dir = 0;
     ch_cfg.we_bf_sound_ch_en = 0;
@@ -46,7 +46,7 @@ void audio_bf_set_audio_gain(uint16_t gain)
 
 void audio_bf_set_smpl_shift(uint8_t smpl_shift)
 {
-    struct audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
+    audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
 
     tmp.smpl_shift_bits = smpl_shift;
     audio_bf->bf_dwsz_cfg_reg = tmp;
@@ -54,7 +54,7 @@ void audio_bf_set_smpl_shift(uint8_t smpl_shift)
 
 uint8_t audio_bf_get_smpl_shift(void)
 {
-    struct audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
+    audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
 
     return tmp.smpl_shift_bits;
 }
@@ -70,7 +70,7 @@ uint8_t audio_bf_get_smpl_shift(void)
  */
 void audio_bf_set_channel_enabled(uint8_t channel_bit)
 {
-    struct audio_bf_ch_cfg_t ch_cfg;
+    audio_bf_ch_cfg_t ch_cfg;
 
     ch_cfg.we_audio_gain = 0;
     ch_cfg.we_bf_target_dir = 0;
@@ -90,7 +90,7 @@ void audio_bf_set_channel_enabled(uint8_t channel_bit)
  */
 void audio_bf_channel_enable(uint8_t channel_bit)
 {
-    struct audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
+    audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
 
     ch_cfg.we_audio_gain = 0;
     ch_cfg.we_bf_target_dir = 0;
@@ -107,7 +107,7 @@ void audio_bf_channel_enable(uint8_t channel_bit)
  */
 void audio_bf_set_src_mode(uint8_t src_mode)
 {
-    struct audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
+    audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
 
     ch_cfg.we_audio_gain = 0;
     ch_cfg.we_bf_target_dir = 0;
@@ -122,12 +122,12 @@ void audio_bf_set_src_mode(uint8_t src_mode)
  */
 void audio_bf_set_direction_delay(uint8_t dir_num, uint8_t* dir_bidx)
 {
-    audio_bf->bf_dir_bidx[dir_num][0] = (struct audio_bf_dir_bidx_t){
+    audio_bf->bf_dir_bidx[dir_num][0] = (audio_bf_dir_bidx_t){
         .dir_rd_idx0 = dir_bidx[0],
         .dir_rd_idx1 = dir_bidx[1],
         .dir_rd_idx2 = dir_bidx[2],
         .dir_rd_idx3 = dir_bidx[3]};
-    audio_bf->bf_dir_bidx[dir_num][1] = (struct audio_bf_dir_bidx_t){
+    audio_bf->bf_dir_bidx[dir_num][1] = (audio_bf_dir_bidx_t){
         .dir_rd_idx0 = dir_bidx[4],
         .dir_rd_idx1 = dir_bidx[5],
         .dir_rd_idx2 = dir_bidx[6],
@@ -142,7 +142,7 @@ void audio_bf_set_direction_delay(uint8_t dir_num, uint8_t* dir_bidx)
  */
 void audio_bf_dir_enable(void)
 {
-    struct audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
+    audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
 
     bf_en_tmp.we_bf_dir_search_en = 1;
     bf_en_tmp.bf_dir_search_en = 1;
@@ -151,7 +151,7 @@ void audio_bf_dir_enable(void)
 
 void audio_bf_dir_reset(void)
 {
-    struct audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
+    audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
 
     bf_en_tmp.we_search_path_rst = 1;
     bf_en_tmp.search_path_reset = 1;
@@ -166,7 +166,7 @@ void audio_bf_dir_reset(void)
  */
 void audio_bf_voc_enable(uint8_t enable_flag)
 {
-    struct audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
+    audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
 
     bf_en_tmp.we_bf_stream_gen = 1;
     bf_en_tmp.bf_stream_gen_en = enable_flag;
@@ -175,7 +175,7 @@ void audio_bf_voc_enable(uint8_t enable_flag)
 
 void audio_bf_voc_reset(void)
 {
-    struct audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
+    audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
 
     bf_en_tmp.we_voice_gen_path_rst = 1;
     bf_en_tmp.voice_gen_path_reset = 1;
@@ -190,9 +190,9 @@ void audio_bf_voc_reset(void)
  *  . . . . . .
  * 0xF: select sound direction 15.
 */
-void audio_bf_voc_set_direction(enum en_bf_dir direction)
+void audio_bf_voc_set_direction(en_bf_dir direction)
 {
-    struct audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
+    audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
 
     ch_cfg.we_bf_sound_ch_en = 0;
     ch_cfg.we_audio_gain = 0;
@@ -201,7 +201,7 @@ void audio_bf_voc_set_direction(enum en_bf_dir direction)
     ch_cfg.bf_target_dir = direction;
     audio_bf->bf_ch_cfg_reg = ch_cfg;
 
-    struct audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
+    audio_bf_ctl_t bf_en_tmp = audio_bf->bf_ctl_reg;
 
     bf_en_tmp.we_update_voice_dir = 1;
     bf_en_tmp.update_voice_dir = 1;
@@ -217,7 +217,7 @@ void audio_bf_dir_set_prev_fir(uint16_t* fir_coef)
 
     for (i = 0; i < 9; i++)
     {
-        audio_bf->bf_pre_fir0_coef[i] = (struct audio_bf_fir_coef_t){
+        audio_bf->bf_pre_fir0_coef[i] = (audio_bf_fir_coef_t){
             .fir_tap0 = fir_coef[i * 2],
             .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
@@ -229,7 +229,7 @@ void audio_bf_dir_set_post_fir(uint16_t* fir_coef)
 
     for (i = 0; i < 9; i++)
     {
-        audio_bf->bf_post_fir0_coef[i] = (struct audio_bf_fir_coef_t){
+        audio_bf->bf_post_fir0_coef[i] = (audio_bf_fir_coef_t){
             .fir_tap0 = fir_coef[i * 2],
             .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
@@ -241,7 +241,7 @@ void audio_bf_voc_set_prev_fir(uint16_t* fir_coef)
 
     for (i = 0; i < 9; i++)
     {
-        audio_bf->bf_pre_fir1_coef[i] = (struct audio_bf_fir_coef_t){
+        audio_bf->bf_pre_fir1_coef[i] = (audio_bf_fir_coef_t){
             .fir_tap0 = fir_coef[i * 2],
             .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
@@ -253,7 +253,7 @@ void audio_bf_voc_set_post_fir(uint16_t* fir_coef)
 
     for (i = 0; i < 9; i++)
     {
-        audio_bf->bf_post_fir1_coef[i] = (struct audio_bf_fir_coef_t){
+        audio_bf->bf_post_fir1_coef[i] = (audio_bf_fir_coef_t){
             .fir_tap0 = fir_coef[i * 2],
             .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
@@ -261,11 +261,11 @@ void audio_bf_voc_set_post_fir(uint16_t* fir_coef)
 
 void audio_bf_set_fft_shift_factor(uint8_t enable_flag, uint16_t shift_factor)
 {
-    audio_bf->bf_fft_cfg_reg = (struct audio_bf_fft_cfg_t){
+    audio_bf->bf_fft_cfg_reg = (audio_bf_fft_cfg_t){
         .fft_enable = enable_flag,
         .fft_shift_factor = shift_factor};
 
-    struct audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
+    audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
 
     ch_cfg.we_data_src_mode = 1;
     ch_cfg.data_src_mode = enable_flag;
@@ -274,7 +274,7 @@ void audio_bf_set_fft_shift_factor(uint8_t enable_flag, uint16_t shift_factor)
 
 void audio_bf_dir_set_down_size(uint8_t dir_dwn_size)
 {
-    struct audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
+    audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
 
     tmp.dir_dwn_siz_rate = dir_dwn_size;
     audio_bf->bf_dwsz_cfg_reg = tmp;
@@ -282,7 +282,7 @@ void audio_bf_dir_set_down_size(uint8_t dir_dwn_size)
 
 void audio_bf_dir_set_interrupt_mask(uint8_t dir_int_mask)
 {
-    struct audio_bf_int_mask_t tmp = audio_bf->bf_int_mask_reg;
+    audio_bf_int_mask_t tmp = audio_bf->bf_int_mask_reg;
 
     tmp.dir_data_rdy_msk = dir_int_mask;
     audio_bf->bf_int_mask_reg = tmp;
@@ -290,7 +290,7 @@ void audio_bf_dir_set_interrupt_mask(uint8_t dir_int_mask)
 
 void audio_bf_voc_set_down_size(uint8_t voc_dwn_size)
 {
-    struct audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
+    audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
 
     tmp.voc_dwn_siz_rate = voc_dwn_size;
     audio_bf->bf_dwsz_cfg_reg = tmp;
@@ -298,7 +298,7 @@ void audio_bf_voc_set_down_size(uint8_t voc_dwn_size)
 
 void audio_bf_voc_set_interrupt_mask(uint8_t voc_int_mask)
 {
-    struct audio_bf_int_mask_t tmp = audio_bf->bf_int_mask_reg;
+    audio_bf_int_mask_t tmp = audio_bf->bf_int_mask_reg;
 
     tmp.voc_buf_rdy_msk = voc_int_mask;
     audio_bf->bf_int_mask_reg = tmp;
@@ -306,7 +306,7 @@ void audio_bf_voc_set_interrupt_mask(uint8_t voc_int_mask)
 
 void audio_bf_set_down_size(uint8_t dir_dwn_size, uint8_t voc_dwn_size)
 {
-    struct audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
+    audio_bf_dwsz_cfg_t tmp = audio_bf->bf_dwsz_cfg_reg;
 
     tmp.dir_dwn_siz_rate = dir_dwn_size;
     tmp.voc_dwn_siz_rate = voc_dwn_size;
@@ -315,20 +315,20 @@ void audio_bf_set_down_size(uint8_t dir_dwn_size, uint8_t voc_dwn_size)
 
 void audio_bf_set_interrupt_mask(uint8_t dir_int_mask, uint8_t voc_int_mask)
 {
-    audio_bf->bf_int_mask_reg = (struct audio_bf_int_mask_t){
+    audio_bf->bf_int_mask_reg = (audio_bf_int_mask_t){
         .dir_data_rdy_msk = dir_int_mask,
         .voc_buf_rdy_msk = voc_int_mask};
 }
 
 void audio_bf_dir_clear_int_state(void)
 {
-    audio_bf->bf_int_stat_reg = (struct audio_bf_int_stat_t){
+    audio_bf->bf_int_stat_reg = (audio_bf_int_stat_t){
         .dir_search_data_rdy = 1};
 }
 
 void audio_bf_voc_clear_int_state(void)
 {
-    audio_bf->bf_int_stat_reg = (struct audio_bf_int_stat_t){
+    audio_bf->bf_int_stat_reg = (audio_bf_int_stat_t){
         .voc_buf_data_rdy = 1};
 }
 
@@ -354,15 +354,15 @@ uint32_t audio_bf_voc_get_saturation_limit(void)
     return audio_bf->saturation_limits;
 }
 
-static void print_fir(const char* member_name, volatile struct audio_bf_fir_coef_t* pfir)
+static void print_fir(const char* member_name, volatile audio_bf_fir_coef_t* pfir)
 {
     int i;
     printf("  for(int i = 0; i < 9; i++){\n");
     for (i = 0; i < 9; i++)
     {
-        struct audio_bf_fir_coef_t fir = pfir[i];
+        audio_bf_fir_coef_t fir = pfir[i];
 
-        printf("    audio_bf->%s[%d] = (struct audio_bf_fir_coef_t){\n", member_name, i);
+        printf("    audio_bf->%s[%d] = (audio_bf_fir_coef_t){\n", member_name, i);
         printf("      .fir_tap0 = 0x%x,\n", fir.fir_tap0);
         printf("      .fir_tap1 = 0x%x\n", fir.fir_tap1);
         printf("    };\n");
@@ -374,17 +374,17 @@ void audio_bf_print_setting(void)
 {
     int i;
     printf("void audio_bf_setting(void) {\n");
-    struct audio_bf_ch_cfg_t bf_ch_cfg_reg = audio_bf->bf_ch_cfg_reg;
+    audio_bf_ch_cfg_t bf_ch_cfg_reg = audio_bf->bf_ch_cfg_reg;
 
-    printf("  audio_bf->bf_ch_cfg_reg = (struct audio_bf_ch_cfg_t){\n");
+    printf("  audio_bf->bf_ch_cfg_reg = (audio_bf_ch_cfg_t){\n");
     printf("    .we_audio_gain = 1, .we_bf_target_dir = 1, .we_bf_sound_ch_en = 1,\n");
     printf("    .audio_gain = 0x%x, .bf_target_dir = %d, .bf_sound_ch_en = %d, .data_src_mode = %d\n",
         bf_ch_cfg_reg.audio_gain, bf_ch_cfg_reg.bf_target_dir, bf_ch_cfg_reg.bf_sound_ch_en, bf_ch_cfg_reg.data_src_mode);
     printf("  };\n");
 
-    struct audio_bf_ctl_t bf_ctl_reg = audio_bf->bf_ctl_reg;
+    audio_bf_ctl_t bf_ctl_reg = audio_bf->bf_ctl_reg;
 
-    printf("  audio_bf->bf_ctl_reg = (struct audio_bf_ctl_t){\n");
+    printf("  audio_bf->bf_ctl_reg = (audio_bf_ctl_t){\n");
     printf("    .we_bf_stream_gen = 1, .we_bf_dir_search_en = 1,\n");
     printf("    .bf_stream_gen_en = %d, .bf_dir_search_en = %d\n",
         bf_ctl_reg.bf_stream_gen_en, bf_ctl_reg.bf_dir_search_en);
@@ -393,16 +393,16 @@ void audio_bf_print_setting(void)
     printf("  for(int i = 0; i < 16; i++){\n");
     for (i = 0; i < 16; i++)
     {
-        struct audio_bf_dir_bidx_t bidx0 = audio_bf->bf_dir_bidx[i][0];
-        struct audio_bf_dir_bidx_t bidx1 = audio_bf->bf_dir_bidx[i][1];
+        audio_bf_dir_bidx_t bidx0 = audio_bf->bf_dir_bidx[i][0];
+        audio_bf_dir_bidx_t bidx1 = audio_bf->bf_dir_bidx[i][1];
 
-        printf("    audio_bf->bf_dir_bidx[%d][0] = (struct audio_bf_dir_bidx_t){\n", i);
+        printf("    audio_bf->bf_dir_bidx[%d][0] = (audio_bf_dir_bidx_t){\n", i);
         printf("      .dir_rd_idx0 = 0x%x,\n", bidx0.dir_rd_idx0);
         printf("      .dir_rd_idx1 = 0x%x,\n", bidx0.dir_rd_idx1);
         printf("      .dir_rd_idx2 = 0x%x,\n", bidx0.dir_rd_idx2);
         printf("      .dir_rd_idx3 = 0x%x\n", bidx0.dir_rd_idx3);
         printf("    };\n");
-        printf("    audio_bf->bf_dir_bidx[%d][1] = (struct audio_bf_dir_bidx_t){\n", i);
+        printf("    audio_bf->bf_dir_bidx[%d][1] = (audio_bf_dir_bidx_t){\n", i);
         printf("      .dir_rd_idx0 = 0x%x,\n", bidx1.dir_rd_idx0);
         printf("      .dir_rd_idx1 = 0x%x,\n", bidx1.dir_rd_idx1);
         printf("      .dir_rd_idx2 = 0x%x,\n", bidx1.dir_rd_idx2);
@@ -416,23 +416,23 @@ void audio_bf_print_setting(void)
     print_fir("bf_pre_fir1_coef", audio_bf->bf_pre_fir1_coef);
     print_fir("bf_post_fir1_coef", audio_bf->bf_post_fir1_coef);
 
-    struct audio_bf_dwsz_cfg_t bf_dwsz_cfg_reg = audio_bf->bf_dwsz_cfg_reg;
+    audio_bf_dwsz_cfg_t bf_dwsz_cfg_reg = audio_bf->bf_dwsz_cfg_reg;
 
-    printf("  audio_bf->bf_dwsz_cfg_reg = (struct audio_bf_dwsz_cfg_t){\n");
+    printf("  audio_bf->bf_dwsz_cfg_reg = (audio_bf_dwsz_cfg_t){\n");
     printf("    .dir_dwn_siz_rate = %d, .voc_dwn_siz_rate = %d\n",
         bf_dwsz_cfg_reg.dir_dwn_siz_rate, bf_dwsz_cfg_reg.voc_dwn_siz_rate);
     printf("  };\n");
 
-    struct audio_bf_fft_cfg_t bf_fft_cfg_reg = audio_bf->bf_fft_cfg_reg;
+    audio_bf_fft_cfg_t bf_fft_cfg_reg = audio_bf->bf_fft_cfg_reg;
 
-    printf("  audio_bf->bf_fft_cfg_reg = (struct audio_bf_fft_cfg_t){\n");
+    printf("  audio_bf->bf_fft_cfg_reg = (audio_bf_fft_cfg_t){\n");
     printf("    .fft_enable = %d, .fft_shift_factor = 0x%x\n",
         bf_fft_cfg_reg.fft_enable, bf_fft_cfg_reg.fft_shift_factor);
     printf("  };\n");
 
-    struct audio_bf_int_mask_t bf_int_mask_reg = audio_bf->bf_int_mask_reg;
+    audio_bf_int_mask_t bf_int_mask_reg = audio_bf->bf_int_mask_reg;
 
-    printf("  audio_bf->bf_int_mask_reg = (struct audio_bf_int_mask_t){\n");
+    printf("  audio_bf->bf_int_mask_reg = (audio_bf_int_mask_t){\n");
     printf("    .dir_data_rdy_msk = %d, .voc_buf_rdy_msk = %d\n",
         bf_int_mask_reg.dir_data_rdy_msk, bf_int_mask_reg.voc_buf_rdy_msk);
     printf("  };\n");

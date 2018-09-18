@@ -131,7 +131,7 @@ int sd3068_read_data_dma(uint8_t addr, uint8_t *data_buf, uint8_t length)
     return 0;
 }
 
-int sd3068_set_time(struct time_t time)
+int sd3068_set_time(sd_time_t time)
 {
     uint8_t data[7] = {0};
 
@@ -147,7 +147,7 @@ int sd3068_set_time(struct time_t time)
     return 0;
 }
 
-int sd3068_set_time_dma(struct time_t time)
+int sd3068_set_time_dma(sd_time_t time)
 {
     uint8_t data[7] = {0};
 
@@ -163,7 +163,7 @@ int sd3068_set_time_dma(struct time_t time)
     return 0;
 }
 
-int sd3068_get_time(struct time_t *time)
+int sd3068_get_time(sd_time_t *time)
 {
     uint8_t data[7] = {0};
 
@@ -178,7 +178,7 @@ int sd3068_get_time(struct time_t *time)
     return 0;
 }
 
-int sd3068_get_time_dma(struct time_t *time)
+int sd3068_get_time_dma(sd_time_t *time)
 {
     uint8_t data[7] = {0};
 

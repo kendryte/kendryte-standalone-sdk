@@ -19,7 +19,7 @@
 #include "syscalls.h"
 #include "sysctl.h"
 
-volatile struct sha256_t* const sha256 = (volatile struct sha256_t*)SHA256_BASE_ADDR;
+volatile sha256_t* const sha256 = (volatile sha256_t*)SHA256_BASE_ADDR;
 
 #define ROTL(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #define ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))

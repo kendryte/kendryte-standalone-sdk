@@ -22,7 +22,7 @@
 
 #define __UART_BRATE_CONST  16
 
-typedef struct
+typedef struct _uart_devinfo_t
 {
     uart_t *uart;
     const uart_info_t *uart_info;
@@ -38,7 +38,7 @@ volatile uart_t* const  uart[3] =
 
 #define RING_BUFF_LEN 64U
 
-typedef struct
+typedef struct _ring_buff_t
 {
     size_t head;
     size_t tail;

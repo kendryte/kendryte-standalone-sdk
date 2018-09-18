@@ -74,11 +74,11 @@ extern "C" {
  *              the msip registers are hardwired to zero. The mapping supports
  *              up to 4095 machine-mode harts.
  */
-struct clint_msip_t
+typedef struct _clint_msip_t
 {
     uint32_t msip : 1;  /*!< Bit 0 is msip */
     uint32_t zero : 31; /*!< Bits [32:1] is 0 */
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) clint_msip_t;
 
 /**
  * @brief       Timer compare Registers Machine-mode timer interrupts are
@@ -114,22 +114,22 @@ typedef uint64_t clint_mtime_t;
  *              local timer interrupts, and other interrupts routed directly to
  *              a core.
  */
-struct clint_t
+typedef struct _clint_t
 {
     /* 0x0000 to 0x3FF8, MSIP Registers */
-    struct clint_msip_t msip[CLINT_MAX_HARTS];
+    clint_msip_t msip[CLINT_MAX_HARTS];
     /* Resverd space, do not use */
     uint32_t resv0;
     /* 0x4000 to 0xBFF0, Timer Compare Registers */
     clint_mtimecmp_t mtimecmp[CLINT_MAX_HARTS];
     /* 0xBFF8, Time Register */
     clint_mtime_t mtime;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) clint_t;
 
 /**
  * @brief       Clint object instanse
  */
-extern volatile struct clint_t* const clint;
+extern volatile clint_t* const clint;
 
 /**
  * @brief       Definitions for the timer callbacks
@@ -140,6 +140,21 @@ typedef int (*clint_timer_callback_t)(void* ctx);
  * @brief       Definitions for local interprocessor interrupt callbacks
  */
 typedef int (*clint_ipi_callback_t)(void* ctx);
+
+typedef struct _clint_timer_instance_t
+{
+    uint64_t interval;
+    uint64_t cycles;
+    uint64_t single_shot;
+    clint_timer_callback_t callback;
+    void* ctx;
+} clint_timer_instance_t;
+
+typedef struct _clint_ipi_instance_t
+{
+    clint_ipi_callback_t callback;
+    void* ctx;
+} clint_ipi_instance_t;
 
 /**
  * @brief       Get the time form CLINT timer register

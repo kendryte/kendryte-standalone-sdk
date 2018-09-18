@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-typedef enum
+typedef enum _gpio_drive_mode
 {
     GPIO_DM_Input,
     GPIO_DM_InputPullDown,
@@ -31,7 +31,7 @@ typedef enum
     GPIO_DM_OutputOpenSourcePullDown
 } gpio_drive_mode;
 
-typedef enum
+typedef enum _gpio_pin_edge
 {
     GPIO_PE_None,
     GPIO_PE_Falling,
@@ -39,7 +39,7 @@ typedef enum
     GPIO_PE_Both
 } gpio_pin_edge;
 
-typedef enum
+typedef enum _gpio_pin_value
 {
     GPIO_PV_Low,
     GPIO_PV_High

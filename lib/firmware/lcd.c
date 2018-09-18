@@ -53,7 +53,7 @@ void lcd_init(void)
     lcd_polling_enable();
 }
 
-void lcd_set_direction(enum lcd_dir_t dir)
+void lcd_set_direction(lcd_dir_t dir)
 {
     lcd_ctl.dir = dir;
     if (dir & DIR_XY_MASK)

@@ -78,7 +78,7 @@ extern "C" {
 #define UARTHS_IP_RXWM    (0x02)
 /* clang-format on */
 
-struct uarths_txdata_t
+typedef struct _uarths_txdata_t
 {
     /* Bits [7:0] is data */
     uint32_t data : 8;
@@ -86,9 +86,9 @@ struct uarths_txdata_t
     uint32_t zero : 23;
     /* Bit 31 is full status */
     uint32_t full : 1;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) uarths_txdata_t;
 
-struct uarths_rxdata_t
+typedef struct _uarths_rxdata_t
 {
     /* Bits [7:0] is data */
     uint32_t data : 8;
@@ -96,9 +96,9 @@ struct uarths_rxdata_t
     uint32_t zero : 23;
     /* Bit 31 is empty status */
     uint32_t empty : 1;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) uarths_rxdata_t;
 
-struct uarths_txctrl_t
+typedef struct _uarths_txctrl_t
 {
     /* Bit 0 is txen, controls whether the Tx channel is active. */
     uint32_t txen : 1;
@@ -110,9 +110,9 @@ struct uarths_txctrl_t
     uint32_t txcnt : 3;
     /* Bits [31:19] is reserved */
     uint32_t resv1 : 13;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) uarths_txctrl_t;
 
-struct uarths_rxctrl_t
+typedef struct _uarths_rxctrl_t
 {
     /* Bit 0 is txen, controls whether the Tx channel is active. */
     uint32_t rxen : 1;
@@ -122,9 +122,9 @@ struct uarths_rxctrl_t
     uint32_t rxcnt : 3;
     /* Bits [31:19] is reserved */
     uint32_t resv1 : 13;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) uarths_rxctrl_t;
 
-struct uarths_ip_t
+typedef struct _uarths_ip_t
 {
     /* Bit 0 is txwm, raised less than txcnt */
     uint32_t txwm : 1;
@@ -132,9 +132,9 @@ struct uarths_ip_t
     uint32_t rxwm : 1;
     /* Bits [31:2] is 0 */
     uint32_t zero : 30;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) uarths_ip_t;
 
-struct uarths_ie_t
+typedef struct _uarths_ie_t
 {
     /* Bit 0 is txwm, raised less than txcnt */
     uint32_t txwm : 1;
@@ -142,35 +142,35 @@ struct uarths_ie_t
     uint32_t rxwm : 1;
     /* Bits [31:2] is 0 */
     uint32_t zero : 30;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) uarths_ie_t;
 
-struct uarths_div_t
+typedef struct _uarths_div_t
 {
     /* Bits [31:2] is baud rate divisor register */
     uint32_t div : 16;
     /* Bits [31:16] is 0 */
     uint32_t zero : 16;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) uarths_div_t;
 
-struct uarths_t
+typedef struct uarths_t
 {
     /* Address offset 0x00 */
-    struct uarths_txdata_t txdata;
+    uarths_txdata_t txdata;
     /* Address offset 0x04 */
-    struct uarths_rxdata_t rxdata;
+    uarths_rxdata_t rxdata;
     /* Address offset 0x08 */
-    struct uarths_txctrl_t txctrl;
+    uarths_txctrl_t txctrl;
     /* Address offset 0x0c */
-    struct uarths_rxctrl_t rxctrl;
+    uarths_rxctrl_t rxctrl;
     /* Address offset 0x10 */
-    struct uarths_ie_t ie;
+    uarths_ie_t ie;
     /* Address offset 0x14 */
-    struct uarths_ip_t ip;
+    uarths_ip_t ip;
     /* Address offset 0x18 */
-    struct uarths_div_t div;
-} __attribute__((packed, aligned(4)));
+    uarths_div_t div;
+} __attribute__((packed, aligned(4))) uarths_t;
 
-extern volatile struct uarths_t *const uarths;
+extern volatile uarths_t *const uarths;
 
 /**
  * @brief       Initialization Core UART

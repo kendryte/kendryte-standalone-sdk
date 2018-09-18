@@ -151,7 +151,7 @@ extern "C" {
  *
  */
 /* clang-format off */
-typedef enum plic_irq_t
+typedef enum _plic_irq_t
 {
     IRQN_NO_INTERRUPT        = 0, /*!< The non-existent interrupt */
     IRQN_SPI0_INTERRUPT      = 1, /*!< SPI0 interrupt */
@@ -234,11 +234,11 @@ typedef enum plic_irq_t
  *             the lowest ID have the highest effective priority. The priority
  *             registers are all WARL.
  */
-struct plic_source_priorities_t
+typedef struct _plic_source_priorities_t
 {
     /* 0x0C000000: Reserved, 0x0C000004-0x0C000FFC: 1-1023 priorities */
     uint32_t priority[1024];
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) plic_source_priorities_t;
 
 /**
  * @brief       Interrupt Pending Bits
@@ -254,12 +254,12 @@ struct plic_source_priorities_t
  *              pending bit can be set by instructing the associated gateway to
  *              send an interrupt service request.
  */
-struct plic_pending_bits_t {
+typedef struct _plic_pending_bits_t {
     /* 0x0C001000-0x0C00107C: Bit 0 is zero, Bits 1-1023 is pending bits */
     uint32_t u32[32];
     /* 0x0C001080-0x0C001FFF: Reserved */
     uint8_t resv[0xF80];
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) plic_pending_bits_t;
 
 /**
  * @brief       Target Interrupt Enables
@@ -279,7 +279,7 @@ struct plic_pending_bits_t {
  *              treating all non-existent interrupt source’s enables as
  *              hardwired to zero.
  */
-struct plic_target_enables_t
+typedef struct _plic_target_enables_t
 {
     /* 0x0C002000-0x0C1F1F80: target 0-15871 enables */
     struct
@@ -289,7 +289,7 @@ struct plic_target_enables_t
 
     /* 0x0C1F2000-0x0C1FFFFC: Reserved, size 0xE000 */
     uint8_t resv[0xE000];
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) plic_target_enables_t;
 
 /**
  * @brief       PLIC Targets
@@ -320,7 +320,7 @@ struct plic_target_enables_t
  *              that is currently enabled for the target, the completion is
  *              silently ignored.
  */
-struct plic_target_t
+typedef struct _plic_target_t
 {
     /* 0x0C200000-0x0FFFF004: target 0-15871 */
     struct {
@@ -328,7 +328,7 @@ struct plic_target_t
         uint32_t claim_complete;    /* Offset 0x004 */
         uint8_t resv[0xFF8];        /* Offset 0x008, Size 0xFF8 */
     } target[15872];
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) plic_target_t;
 
 /**
  * @brief       Platform-Level Interrupt Controller
@@ -338,19 +338,19 @@ struct plic_target_t
  *              support a maximum of 1023 external interrupt sources targeting
  *              up to 15,872 hart contexts.
  */
-struct plic_t
+typedef struct _plic_t
 {
     /* 0x0C000000-0x0C000FFC */
-    struct plic_source_priorities_t source_priorities;
+    plic_source_priorities_t source_priorities;
     /* 0x0C001000-0x0C001FFF */
-    const struct plic_pending_bits_t pending_bits;
+    const plic_pending_bits_t pending_bits;
     /* 0x0C002000-0x0C1FFFFC */
-    struct plic_target_enables_t target_enables;
+    plic_target_enables_t target_enables;
     /* 0x0C200000-0x0FFFF004 */
-    struct plic_target_t targets;
-} __attribute__((packed, aligned(4)));
+    plic_target_t targets;
+} __attribute__((packed, aligned(4))) plic_t;
 
-extern volatile struct plic_t *const plic;
+extern volatile plic_t *const plic;
 
 /**
  * @brief       Definitions for the interrupt callbacks

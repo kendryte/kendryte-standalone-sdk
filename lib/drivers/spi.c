@@ -22,11 +22,12 @@
 
 #define     SPI_MAX_NUM     4
 
-volatile struct spi_t *const spi[4] = {
-    (volatile struct spi_t *)SPI0_BASE_ADDR,
-    (volatile struct spi_t *)SPI1_BASE_ADDR,
-    (volatile struct spi_t *)SPI_SLAVE_BASE_ADDR,
-    (volatile struct spi_t *)SPI3_BASE_ADDR
+volatile spi_t *const spi[4] =
+{
+    (volatile spi_t *)SPI0_BASE_ADDR,
+    (volatile spi_t *)SPI1_BASE_ADDR,
+    (volatile spi_t *)SPI_SLAVE_BASE_ADDR,
+    (volatile spi_t *)SPI3_BASE_ADDR
 };
 
 int spi_clk_init(uint8_t spi_bus){
@@ -77,7 +78,7 @@ int spi_master_config(uint8_t spi_bus, spi_mode mode, spi_frame_format frame_for
     default:
         break;
     }
-    volatile struct spi_t *spi_adapter = spi[spi_bus];
+    volatile spi_t *spi_adapter = spi[spi_bus];
 
     spi_adapter->baudr = 0x14;
     spi_adapter->imr = 0x00;
@@ -97,7 +98,7 @@ void spi_trans_config(uint8_t spi_bus, size_t instruction_length, size_t address
     configASSERT(wait_cycles < (1 << 5));
     configASSERT(trans_mode < 3);
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     uint32_t inst_l;
     switch (instruction_length)
     {
@@ -129,7 +130,7 @@ int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
 
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     spi_handle->ssienr = 0x01;
     while (cmd_len){
         spi_handle->dr[0] = *cmd_buff++;
@@ -159,7 +160,7 @@ int spi_send_data_dma(dmac_channel_number channel_num, uint8_t spi_bus, uint32_t
                         uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     uint32_t *buf = malloc((cmd_len + tx_len) * sizeof(uint32_t));
     int i;
@@ -192,7 +193,7 @@ int spi_normal_send_dma(dmac_channel_number channel_num, uint8_t spi_bus, uint32
                         void *tx_buff, uint32_t tx_len, spi_transfer_width stw)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     uint32_t *buf = malloc((tx_len) * sizeof(uint32_t));
     int i;
@@ -232,7 +233,7 @@ int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     spi_handle->ctrlr1 = rx_len - 1;
     spi_handle->ssienr = 0x01;
@@ -255,7 +256,7 @@ int spi_receive_data_dma(dmac_channel_number w_channel_num, dmac_channel_number 
                             uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     uint32_t * write_cmd = malloc(sizeof(uint32_t) * (cmd_len + rx_len));
     size_t i;
@@ -295,7 +296,7 @@ int spi_special_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_b
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     spi_handle->ctrlr1 = rx_len - 1;
     spi_handle->ssienr = 0x01;
@@ -318,7 +319,7 @@ int spi_special_receive_data_dma(dmac_channel_number w_channel_num, dmac_channel
                                     uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
 {
         configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-        volatile struct spi_t *spi_handle = spi[spi_bus];
+        volatile spi_t *spi_handle = spi[spi_bus];
 
         uint32_t * write_cmd = malloc(sizeof(uint32_t) * (cmd_len + rx_len));
         size_t i;
@@ -359,7 +360,7 @@ int spi_special_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
 
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     spi_handle->ssienr = 0x01;
     while (cmd_len--)
@@ -388,7 +389,7 @@ int spi_special_send_data_dma(dmac_channel_number channel_num,uint8_t spi_bus, u
                                 uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     uint32_t *buf = malloc((cmd_len + tx_len) * sizeof(uint32_t));
     int i;
@@ -420,7 +421,7 @@ int spi_fill_dma(dmac_channel_number channel_num,uint8_t spi_bus, uint32_t chip_
                                 uint32_t *cmd_buff, uint32_t cmd_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     spi_handle->dmacr = 0x2;    /*enable dma transmit*/
     spi_handle->ssienr = 0x01;
@@ -441,7 +442,7 @@ int spi_fill_dma(dmac_channel_number channel_num,uint8_t spi_bus, uint32_t chip_
 void spi_set_tmod(uint8_t spi_bus, uint32_t tmod)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     uint8_t tmod_offset = 0;
     switch(spi_bus){
     case 0:
@@ -463,7 +464,7 @@ void spi_set_tmod(uint8_t spi_bus, uint32_t tmod)
 void spi_set_frame_format(uint8_t spi_bus, uint32_t spi_frf)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     uint8_t frf_offset = 0;
     switch(spi_bus){
     case 0:
@@ -485,7 +486,7 @@ void spi_set_frame_format(uint8_t spi_bus, uint32_t spi_frf)
 int spi_get_frame_format(uint8_t spi_bus)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     uint8_t frf_offset = 0;
     switch(spi_bus){
     case 0:
@@ -511,14 +512,14 @@ int spi_get_frame_format(uint8_t spi_bus)
 void spi_set_work_mode(uint8_t spi_bus, spi_mode mode)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     set_bit(&spi_handle->ctrlr0, 0x3 << 6, mode << 6);
 }
 
 void spi_set_frame_size(uint8_t spi_bus, uint32_t dfs)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     uint8_t dfs_offset;
     switch(spi_bus){
@@ -558,7 +559,7 @@ void spi_set_wait_cycles(uint8_t spi_bus, uint32_t wcycles)
     configASSERT(wcycles < (1 << 5));
     int frame_format = spi_get_frame_format(spi_bus);
     configASSERT(frame_format != SPI_FF_STANDARD);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     set_bit(&spi_handle->spi_ctrlr0, 0x1F << 11, wcycles << 11);
 }
@@ -568,7 +569,7 @@ void spi_set_inst_length(uint8_t spi_bus, uint32_t instruction_length)
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     int frame_format = spi_get_frame_format(spi_bus);
     configASSERT(frame_format != SPI_FF_STANDARD);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
 
     uint32_t inst_l = 0;
     switch (instruction_length)
@@ -599,7 +600,7 @@ void spi_set_address_length(uint8_t spi_bus, uint32_t address_length)
     int frame_format = spi_get_frame_format(spi_bus);
     configASSERT(frame_format != SPI_FF_STANDARD);
     configASSERT(address_length % 4 == 0 && address_length <= 60);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     uint32_t addr_l = address_length / 4;
     set_bit(&spi_handle->spi_ctrlr0, 0xF << 2, addr_l << 2);
 }
@@ -609,7 +610,7 @@ void spi_set_trans_mode(uint8_t spi_bus, spi_addr_inst_trans_mode trans_mode)
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     int frame_format = spi_get_frame_format(spi_bus);
     configASSERT(frame_format != SPI_FF_STANDARD);
-    volatile struct spi_t *spi_handle = spi[spi_bus];
+    volatile spi_t *spi_handle = spi[spi_bus];
     set_bit(&spi_handle->spi_ctrlr0, 0x3 << 0, trans_mode << 0);
 }
 

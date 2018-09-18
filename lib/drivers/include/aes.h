@@ -85,25 +85,25 @@ typedef struct _aes
     uint32_t aes_key_ext[4];
 } __attribute__((packed, aligned(4))) aes_t;
 
-enum aes_cipher_mod
+typedef enum _aes_cipher_mod
 {
     AES_ECB = 0,
     AES_CBC = 1,
     AES_GCM = 2,
-};
+} aes_cipher_mod;
 
-enum aes_kmode
+typedef enum _aes_kmode
 {
     AES_128 = 0,
     AES_192 = 1,
     AES_256 = 2,
-};
+} aes_kmode;
 
-enum aes_encrypt_sel
+typedef enum _aes_encrypt_sel
 {
     AES_ENCRYPTION = 0,
     AES_DECRYPTION = 1,
-};
+} aes_encrypt_sel;
 
 /**
  * @brief       Aes initialize
@@ -123,8 +123,8 @@ enum aes_encrypt_sel
  *     - Other  Fail
  */
 int aes_init(uint8_t* key_addr, uint8_t key_length, uint8_t* aes_iv,
-    uint8_t iv_length, uint8_t* aes_aad, enum aes_cipher_mod cipher_mod,
-    enum aes_encrypt_sel encrypt_sel, uint32_t add_size, uint32_t data_size);
+    uint8_t iv_length, uint8_t* aes_aad, aes_cipher_mod cipher_mod,
+    aes_encrypt_sel encrypt_sel, uint32_t add_size, uint32_t data_size);
 
 /**
  * @brief       Aes write aad data
@@ -232,7 +232,7 @@ int aes_clear_chk_tag(void);
 int aes_process(uint8_t* aes_in_data,
     uint8_t* aes_out_data,
     uint32_t data_size,
-    enum aes_cipher_mod cipher_mod);
+    aes_cipher_mod cipher_mod);
 
 /**
  * @brief       Aes check gcm tag
