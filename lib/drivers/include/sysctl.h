@@ -269,6 +269,12 @@ typedef enum _sysctl_reset_e
     SYSCTL_RESET_MAX = 31
 } sysctl_reset_e;
 
+typedef enum _io_power_mode
+{
+    POWER_V33,
+    POWER_V18
+} io_power_mode_t;
+
 /**
  * @brief       Git short commit id
  *
@@ -1020,6 +1026,18 @@ uint32_t sysctl_pll_fast_enable_pll(void);
  *     - Other  Fail
  */
 uint32_t sysctl_spi0_dvp_data_set(uint8_t en);
+
+/**
+ * @brief       Set io power mode
+ *
+ * @param[in]   power_bank          IO power bank
+ * @param[in]   io_power_mode       Set power mode 3.3v or 1.8
+ *
+ * @return      Result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+uint32_t sysctl_power_mode_sel(uint8_t power_bank, io_power_mode_t io_power_mode);
 
 #ifdef __cplusplus
 }

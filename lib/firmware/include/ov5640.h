@@ -34,15 +34,6 @@
 
 #define jpeg_buf_size       (30*1024)
 
-const uint16_t jpeg_size_tbl[][2]=
-{
-    160, 120,   /*QQVGA*/
-    176, 144,   /*QCIF*/
-    320, 240,   /*QVGA*/
-    400, 240,   /*WQVGA*/
-    352, 288,   /*CIF*/
-};
-
 uint8_t ov5640_wr_reg(uint16_t reg, uint8_t data);
 uint8_t ov5640_rd_reg(uint16_t reg);
 uint8_t ov5640_init(void);

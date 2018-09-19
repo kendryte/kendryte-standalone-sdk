@@ -18,8 +18,8 @@
 #include <stdint.h>
 
 /* clang-format off */
-#define LCD_X_MAX   (320)
-#define LCD_Y_MAX   (480)
+#define LCD_X_MAX   (240)
+#define LCD_Y_MAX   (320)
 
 #define BLACK       0x0000
 #define NAVY        0x000F

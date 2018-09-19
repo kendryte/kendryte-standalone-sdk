@@ -37,6 +37,10 @@ void  init_dcx(void)
     fpioa_set_function(DCX_IO, FUNC_GPIOHS0 + DCX_GPIONUM);/*dcx*/
     gpiohs_set_drive_mode(DCX_GPIONUM, GPIO_DM_Output);
     gpiohs_set_pin_value(DCX_GPIONUM, GPIO_PV_High);
+
+    fpioa_set_function(RESET_IO, FUNC_GPIOHS0 + RESET_GPIONUM);/*reset*/
+    gpiohs_set_drive_mode(RESET_GPIONUM, GPIO_DM_Output);
+    gpiohs_set_pin_value(RESET_GPIONUM, GPIO_PV_High);
 }
 
 void set_dcx_control(void)

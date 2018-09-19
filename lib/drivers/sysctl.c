@@ -17,6 +17,7 @@
 #include <math.h>
 #include <stdio.h>
 #include "sysctl.h"
+#include "string.h"
 
 #define SYSCTRL_CLOCK_FREQ_IN0 (26000000UL)
 
@@ -1728,6 +1729,15 @@ uint32_t sysctl_pll_fast_enable_pll(void)
 uint32_t sysctl_spi0_dvp_data_set(uint8_t en)
 {
     sysctl->misc.spi_dvp_data_enable = en;
+    return 0;
+}
+
+uint32_t sysctl_power_mode_sel(uint8_t power_bank, io_power_mode_t io_power_mode)
+{
+    if(io_power_mode)
+        *((uint32_t *)(&sysctl->power_sel)) |= (1 << power_bank);
+    else
+        *((uint32_t *)(&sysctl->power_sel)) &= ~(1 << power_bank);
     return 0;
 }
 
