@@ -18,7 +18,8 @@ add_compile_flags(BOTH
         -ffunction-sections
         -fdata-sections
         -fstrict-volatile-bitfields
-        -O0
+	-fno-zero-initialized-in-bss
+        -Os
         -ggdb
         )
 
