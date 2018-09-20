@@ -25,8 +25,8 @@ const uint16_t ov5640_init_reg_tbl[][2]=
     0x3017, 0xff, /* FREX, Vsync, HREF, PCLK, D[9:6] output enable */
     0x3018, 0xff, /* D[5:0], GPIO[1:0] output enable */
     0x3034, 0x1a, /* MIPI 10-bit*/
-    0x3035, 0x31, /* PLL */
-    0x3036, 0x80, /* PLL */
+    0x3035, 0x41, /* PLL */
+    0x3036, 0x40, /* PLL */
     0x3037, 0x13, /* PLL root divider, bit[4], PLL pre-divider, bit[3:0] */
     0x3108, 0x01, /* PCLK root divider, bit[5:4], SCLK2x root divider, bit[3:2] */
     /* SCLK root divider, bit[1:0] */
