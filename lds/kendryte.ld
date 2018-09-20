@@ -170,7 +170,7 @@ SECTIONS
     *(.gnu.linkonce.d.*)
     /* Have _gp point to middle of sdata/sbss to maximize displacement range */
     . = ALIGN(8);
-    PROVIDE( _gp = ABSOLUTE(.) + 0x800);
+    PROVIDE( __global_pointer$ = ABSOLUTE(.) + 0x800);
     /* Writable small data segment (.sdata segment) */
     *(.sdata .sdata.*)
     *(.gnu.linkonce.s.*)
