@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 /**
  * File: printf.c
  *
@@ -120,7 +120,7 @@ struct param
     size_t bf_len;       /* Buffer length */
 };
 
-static hartlock_t lock = HARTLOCK_INIT;
+static corelock_t lock = CORELOCK_INIT;
 
 
 
@@ -657,10 +657,10 @@ int printk(const char *format, ...)
 
     va_start(ap, format);
     /* Begin protected code */
-    hartlock_lock(&lock);
+    corelock_lock(&lock);
     tfp_format(stdout_putp, uart_putf, format, ap);
     /* End protected code */
-    hartlock_unlock(&lock);
+    corelock_unlock(&lock);
     va_end(ap);
 
     return 0;

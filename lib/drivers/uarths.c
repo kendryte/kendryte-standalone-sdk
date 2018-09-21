@@ -23,12 +23,12 @@ volatile uarths_t *const uarths = (volatile uarths_t *)UARTHS_BASE_ADDR;
 
 static inline int uart_putc(char c)
 {
-    /* Read hart id */
-    unsigned long hart_id = read_hartid();
+    /* Read core id */
+    unsigned long core_id = current_coreid();
     /* Set print data reg */
     volatile uint32_t *reg = (volatile uint32_t *)0x50440080UL;
     /* Push data out */
-    if (hart_id == 0)
+    if (core_id == 0)
     {
         /* Select core 0 data reg */
         *reg = (0UL << 30) | c;

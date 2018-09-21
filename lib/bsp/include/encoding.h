@@ -211,7 +211,7 @@
 
 #define read_time()         read_csr(mtime)
 #define read_cycle()        read_csr(mcycle)
-#define read_hartid()       read_csr(mhartid)
+#define current_coreid()       read_csr(mhartid)
 
 #endif
 

@@ -16,7 +16,7 @@
  * @file
  * @brief      The PLIC complies with the RISC-V Privileged Architecture
  *             specification, and can support a maximum of 1023 external
- *             interrupt sources targeting up to 15,872 hart contexts.
+ *             interrupt sources targeting up to 15,872 core contexts.
  *
  * @note       PLIC RAM Layout
  *
@@ -72,7 +72,7 @@ extern "C" {
 #define PLIC_NUM_PRIORITIES (7)
 
 /* Real number of cores */
-#define PLIC_NUM_HARTS      (2)
+#define PLIC_NUM_CORES      (2)
 /* clang-format on */
 
 /**
@@ -336,7 +336,7 @@ typedef struct _plic_target_t
  *              PLIC is Platform-Level Interrupt Controller. The PLIC complies
  *              with the RISC-V Privileged Architecture specification, and can
  *              support a maximum of 1023 external interrupt sources targeting
- *              up to 15,872 hart contexts.
+ *              up to 15,872 core contexts.
  */
 typedef struct _plic_t
 {

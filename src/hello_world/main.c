@@ -17,7 +17,7 @@
 #include "encoding.h"
 int main()
 {
-    uint64_t core_id = read_hartid();
+    uint64_t core_id = current_coreid();
     if (core_id == 0)
     {
         printf("Core 0 Hello, world!\n");
