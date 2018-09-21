@@ -68,12 +68,12 @@ SECTIONS
     /* .gnu.warning sections are handled specially by elf32.em.  */
     *(.gnu.warning)
   } > ram : DATA
-  
+
   .fini :
   {
     KEEP (*(SORT_NONE(.fini)))
   } > ram : DATA
-  
+
   /* Read-only data segment */
   .rodata :
   {
@@ -81,7 +81,7 @@ SECTIONS
     *(.rodata .rodata.*)
     *(.gnu.linkonce.r.*)
   } > ram : DATA
-  
+
   .preinit_array :
   {
     PROVIDE_HIDDEN (__preinit_array_start = .);
@@ -132,7 +132,7 @@ SECTIONS
     KEEP (*(SORT(.dtors.*)))
     KEEP (*(.dtors))
   } > ram : DATA
-  
+
   .data :
   {
     *(.data .data.* .gnu.linkonce.d.*)
@@ -148,7 +148,7 @@ SECTIONS
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   } > ram : DATA
   _edata = .; PROVIDE (edata = .);
-  
+
   __bss_start = .;
   .sbss :
   {
@@ -203,11 +203,11 @@ SECTIONS
   PROVIDE( _heap_start = ABSOLUTE(.) + _stack_size * 5 );
   PROVIDE( _tp0 = (_end + 63) & (-64) );
   PROVIDE( _tp1 = _tp0 + _stack_size );
-  PROVIDE( _sp0 = _tp0 + _stack_size );
-  PROVIDE( _sp1 = _tp1 + _stack_size );
+  PROVIDE( _sp0 = _tp1 + _stack_size );
+  PROVIDE( _sp1 = _sp0 + _stack_size );
   /* Heap end is at the end of memory, the memory size can set in kconfig */
   PROVIDE( _heap_end = _ram_end );
-  
+
 
   /* Stabs debugging sections.  */
   .stab          0 : { *(.stab) }
