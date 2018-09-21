@@ -217,7 +217,7 @@ int clint_ipi_deregister(void)
     return clint_ipi_register(NULL, NULL);
 }
 
-uintptr_t handle_irq_m_timer(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
+uintptr_t handle_irq_m_timer(uintptr_t cause, uintptr_t epc)
 {
     /* Read hart id */
     uint64_t hart_id = read_hartid();
@@ -242,7 +242,7 @@ uintptr_t handle_irq_m_timer(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
     return epc;
 }
 
-uintptr_t handle_irq_m_soft(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
+uintptr_t handle_irq_m_soft(uintptr_t cause, uintptr_t epc)
 {
     /* Read hart id */
     uint64_t hart_id = read_hartid();
