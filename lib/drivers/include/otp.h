@@ -30,7 +30,7 @@
 #define OTP_TEST_FLAG           0x00000004U
 /* clang-format on */
 
-typedef enum _otp_status_t
+typedef enum _otp_status
 {
     OTP_OK = 0,
     OTP_ERROR_TIMEOUT,  /* operation timeout*/
@@ -51,7 +51,7 @@ typedef enum _otp_status_t
     OTP_FLAG_UNSET,     /* flag unset*/
 } otp_status_t;
 
-typedef enum _otp_data_block_t
+typedef enum _otp_data_block
 {
     COMMON_DATA_BLOCK1 = 0,
     COMMON_DATA_BLOCK2,
@@ -120,7 +120,7 @@ typedef enum _otp_data_block_t
     DATA_BLOCK_MAX = 64,
 } otp_data_block_t;
 
-typedef enum _otp_func_reg_t
+typedef enum _otp_func_reg
 {
     BLANK_TEST_DISABLE = 0,
     RAM_BISR_DISABLE,
@@ -133,7 +133,7 @@ typedef enum _otp_func_reg_t
     FUNC_REG_MAX = 64,
 } otp_func_reg_t;
 
-typedef struct _otp_t
+typedef struct _otp
 {
     volatile uint32_t otp_ceb;
     volatile uint32_t otp_test_mode;

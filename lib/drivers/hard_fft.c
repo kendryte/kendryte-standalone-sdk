@@ -53,7 +53,7 @@ void fft_input_data(float* x, float* y, uint8_t point)
 {
     uint16_t point_num = 0;
     uint16_t i;
-    fft_data input_data;
+    fft_data_t input_data;
 
     if (point == 0)
         point_num = 512;
@@ -82,7 +82,7 @@ void fft_input_intdata(int16_t* data, uint8_t point)
 {
     uint16_t point_num = 0;
     uint16_t i;
-    fft_data input_data;
+    fft_data_t input_data;
 
     if (point == 0)
         point_num = 512;
@@ -123,7 +123,7 @@ void fft_get_result(float* x, float* y, uint8_t point)
     uint64_t u64Data;
     uint16_t point_num = 0;
     uint16_t i;
-    fft_data output_data;
+    fft_data_t output_data;
 
     if (point == 0)
         point_num = 512;
@@ -139,7 +139,7 @@ void fft_get_result(float* x, float* y, uint8_t point)
     {
         u64Data = fft_result[i]; /*fft->fft_output_fifo.fft_output_fifo;*/
 
-        output_data = *(fft_data*)&u64Data;
+        output_data = *(fft_data_t*)&u64Data;
 
         x[2 * i] = ((float)output_data.R1) / 32;
         y[2 * i] = ((float)output_data.I1) / 32;

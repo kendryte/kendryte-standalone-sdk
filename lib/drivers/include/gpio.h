@@ -26,7 +26,7 @@ extern "C" {
 /**
  * @brief       Structure for accessing GPIO registers by individual bit
  */
-typedef struct _gpio_bits_t
+typedef struct _gpio_bits
 {
     uint32_t b0 : 1;
     uint32_t b1 : 1;
@@ -65,7 +65,7 @@ typedef struct _gpio_bits_t
 /**
  * @brief       Structure of templates for accessing GPIO registers
  */
-typedef union _gpio_access_tp_t
+typedef union _gpio_access_tp
 {
     /* 32x1 bit mode */
     uint32_t u32[1];
@@ -80,7 +80,7 @@ typedef union _gpio_access_tp_t
 /**
  * @brief       The GPIO address map
  */
-typedef struct _gpio_t
+typedef struct _gpio
 {
     /* Offset 0x00: Data (output) registers */
     gpio_access_tp_t data_output;
@@ -147,7 +147,7 @@ void gpio_pin_init(size_t pin_num, size_t gpio_pin);
  * @param[in]   pin         Gpio pin
  * @param[in]   mode        Gpio pin drive mode
  */
-void gpio_set_drive_mode(size_t pin, gpio_drive_mode mode);
+void gpio_set_drive_mode(size_t pin, gpio_drive_mode_t mode);
 
 /**
  * @brief       Get Gpio pin value
@@ -158,7 +158,7 @@ void gpio_set_drive_mode(size_t pin, gpio_drive_mode mode);
  *     - GPIO_PV_Low     Gpio pin low
  *     - GPIO_PV_High    Gpio pin high
  */
-gpio_pin_value gpio_get_pin_value(size_t pin);
+gpio_pin_value_t gpio_get_pin_value(size_t pin);
 
 /**
  * @brief       Set Gpio pin value
@@ -166,7 +166,7 @@ gpio_pin_value gpio_get_pin_value(size_t pin);
  * @param[in]   pin         Gpio pin
  * @param[in]   value       Gpio pin value
  */
-void gpio_set_pin_value(size_t pin, gpio_pin_value value);
+void gpio_set_pin_value(size_t pin, gpio_pin_value_t value);
 
 #ifdef __cplusplus
 }

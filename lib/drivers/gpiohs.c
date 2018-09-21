@@ -23,7 +23,7 @@ volatile gpiohs_t* const gpiohs = (volatile gpiohs_t*)GPIOHS_BASE_ADDR;
 typedef struct _gpiohs_pin_context
 {
     size_t pin;
-    gpio_pin_edge edge;
+    gpio_pin_edge_t edge;
     void (*callback)();
 } gpiohs_pin_context;
 
@@ -44,13 +44,13 @@ void gpiohs_pin_init(size_t pin_num, size_t gpio_pin)
     fpioa_set_function(pin_num, FUNC_GPIOHS0 + gpio_pin);
 }
 
-void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode mode)
+void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode_t mode)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
     int io_number = fpioa_get_io_by_func(FUNC_GPIOHS0 + pin);
     configASSERT(io_number > 0);
 
-    fpioa_pull_e pull;
+    fpioa_pull_t pull;
     uint32_t dir;
 
     switch (mode)
@@ -82,19 +82,19 @@ void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode mode)
     set_gpio_bit(reg, pin, 1);
 }
 
-gpio_pin_value gpiohs_get_pin_value(size_t pin)
+gpio_pin_value_t gpiohs_get_pin_value(size_t pin)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
     return get_gpio_bit(gpiohs->input_val.u32, pin);
 }
 
-void gpiohs_set_pin_value(size_t pin, gpio_pin_value value)
+void gpiohs_set_pin_value(size_t pin, gpio_pin_value_t value)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
     set_gpio_bit(gpiohs->output_val.u32, pin, value);
 }
 
-void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge edge)
+void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge_t edge)
 {
     uint32_t rise, fall, irq;
     switch (edge)

@@ -78,7 +78,7 @@ extern "C" {
 #define UARTHS_IP_RXWM    (0x02)
 /* clang-format on */
 
-typedef struct _uarths_txdata_t
+typedef struct _uarths_txdata
 {
     /* Bits [7:0] is data */
     uint32_t data : 8;
@@ -88,7 +88,7 @@ typedef struct _uarths_txdata_t
     uint32_t full : 1;
 } __attribute__((packed, aligned(4))) uarths_txdata_t;
 
-typedef struct _uarths_rxdata_t
+typedef struct _uarths_rxdata
 {
     /* Bits [7:0] is data */
     uint32_t data : 8;
@@ -98,7 +98,7 @@ typedef struct _uarths_rxdata_t
     uint32_t empty : 1;
 } __attribute__((packed, aligned(4))) uarths_rxdata_t;
 
-typedef struct _uarths_txctrl_t
+typedef struct _uarths_txctrl
 {
     /* Bit 0 is txen, controls whether the Tx channel is active. */
     uint32_t txen : 1;
@@ -112,7 +112,7 @@ typedef struct _uarths_txctrl_t
     uint32_t resv1 : 13;
 } __attribute__((packed, aligned(4))) uarths_txctrl_t;
 
-typedef struct _uarths_rxctrl_t
+typedef struct _uarths_rxctrl
 {
     /* Bit 0 is txen, controls whether the Tx channel is active. */
     uint32_t rxen : 1;
@@ -124,7 +124,7 @@ typedef struct _uarths_rxctrl_t
     uint32_t resv1 : 13;
 } __attribute__((packed, aligned(4))) uarths_rxctrl_t;
 
-typedef struct _uarths_ip_t
+typedef struct _uarths_ip
 {
     /* Bit 0 is txwm, raised less than txcnt */
     uint32_t txwm : 1;
@@ -134,7 +134,7 @@ typedef struct _uarths_ip_t
     uint32_t zero : 30;
 } __attribute__((packed, aligned(4))) uarths_ip_t;
 
-typedef struct _uarths_ie_t
+typedef struct _uarths_ie
 {
     /* Bit 0 is txwm, raised less than txcnt */
     uint32_t txwm : 1;
@@ -144,7 +144,7 @@ typedef struct _uarths_ie_t
     uint32_t zero : 30;
 } __attribute__((packed, aligned(4))) uarths_ie_t;
 
-typedef struct _uarths_div_t
+typedef struct _uarths_div
 {
     /* Bits [31:2] is baud rate divisor register */
     uint32_t div : 16;
@@ -152,7 +152,7 @@ typedef struct _uarths_div_t
     uint32_t zero : 16;
 } __attribute__((packed, aligned(4))) uarths_div_t;
 
-typedef struct uarths_t
+typedef struct _uarths
 {
     /* Address offset 0x00 */
     uarths_txdata_t txdata;

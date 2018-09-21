@@ -23,15 +23,15 @@
 extern "C" {
 #endif
 
-typedef struct _fpioa_cfg_t
+typedef struct _fpioa_cfg
 {
     uint32_t version;
     uint32_t io_count;
-    fpioa_function_e io_functions[FPIOA_NUM_IO];
+    fpioa_function_t io_functions[FPIOA_NUM_IO];
 } fpioa_cfg_t;
 
 extern const fpioa_cfg_t g_fpioa_cfg;
-int fpioa_get_io_by_func(fpioa_function_e function);
+int fpioa_get_io_by_func(fpioa_function_t function);
 
 
 #ifdef __cplusplus

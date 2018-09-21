@@ -151,7 +151,7 @@ extern "C" {
  *
  */
 /* clang-format off */
-typedef enum _plic_irq_t
+typedef enum _plic_irq
 {
     IRQN_NO_INTERRUPT        = 0, /*!< The non-existent interrupt */
     IRQN_SPI0_INTERRUPT      = 1, /*!< SPI0 interrupt */
@@ -234,7 +234,7 @@ typedef enum _plic_irq_t
  *             the lowest ID have the highest effective priority. The priority
  *             registers are all WARL.
  */
-typedef struct _plic_source_priorities_t
+typedef struct _plic_source_priorities
 {
     /* 0x0C000000: Reserved, 0x0C000004-0x0C000FFC: 1-1023 priorities */
     uint32_t priority[1024];
@@ -254,7 +254,8 @@ typedef struct _plic_source_priorities_t
  *              pending bit can be set by instructing the associated gateway to
  *              send an interrupt service request.
  */
-typedef struct _plic_pending_bits_t {
+typedef struct _plic_pending_bits
+{
     /* 0x0C001000-0x0C00107C: Bit 0 is zero, Bits 1-1023 is pending bits */
     uint32_t u32[32];
     /* 0x0C001080-0x0C001FFF: Reserved */
@@ -279,7 +280,7 @@ typedef struct _plic_pending_bits_t {
  *              treating all non-existent interrupt source’s enables as
  *              hardwired to zero.
  */
-typedef struct _plic_target_enables_t
+typedef struct _plic_target_enables
 {
     /* 0x0C002000-0x0C1F1F80: target 0-15871 enables */
     struct
@@ -320,7 +321,7 @@ typedef struct _plic_target_enables_t
  *              that is currently enabled for the target, the completion is
  *              silently ignored.
  */
-typedef struct _plic_target_t
+typedef struct _plic_target
 {
     /* 0x0C200000-0x0FFFF004: target 0-15871 */
     struct {
@@ -338,7 +339,7 @@ typedef struct _plic_target_t
  *              support a maximum of 1023 external interrupt sources targeting
  *              up to 15,872 core contexts.
  */
-typedef struct _plic_t
+typedef struct _plic
 {
     /* 0x0C000000-0x0C000FFC */
     plic_source_priorities_t source_priorities;

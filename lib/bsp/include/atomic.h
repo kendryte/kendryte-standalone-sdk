@@ -52,12 +52,12 @@ extern "C" {
 #define atomic_swap(ptr, swp) __sync_lock_test_and_set(ptr, swp)
 #define atomic_cas(ptr, cmp, swp) __sync_val_compare_and_swap(ptr, cmp, swp)
 
-typedef struct _spinlock_t
+typedef struct _spinlock
 {
     int lock;
 } spinlock_t;
 
-typedef struct _semaphore_t
+typedef struct _semaphore
 {
     spinlock_t lock;
     int count;
@@ -65,7 +65,7 @@ typedef struct _semaphore_t
 } semaphore_t;
 
 
-typedef struct _corelock_t
+typedef struct _corelock
 {
     spinlock_t lock;
     int count;

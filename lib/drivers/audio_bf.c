@@ -190,7 +190,7 @@ void audio_bf_voc_reset(void)
  *  . . . . . .
  * 0xF: select sound direction 15.
 */
-void audio_bf_voc_set_direction(en_bf_dir direction)
+void audio_bf_voc_set_direction(en_bf_dir_t direction)
 {
     audio_bf_ch_cfg_t ch_cfg = audio_bf->bf_ch_cfg_reg;
 

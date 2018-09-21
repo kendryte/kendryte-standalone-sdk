@@ -23,19 +23,19 @@ extern "C" {
 /**
  * @brief       DVP object
  */
-typedef struct _dvp_t
+typedef struct _dvp
 {
-    volatile uint32_t dvp_cfg;
-    volatile uint32_t r_addr;
-    volatile uint32_t g_addr;
-    volatile uint32_t b_addr;
-    volatile uint32_t cmos_cfg;
-    volatile uint32_t sccb_cfg;
-    volatile uint32_t sccb_ctl;
-    volatile uint32_t axi;
-    volatile uint32_t sts;
-    volatile uint32_t reverse;
-    volatile uint32_t rgb_addr;
+    uint32_t dvp_cfg;
+    uint32_t r_addr;
+    uint32_t g_addr;
+    uint32_t b_addr;
+    uint32_t cmos_cfg;
+    uint32_t sccb_cfg;
+    uint32_t sccb_ctl;
+    uint32_t axi;
+    uint32_t sts;
+    uint32_t reverse;
+    uint32_t rgb_addr;
 } __attribute__((packed, aligned(4))) dvp_t;
 
 /* DVP Config Register */

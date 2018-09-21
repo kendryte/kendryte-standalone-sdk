@@ -43,7 +43,7 @@ int spi_init(uint8_t spi_bus){
     return 0;
 }
 
-int spi_master_config(uint8_t spi_bus, spi_mode mode, spi_frame_format frame_format, size_t data_bit_length){
+int spi_master_config(uint8_t spi_bus, spi_mode_t mode, spi_frame_format_t frame_format, size_t data_bit_length){
     configASSERT(data_bit_length >= 4 && data_bit_length <= 32);
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
 
@@ -93,7 +93,7 @@ int spi_master_config(uint8_t spi_bus, spi_mode mode, spi_frame_format frame_for
 }
 
 void spi_trans_config(uint8_t spi_bus, size_t instruction_length, size_t address_length,
-                                size_t wait_cycles, spi_addr_inst_trans_mode trans_mode)
+                                size_t wait_cycles, spi_addr_inst_trans_mode_t trans_mode)
 {
     configASSERT(wait_cycles < (1 << 5));
     configASSERT(trans_mode < 3);
@@ -156,7 +156,7 @@ int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t
     return 0;
 }
 
-int spi_send_data_dma(dmac_channel_number channel_num, uint8_t spi_bus, uint32_t chip_sel,
+int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
                         uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -189,8 +189,8 @@ int spi_send_data_dma(dmac_channel_number channel_num, uint8_t spi_bus, uint32_t
     return 0;
 }
 
-int spi_normal_send_dma(dmac_channel_number channel_num, uint8_t spi_bus, uint32_t chip_sel,
-                        void *tx_buff, uint32_t tx_len, spi_transfer_width stw)
+int spi_normal_send_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
+                        void *tx_buff, uint32_t tx_len, spi_transfer_width_t stw)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     volatile spi_t *spi_handle = spi[spi_bus];
@@ -252,7 +252,7 @@ int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint
     return 0;
 }
 
-int spi_receive_data_dma(dmac_channel_number w_channel_num, dmac_channel_number r_channel_num,
+int spi_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
                             uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -315,7 +315,7 @@ int spi_special_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_b
     return 0;
 }
 
-int spi_special_receive_data_dma(dmac_channel_number w_channel_num, dmac_channel_number r_channel_num,
+int spi_special_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
                                     uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
 {
         configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -385,7 +385,7 @@ int spi_special_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff
     return 0;
 }
 
-int spi_special_send_data_dma(dmac_channel_number channel_num,uint8_t spi_bus, uint32_t chip_sel,
+int spi_special_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
                                 uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -417,7 +417,7 @@ int spi_special_send_data_dma(dmac_channel_number channel_num,uint8_t spi_bus, u
     return 0;
 }
 
-int spi_fill_dma(dmac_channel_number channel_num,uint8_t spi_bus, uint32_t chip_sel,
+int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
                                 uint32_t *cmd_buff, uint32_t cmd_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -509,7 +509,7 @@ int spi_get_frame_format(uint8_t spi_bus)
     Serial Clock Polarity
     Serial Clock Phase
 */
-void spi_set_work_mode(uint8_t spi_bus, spi_mode mode)
+void spi_set_work_mode(uint8_t spi_bus, spi_mode_t mode)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     volatile spi_t *spi_handle = spi[spi_bus];
@@ -605,7 +605,7 @@ void spi_set_address_length(uint8_t spi_bus, uint32_t address_length)
     set_bit(&spi_handle->spi_ctrlr0, 0xF << 2, addr_l << 2);
 }
 
-void spi_set_trans_mode(uint8_t spi_bus, spi_addr_inst_trans_mode trans_mode)
+void spi_set_trans_mode(uint8_t spi_bus, spi_addr_inst_trans_mode_t trans_mode)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     int frame_format = spi_get_frame_format(spi_bus);

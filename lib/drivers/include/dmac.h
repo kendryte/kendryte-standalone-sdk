@@ -37,39 +37,39 @@ typedef enum _dmac_channel_number
     DMAC_CHANNEL4 = 4,
     DMAC_CHANNEL5 = 5,
     DMAC_CHANNEL_MAX
-} dmac_channel_number;
+} dmac_channel_number_t;
 
 typedef enum _dmac_src_dst_select
 {
     DMAC_SRC = 0x1,
     DMAC_DST = 0x2,
     DMAC_SRC_DST = 0x3
-} dmac_src_dst_select;
+} dmac_src_dst_select_t;
 
 typedef enum _state_value
 {
     clear = 0,
     set = 1
-} state_value;
+} state_value_t;
 
 typedef enum _dmac_lock_bus_ch
 {
     DMAC_LOCK_BUS     = 0x1,
     DMAC_LOCK_CHANNEL = 0x2,
     DMAC_LOCK_BUS_CH  = 0x3
-} dmac_lock_bus_ch;
+} dmac_lock_bus_ch_t;
 
 typedef enum _dmac_sw_hw_hs_select
 {
     DMAC_HS_HARDWARE = 0x0,
     DMAC_HS_SOFTWARE = 0x1
-} dmac_sw_hw_hs_select;
+} dmac_sw_hw_hs_select_t;
 
 typedef enum _dmac_scatter_gather_param
 {
     DMAC_SG_COUNT = 0x0,
     DMAC_SG_INTERVAL = 0x1
-} dmac_scatter_gather_param;
+} dmac_scatter_gather_param_t;
 
 typedef enum _dmac_irq
 {
@@ -87,7 +87,7 @@ typedef enum _dmac_irq
     DMAC_IRQ_ERR     = 0x10,
     /* all interrupts */
     DMAC_IRQ_ALL     = 0x1f
-} dmac_irq;
+} dmac_irq_t;
 
 typedef enum _dmac_software_req
 {
@@ -97,13 +97,13 @@ typedef enum _dmac_software_req
     DMAC_SINGLE_REQUEST = 0x2,
     /* LstReqSrcReq/LstReqDstReq */
     DMAC_LAST_REQUEST   = 0x4
-} dmac_software_req;
+} dmac_software_req_t;
 
 typedef enum _dmac_master_number
 {
     DMAC_MASTER1 = 0x0,
     DMAC_MASTER2 = 0x1
-} dmac_master_number;
+} dmac_master_number_t;
 
 typedef enum _dmac_transfer_flow
 {
@@ -123,7 +123,7 @@ typedef enum _dmac_transfer_flow
     DMAC_MEM2PRF_PRF    = 0x6,
     /* prf to prf - dest   flow ctlr */
     DMAC_PRF2PRF_DSTPRF = 0x7
-} dmac_transfer_flow;
+} dmac_transfer_flow_t;
 
 typedef enum _dmac_burst_trans_length
 {
@@ -135,13 +135,13 @@ typedef enum _dmac_burst_trans_length
     DMAC_MSIZE_64  = 0x5,
     DMAC_MSIZE_128 = 0x6,
     DMAC_MSIZE_256 = 0x7
-} dmac_burst_trans_length;
+} dmac_burst_trans_length_t;
 
 typedef enum _dmac_address_increment
 {
     DMAC_ADDR_INCREMENT = 0x0,
     DMAC_ADDR_NOCHANGE  = 0x1
-} dmac_address_increment;
+} dmac_address_increment_t;
 
 typedef enum _dmac_transfer_width
 {
@@ -151,7 +151,7 @@ typedef enum _dmac_transfer_width
     DMAC_TRANS_WIDTH_64  = 0x3,
     DMAC_TRANS_WIDTH_128 = 0x4,
     DMAC_TRANS_WIDTH_256 = 0x5
-} dmac_transfer_width;
+} dmac_transfer_width_t;
 
 typedef enum _dmac_hs_interface
 {
@@ -171,7 +171,7 @@ typedef enum _dmac_hs_interface
     DMAC_HS_IF13 = 0xd,
     DMAC_HS_IF14 = 0xe,
     DMAC_HS_IF15 = 0xf
-} dmac_hs_interface;
+} dmac_hs_interface_t;
 
 typedef enum _dmac_multiblk_transfer_type
 {
@@ -179,7 +179,7 @@ typedef enum _dmac_multiblk_transfer_type
     RELOAD   = 1,
     SHADOWREGISTER = 2,
     LINKEDLIST     = 3
-} dmac_multiblk_transfer_type;
+} dmac_multiblk_transfer_type_t;
 
 typedef enum _dmac_multiblk_type
 {
@@ -193,7 +193,7 @@ typedef enum _dmac_multiblk_type
     DMAC_SRC_LINKEDLIST_DST_RELOAD     = 8,
     DMAC_SRC_LINKEDLIST_DST_LINKEDLIST = 9,
     DMAC_SRC_SHADOWREG_DST_CONTINUE    = 10
-} dmac_multiblk_type;
+} dmac_multiblk_type_t;
 
 typedef enum _dmac_transfer_type
 {
@@ -207,7 +207,7 @@ typedef enum _dmac_transfer_type
     DMAC_TRANSFER_ROW8  = 0x8,
     DMAC_TRANSFER_ROW9  = 0x9,
     DMAC_TRANSFER_ROW10 = 0xa
-} dmac_transfer_type;
+} dmac_transfer_type_t;
 
 typedef enum _dmac_prot_level
 {
@@ -228,32 +228,32 @@ typedef enum _dmac_prot_level
     DMAC_CACHE_BUFF_NONPRIV_DATA     = 0xd,
     DMAC_CACHE_BUFF_PRIV_OPCODE   = 0xe,
     DMAC_CACHE_BUFF_PRIV_DATA       = 0xf
-} dmac_prot_level;
+} dmac_prot_level_t;
 
 typedef enum _dmac_fifo_mode
 {
     DMAC_FIFO_MODE_SINGLE = 0x0,
     DMAC_FIFO_MODE_HALF = 0x1
-} dmac_fifo_mode;
+} dmac_fifo_mode_t;
 
 typedef enum _dw_dmac_flow_ctl_mode
 {
     DMAC_DATA_PREFETCH_ENABLED  = 0x0,
     DMAC_DATA_PREFETCH_DISABLED = 0x1
-} dw_dmac_flow_ctl_mode;
+} dw_dmac_flow_ctl_mode_t;
 
 typedef enum _dmac_polarity_level
 {
     DMAC_ACTIVE_HIGH = 0x0,
     DMAC_ACTIVE_LOW = 0x1
-} dmac_polarity_level;
+} dmac_polarity_level_t;
 
 typedef enum _dmac_lock_level
 {
     DMAC_LOCK_LEVEL_DMA_TRANSFER   = 0x0,
     DMAC_LOCK_LEVEL_BLOCK_TRANSFER = 0x1,
     DMAC_LOCK_LEVEL_TRANSACTION    = 0x2
-} dmac_lock_level;
+} dmac_lock_level_t;
 
 typedef enum _dmac_channel_priority
 {
@@ -265,15 +265,15 @@ typedef enum _dmac_channel_priority
     DMAC_PRIORITY_5 = 0x5,
     DMAC_PRIORITY_6 = 0x6,
     DMAC_PRIORITY_7 = 0x7
-} dmac_channel_priority;
+} dmac_channel_priority_t;
 
 typedef enum _dmac_state
 {
     ZERO,
     ONE
-} dmac_state;
+} dmac_state_t;
 
-typedef enum _dmca_common_int
+typedef enum _dmac_common_int
 {
     SLVIF_COMMON_DEC_ERR       = 0,
     SLVIF_COMMON_WR2RO_ERR     = 1,
@@ -281,9 +281,9 @@ typedef enum _dmca_common_int
     SLVIF_COMMON__WRONHOLD_ERR = 3,
     SLVIF_UNDEFINED_DEC_ERR    = 4,
     SLVIF_ALL_INT          = 5
-} dmca_common_int;
+} dmac_common_int_t;
 
-typedef struct _dmac_cfg_t
+typedef struct _dmac_cfg
 {
     /**
      * Bit 0 is used to enable dmac
@@ -303,9 +303,9 @@ typedef union _dmac_cfg_u
 {
     dmac_cfg_t cfg;
     uint64_t data;
-} dmac_cfg_u;
+} dmac_cfg_u_t;
 
-typedef struct _damc_chen_t
+typedef struct _damc_chen
 {
     /**
      * Bit 0 is used to enable channel 1
@@ -530,9 +530,9 @@ typedef union _dmac_chen_u
 {
     damc_chen_t dmac_chen;
     uint64_t data;
-} dmac_chen_u;
+} dmac_chen_u_t;
 
-typedef struct _dmac_intstatus_t
+typedef struct _dmac_intstatus
 {
     /**
      * Bit 0 is channel 1 interrupt bit
@@ -586,9 +586,9 @@ typedef union _dmac_intstatus_u
 {
     dmac_intstatus_t intstatus;
     uint64_t data;
-} dmac_intstatus_u;
+} dmac_intstatus_u_t;
 
-typedef struct _dmac_commonreg_intclear_t
+typedef struct _dmac_commonreg_intclear
 {
     /**
      * Bit 0 is slave nterface Common Register
@@ -640,9 +640,9 @@ typedef union _dmac_commonreg_intclear_u
 {
     dmac_commonreg_intclear_t com_intclear;
     uint64_t data;
-} dmac_commonreg_intclear_u;
+} dmac_commonreg_intclear_u_t;
 
-typedef struct _dmac_commonreg_intstatus_enable_t
+typedef struct _dmac_commonreg_intstatus_enable
 {
     /**
      * Bit 0 is Slave Interface Common Register Decode Error
@@ -689,9 +689,9 @@ typedef union _dmac_commonreg_intstatus_enable_u
 {
     dmac_commonreg_intstatus_enable_t intstatus_enable;
     uint64_t data;
-} dmac_commonreg_intstatus_enable_u;
+} dmac_commonreg_intstatus_enable_u_t;
 
-typedef struct _dmac_commonreg_intsignal_enable_t
+typedef struct _dmac_commonreg_intsignal_enable
 {
     /**
      * Bit 0 is Slave Interface Common Register Decode Error
@@ -738,9 +738,9 @@ typedef union _dmac_commonreg_intsignal_enable_u
 {
     dmac_commonreg_intsignal_enable_t intsignal_enable;
     uint64_t data;
-} dmac_commonreg_intsignal_enable_u;
+} dmac_commonreg_intsignal_enable_u_t;
 
-typedef struct _dmac_commonreg_intstatus_t
+typedef struct _dmac_commonreg_intstatus
 {
     /**
      * Bit 0 is Slave Interface Common Register Decode
@@ -787,9 +787,9 @@ typedef union _dmac_commonreg_intstatus_u
 {
     dmac_commonreg_intstatus_t commonreg_intstatus;
     uint64_t data;
-} dmac_commonreg_intstatus_u;
+} dmac_commonreg_intstatus_u_t;
 
-typedef struct _dmac_reset_t
+typedef struct _dmac_reset
 {
     /* Bit 0 is DMAC reset request bit */
     uint64_t rst : 1;
@@ -801,9 +801,9 @@ typedef union _dmac_reset_u
 {
     dmac_reset_t reset;
     uint64_t data;
-} dmac_reset_u;
+} dmac_reset_u_t;
 
-typedef struct _dmac_ch_block_ts_t
+typedef struct _dmac_ch_block_ts
 {
     uint64_t block_ts : 22;
     /*!< Bit [21:0] is block transfer size*/
@@ -815,9 +815,9 @@ typedef union _dmac_ch_block_ts_u
 {
     dmac_ch_block_ts_t block_ts;
     uint64_t data;
-} dmac_ch_block_ts_u;
+} dmac_ch_block_ts_u_t;
 
-typedef struct _dmac_ch_ctl_t
+typedef struct _dmac_ch_ctl
 {
     /**
      * Bit 0 is source master select
@@ -969,9 +969,9 @@ typedef union _dmac_ch_ctl_u
 {
     dmac_ch_ctl_t ch_ctl;
     uint64_t data;
-} dmac_ch_ctl_u;
+} dmac_ch_ctl_u_t;
 
-typedef struct _dmac_ch_cfg_t
+typedef struct _dmac_ch_cfg
 {
     /**
      * Bit[1:0] is source multi block transfer type
@@ -1066,9 +1066,9 @@ typedef union _dmac_ch_cfg_u
 {
     dmac_ch_cfg_t ch_cfg;
     uint64_t data;
-} dmac_ch_cfg_u;
+} dmac_ch_cfg_u_t;
 
-typedef struct _dmac_ch_llp_t
+typedef struct _dmac_ch_llp
 {
     /**
      * Bit 0 is LLI master select
@@ -1086,9 +1086,9 @@ typedef union _dmac_ch_llp_u
 {
     dmac_ch_llp_t llp;
     uint64_t data;
-} dmac_ch_llp_u;
+} dmac_ch_llp_u_t;
 
-typedef struct _dmac_ch_status_t
+typedef struct _dmac_ch_status
 {
     /* Bits [21:0] is completed block transfer size */
     uint64_t cmpltd_blk_size : 22;
@@ -1102,9 +1102,9 @@ typedef union _dmac_ch_status_u
 {
     dmac_ch_status_t status;
     uint64_t data;
-} dmac_ch_status_u;
+} dmac_ch_status_u_t;
 
-typedef struct _dmac_ch_swhssrc_t
+typedef struct _dmac_ch_swhssrc
 {
     /**
      * Bit 0 is software handshake request for channel source
@@ -1149,9 +1149,9 @@ typedef union _dmac_ch_swhssrc_u
 {
     dmac_ch_swhssrc_t swhssrc;
     uint64_t data;
-} dmac_ch_swhssrc_u;
+} dmac_ch_swhssrc_u_t;
 
-typedef struct _dmac_ch_swhsdst_t
+typedef struct _dmac_ch_swhsdst
 {
     /**
      * Bit 0 is software handshake request for channel destination
@@ -1196,9 +1196,9 @@ typedef union _dmac_ch_swhsdst_u
 {
     dmac_ch_swhsdst_t swhsdst;
     uint64_t data;
-} dmac_ch_swhsdst_u;
+} dmac_ch_swhsdst_u_t;
 
-typedef struct _dmac_ch_blk_tfr_resumereq_t
+typedef struct _dmac_ch_blk_tfr_resumereq
 {
     /**
      * Bit 0 is block transfer resume request bit
@@ -1214,9 +1214,9 @@ typedef union _dmac_ch_blk_tfr_resumereq_u
 {
     dmac_ch_blk_tfr_resumereq_t blk_tfr_resumereq;
     uint64_t data;
-} dmac_ch_blk_tfr_resumereq_u;
+} dmac_ch_blk_tfr_resumereq_u_t;
 
-typedef struct _dmac_ch_intstatus_enable_t
+typedef struct _dmac_ch_intstatus_enable
 {
     /* Bit 0 is block transfer done interrupt status enable */
     uint64_t enable_block_tfr_done_intstatus : 1;
@@ -1251,9 +1251,9 @@ typedef union _dmac_ch_intstatus_enable_u
 {
     dmac_ch_intstatus_enable_t ch_intstatus_enable;
     uint64_t data;
-} dmac_ch_intstatus_enable_u;
+} dmac_ch_intstatus_enable_u_t;
 
-typedef struct _dmac_ch_intclear_t
+typedef struct _dmac_ch_intclear
 {
     /* Bit 0 block transfer done interrupt clear bit.*/
     uint64_t blk_tfr_done_intstat : 1;
@@ -1268,9 +1268,9 @@ typedef union _dmac_ch_intclear_u
 {
     uint64_t data;
     dmac_ch_intclear_t intclear;
-} dmac_ch_intclear_u;
+} dmac_ch_intclear_u_t;
 
-typedef struct _dmac_channel_t
+typedef struct _dmac_channel
 {
     /* (0x100) SAR Address Register */
     uint64_t sar;
@@ -1309,7 +1309,7 @@ typedef struct _dmac_channel_t
     uint64_t reserved2[12];
 } __attribute__((packed, aligned(8))) dmac_channel_t;
 
-typedef struct _dmac_t
+typedef struct _dmac
 {
     /* (0x00) DMAC ID Rgister */
     uint64_t id;
@@ -1336,7 +1336,7 @@ typedef struct _dmac_t
     dmac_channel_t channel[DMAC_CHANNEL_COUNT];
 } __attribute__((packed, aligned(8))) dmac_t;
 
-typedef struct _dmac_channel_config_t
+typedef struct _dmac_channel_config
 {
     uint64_t sar;
     uint64_t dar;
@@ -1385,7 +1385,7 @@ struct list_head_t
  *
  * @see         dw_dmac_addLliItem()
  */
-typedef struct _dmac_lli_item_t
+typedef struct _dmac_lli_item
 {
     uint64_t sar;
     uint64_t dar;
@@ -1425,7 +1425,7 @@ uint64_t dmac_read_version(void);
  *
  * @return      channel AXI ID data
  */
-uint64_t dmac_read_channel_id(dmac_channel_number ch);
+uint64_t dmac_read_channel_id(dmac_channel_number_t ch);
 
 /**
  * @brief       Set channle configure
@@ -1437,7 +1437,7 @@ uint64_t dmac_read_channel_id(dmac_channel_number ch);
  *     - 0      Success
  *     - Other  Fail
  */
-int dmac_set_channel_config(dmac_channel_number channel_num,
+int dmac_set_channel_config(dmac_channel_number_t channel_num,
     dmac_channel_config_t *cfg_param);
 
 /**
@@ -1450,7 +1450,7 @@ int dmac_set_channel_config(dmac_channel_number channel_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int dmac_get_channel_config(dmac_channel_number channel_num,
+int dmac_get_channel_config(dmac_channel_number_t channel_num,
     dmac_channel_config_t *cfg_param);
 
 /**
@@ -1458,14 +1458,14 @@ int dmac_get_channel_config(dmac_channel_number channel_num,
  *
  * @param[in]   channel_num     The channel number
  */
-void src_transaction_complete_int_enable(dmac_channel_number channel_num);
+void src_transaction_complete_int_enable(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Enable dmac channel
  *
  * @param[in]   channel_num     The channel number
  */
-void dmac_channel_enable(dmac_channel_number channel_num);
+void dmac_channel_enable(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Enable dmac
@@ -1477,14 +1477,14 @@ void dmac_enable(void);
  *
  * @param[in]   channel_num     The channel number
  */
-void dmac_enable_channel_interrupt_status(dmac_channel_number channel_num);
+void dmac_enable_channel_interrupt_status(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Disable dmac channel interrupt status
  *
  * @param[in]   channel_num     The channel number
  */
-void dmac_disable_channel_interrupt_status(dmac_channel_number channel_num);
+void dmac_disable_channel_interrupt_status(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Check whether channel is busy
@@ -1495,14 +1495,14 @@ void dmac_disable_channel_interrupt_status(dmac_channel_number channel_num);
  *     - 0      Not busy
  *     - 1      Busy
  */
-int32_t dmac_check_channel_busy(dmac_channel_number channel_num);
+int32_t dmac_check_channel_busy(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Clear interrupt status
  *
  * @param[in]   channel_num     The channel number
  */
-void dmac_chanel_interrupt_clear(dmac_channel_number channel_num);
+void dmac_chanel_interrupt_clear(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Create link list item
@@ -1513,7 +1513,7 @@ void dmac_chanel_interrupt_clear(dmac_channel_number channel_num);
  * @param[out]  lli_item        The lli item
  * @param[in]   cfg_param       The configuration parameter
  */
-void dmac_link_list_item(dmac_channel_number channel_num, uint8_t lli_row_num,
+void dmac_link_list_item(dmac_channel_number_t channel_num, uint8_t lli_row_num,
     int8_t lli_last_row, dmac_lli_item_t *lli_item,
     dmac_channel_config_t *cfg_param);
 
@@ -1524,7 +1524,7 @@ void dmac_link_list_item(dmac_channel_number channel_num, uint8_t lli_row_num,
  * @param[in]   channel_num     The channel number
  * @param[in]   addr            The address
  */
-void dmac_set_linked_list_addr_point(dmac_channel_number channel_num,
+void dmac_set_linked_list_addr_point(dmac_channel_number_t channel_num,
     uint64_t *addr);
 
 /**
@@ -1533,8 +1533,8 @@ void dmac_set_linked_list_addr_point(dmac_channel_number channel_num,
  * @param[in]   channel_num     The channel number
  * @param[in]   flow_control    The flow control
  */
-void dmac_set_flow_control(dmac_channel_number channel_num,
-    dmac_transfer_flow flow_control);
+void dmac_set_flow_control(dmac_channel_number_t channel_num,
+    dmac_transfer_flow_t flow_control);
 
 /**
  * @brief       Set multitransfer type and handshake
@@ -1543,9 +1543,9 @@ void dmac_set_flow_control(dmac_channel_number channel_num,
  * @param[in]   transfer_type       The transfer type
  * @param[in]   handshak_select     The handshake select
  */
-void dmac_set_destination_transfer_control(dmac_channel_number channel_num,
-    dmac_multiblk_transfer_type transfer_type,
-    dmac_sw_hw_hs_select handshak_select);
+void dmac_set_destination_transfer_control(dmac_channel_number_t channel_num,
+    dmac_multiblk_transfer_type_t transfer_type,
+    dmac_sw_hw_hs_select_t handshak_select);
 
 /**
  * @brief       Set multitransfer type and handshak
@@ -1554,9 +1554,9 @@ void dmac_set_destination_transfer_control(dmac_channel_number channel_num,
  * @param[in]   transfer_type       The transfer type
  * @param[in]   handshak_select     The handshake select
  */
-void dmac_set_source_transfer_control(dmac_channel_number channel_num,
-    dmac_multiblk_transfer_type transfer_type,
-    dmac_sw_hw_hs_select handshak_select);
+void dmac_set_source_transfer_control(dmac_channel_number_t channel_num,
+    dmac_multiblk_transfer_type_t transfer_type,
+    dmac_sw_hw_hs_select_t handshak_select);
 
 /**
  * @brief       Set destination's master,address mode, transfer width and transfer length
@@ -1567,11 +1567,11 @@ void dmac_set_source_transfer_control(dmac_channel_number channel_num,
  * @param[in]   tr_width            The tr width
  * @param[in]   burst_length        The burst length
  */
-void dmac_master_control(dmac_channel_number channel_num,
-    dmac_master_number master_select,
-    dmac_address_increment address_mode,
-    dmac_transfer_width tr_width,
-    dmac_burst_trans_length burst_length);
+void dmac_master_control(dmac_channel_number_t channel_num,
+    dmac_master_number_t master_select,
+    dmac_address_increment_t address_mode,
+    dmac_transfer_width_t tr_width,
+    dmac_burst_trans_length_t burst_length);
 
 /**
  * @brief       Set source's master,address mode, transfer width and transfer length
@@ -1582,11 +1582,11 @@ void dmac_master_control(dmac_channel_number channel_num,
  * @param[in]     tr_width          The transfer width
  * @param[in]     burst_length      The burst transfer length
  */
-void dmac_source_control(dmac_channel_number channel_num,
-    dmac_master_number master_select,
-    dmac_address_increment address_mode,
-    dmac_transfer_width tr_width,
-    dmac_burst_trans_length burst_length);
+void dmac_source_control(dmac_channel_number_t channel_num,
+    dmac_master_number_t master_select,
+    dmac_address_increment_t address_mode,
+    dmac_transfer_width_t tr_width,
+    dmac_burst_trans_length_t burst_length);
 
 /**
  * @brief       Set block transfer size
@@ -1594,7 +1594,7 @@ void dmac_source_control(dmac_channel_number channel_num,
  * @param[in]   channel_num     The channel number
  * @param[in]   block_size      The block size
  */
-void dmac_set_block_ts(dmac_channel_number channel_num, uint32_t block_size);
+void dmac_set_block_ts(dmac_channel_number_t channel_num, uint32_t block_size);
 
 /**
  * @brief       Set dmac address
@@ -1603,7 +1603,7 @@ void dmac_set_block_ts(dmac_channel_number channel_num, uint32_t block_size);
  * @param       src_addr        The source address
  * @param       dst_src         The destination source
  */
-void dmac_set_address(dmac_channel_number channel_num, uint64_t src_addr,
+void dmac_set_address(dmac_channel_number_t channel_num, uint64_t src_addr,
     uint64_t dst_addr);
 
 /**
@@ -1611,7 +1611,7 @@ void dmac_set_address(dmac_channel_number channel_num, uint64_t src_addr,
  *
  * @param[in]   channel_num     The channel number
  */
-void dmac_channel_disable(dmac_channel_number channel_num);
+void dmac_channel_disable(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Update dmac shadow register
@@ -1620,7 +1620,7 @@ void dmac_channel_disable(dmac_channel_number channel_num);
  * @param[in]   last_block      The last block
  * @param[in]   cfg_param       The configuration parameter
  */
-void dmac_update_shandow_register(dmac_channel_number channel_num, int8_t last_block,
+void dmac_update_shandow_register(dmac_channel_number_t channel_num, int8_t last_block,
     dmac_channel_config_t *cfg_param);
 
 /**
@@ -1628,7 +1628,7 @@ void dmac_update_shandow_register(dmac_channel_number channel_num, int8_t last_b
  *
  * @param[in]   channel_num     The channel number
  */
-void dmac_set_shadow_invalid_flag(dmac_channel_number channel_num);
+void dmac_set_shadow_invalid_flag(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Set dmac channel parameters
@@ -1646,10 +1646,10 @@ void dmac_set_shadow_invalid_flag(dmac_channel_number channel_num);
  *     - 0      Success
  *     - Other  Fail
  */
-int dmac_set_channel_param(dmac_channel_number channel_num,
-    void *src, void *dest, dmac_address_increment src_inc, dmac_address_increment dest_inc,
-    dmac_burst_trans_length dmac_msize,
-    dmac_transfer_width dmac_trans_width,
+int dmac_set_channel_param(dmac_channel_number_t channel_num,
+    void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
+    dmac_burst_trans_length_t dmac_msize,
+    dmac_transfer_width_t dmac_trans_width,
     uint32_t blockSize);
 
 /**
@@ -1665,10 +1665,10 @@ int dmac_set_channel_param(dmac_channel_number channel_num,
  * @param[in]   blockSize               Dmac transfer length
  *
  */
-void dmac_set_single_mode(dmac_channel_number channel_num,
-    void *src, void *dest, dmac_address_increment src_inc, dmac_address_increment dest_inc,
-    dmac_burst_trans_length dmac_msize,
-    dmac_transfer_width dmac_trans_width,
+void dmac_set_single_mode(dmac_channel_number_t channel_num,
+    void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
+    dmac_burst_trans_length_t dmac_msize,
+    dmac_transfer_width_t dmac_trans_width,
     uint32_t blockSize);
 
 /**
@@ -1677,7 +1677,7 @@ void dmac_set_single_mode(dmac_channel_number channel_num,
  * @param[in]   channel_num  Dmac channel
  *
  */
-void dmac_wait_done(dmac_channel_number channel_num);
+void dmac_wait_done(dmac_channel_number_t channel_num);
 
 #ifdef __cplusplus
 }

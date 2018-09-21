@@ -43,7 +43,7 @@
 #define USER_COLOR  0xAA55
 /* clang-format on */
 
-typedef enum _lcd_dir_t
+typedef enum _lcd_dir
 {
     DIR_XY_RLUD = 0x00,
     DIR_YX_RLUD = 0x20,
@@ -57,7 +57,7 @@ typedef enum _lcd_dir_t
     DIR_MASK = 0xE0,
 } lcd_dir_t;
 
-typedef struct _lcd_ctl_t
+typedef struct _lcd_ctl
 {
     uint8_t mode;
     uint8_t dir;

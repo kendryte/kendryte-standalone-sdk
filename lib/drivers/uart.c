@@ -126,7 +126,7 @@ int uart_write(uint8_t channel, const char* buffer, size_t len)
     return write;
 }
 
-void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stopbit stopbit, uart_parity parity)
+void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stopbit_t stopbit, uart_parity_t parity)
 {
 
     configASSERT(data_width >= 5 && data_width <= 8);

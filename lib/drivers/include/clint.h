@@ -74,7 +74,7 @@ extern "C" {
  *              the msip registers are hardwired to zero. The mapping supports
  *              up to 4095 machine-mode cores.
  */
-typedef struct _clint_msip_t
+typedef struct _clint_msip
 {
     uint32_t msip : 1;  /*!< Bit 0 is msip */
     uint32_t zero : 31; /*!< Bits [32:1] is 0 */
@@ -114,7 +114,7 @@ typedef uint64_t clint_mtime_t;
  *              local timer interrupts, and other interrupts routed directly to
  *              a core.
  */
-typedef struct _clint_t
+typedef struct _clint
 {
     /* 0x0000 to 0x3FF8, MSIP Registers */
     clint_msip_t msip[CLINT_MAX_CORES];
@@ -141,7 +141,7 @@ typedef int (*clint_timer_callback_t)(void* ctx);
  */
 typedef int (*clint_ipi_callback_t)(void* ctx);
 
-typedef struct _clint_timer_instance_t
+typedef struct _clint_timer_instance
 {
     uint64_t interval;
     uint64_t cycles;
@@ -150,7 +150,7 @@ typedef struct _clint_timer_instance_t
     void* ctx;
 } clint_timer_instance_t;
 
-typedef struct _clint_ipi_instance_t
+typedef struct _clint_ipi_instance
 {
     clint_ipi_callback_t callback;
     void* ctx;

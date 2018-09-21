@@ -267,7 +267,7 @@ typedef enum _sysctl_reset_e
     SYSCTL_RESET_SHA,
     SYSCTL_RESET_RTC,
     SYSCTL_RESET_MAX = 31
-} sysctl_reset_e;
+} sysctl_reset_t;
 
 typedef enum _io_power_mode
 {
@@ -280,7 +280,7 @@ typedef enum _io_power_mode
  *
  *              No. 0 Register (0x00)
  */
-typedef struct _sysctl_git_id_t
+typedef struct _sysctl_git_id
 {
     uint32_t git_id : 32;
 } __attribute__((packed, aligned(4))) sysctl_git_id_t;
@@ -290,7 +290,7 @@ typedef struct _sysctl_git_id_t
  *
  *              No. 1 Register (0x04)
  */
-typedef struct _sysctl_clk_freq_t
+typedef struct _sysctl_clk_freq
 {
     uint32_t clk_freq : 32;
 } __attribute__((packed, aligned(4))) sysctl_clk_freq_t;
@@ -300,7 +300,7 @@ typedef struct _sysctl_clk_freq_t
  *
  *              No. 2 Register (0x08)
  */
-typedef struct _sysctl_pll0_t
+typedef struct _sysctl_pll0
 {
     uint32_t clkr0 : 4;
     uint32_t clkf0 : 6;
@@ -321,7 +321,7 @@ typedef struct _sysctl_pll0_t
  *
  *              No. 3 Register (0x0c)
  */
-typedef struct _sysctl_pll1_t
+typedef struct _sysctl_pll1
 {
     uint32_t clkr1 : 4;
     uint32_t clkf1 : 6;
@@ -341,7 +341,7 @@ typedef struct _sysctl_pll1_t
  *
  *              No. 4 Register (0x10)
  */
-typedef struct _sysctl_pll2_t
+typedef struct _sysctl_pll2
 {
     uint32_t clkr2 : 4;
     uint32_t clkf2 : 6;
@@ -362,7 +362,7 @@ typedef struct _sysctl_pll2_t
  *
  *              No. 6 Register (0x18)
  */
-typedef struct _sysctl_pll_lock_t
+typedef struct _sysctl_pll_lock
 {
     uint32_t pll_lock0 : 2;
     uint32_t pll_slip_clear0 : 1;
@@ -383,7 +383,7 @@ typedef struct _sysctl_pll_lock_t
  *
  *              No. 7 Register (0x1c)
  */
-typedef struct _sysctl_rom_error_t
+typedef struct _sysctl_rom_error
 {
     uint32_t rom_mul_error : 1;
     uint32_t rom_one_error : 1;
@@ -395,7 +395,7 @@ typedef struct _sysctl_rom_error_t
  *
  *              No. 8 Register (0x20)
  */
-typedef struct _sysctl_clk_sel0_t
+typedef struct _sysctl_clk_sel0
 {
     uint32_t aclk_sel : 1;
     uint32_t aclk_divider_sel : 2;
@@ -414,7 +414,7 @@ typedef struct _sysctl_clk_sel0_t
  *
  *              No. 9 Register (0x24)
  */
-typedef struct _sysctl_clk_sel1_t
+typedef struct _sysctl_clk_sel1
 {
     uint32_t spi3_sample_clk_sel : 1;
     uint32_t reserved0 : 30;
@@ -426,7 +426,7 @@ typedef struct _sysctl_clk_sel1_t
  *
  *              No. 10 Register (0x28)
  */
-typedef struct _sysctl_clk_en_cent_t
+typedef struct _sysctl_clk_en_cent
 {
     uint32_t cpu_clk_en : 1;
     uint32_t sram0_clk_en : 1;
@@ -442,7 +442,7 @@ typedef struct _sysctl_clk_en_cent_t
  *
  *              No. 11 Register (0x2c)
  */
-typedef struct _sysctl_clk_en_peri_t
+typedef struct _sysctl_clk_en_peri
 {
     uint32_t rom_clk_en : 1;
     uint32_t dma_clk_en : 1;
@@ -482,7 +482,7 @@ typedef struct _sysctl_clk_en_peri_t
  *
  *              No. 12 Register (0x30)
  */
-typedef struct _sysctl_soft_reset_t
+typedef struct _sysctl_soft_reset
 {
     uint32_t soft_reset : 1;
     uint32_t reserved : 31;
@@ -493,7 +493,7 @@ typedef struct _sysctl_soft_reset_t
  *
  *              No. 13 Register (0x34)
  */
-typedef struct _sysctl_peri_reset_t
+typedef struct _sysctl_peri_reset
 {
     uint32_t rom_reset : 1;
     uint32_t dma_reset : 1;
@@ -532,7 +532,7 @@ typedef struct _sysctl_peri_reset_t
  *
  *              No. 14 Register (0x38)
  */
-typedef struct _sysctl_clk_th0_t
+typedef struct _sysctl_clk_th0
 {
     uint32_t sram0_gclk_threshold : 4;
     uint32_t sram1_gclk_threshold : 4;
@@ -547,7 +547,7 @@ typedef struct _sysctl_clk_th0_t
  *
  *              No. 15 Register (0x3c)
  */
-typedef struct _sysctl_clk_th1_t
+typedef struct _sysctl_clk_th1
 {
     uint32_t spi0_clk_threshold : 8;
     uint32_t spi1_clk_threshold : 8;
@@ -560,7 +560,7 @@ typedef struct _sysctl_clk_th1_t
  *
  *              No. 16 Register (0x40)
  */
-typedef struct _sysctl_clk_th2_t
+typedef struct _sysctl_clk_th2
 {
     uint32_t timer0_clk_threshold : 8;
     uint32_t timer1_clk_threshold : 8;
@@ -573,7 +573,7 @@ typedef struct _sysctl_clk_th2_t
  *
  *              No. 17 Register (0x44)
  */
-typedef struct _sysctl_clk_th3_t
+typedef struct _sysctl_clk_th3
 {
     uint32_t i2s0_clk_threshold : 16;
     uint32_t i2s1_clk_threshold : 16;
@@ -584,7 +584,7 @@ typedef struct _sysctl_clk_th3_t
  *
  *              No. 18 Register (0x48)
  */
-typedef struct _sysctl_clk_th4_t
+typedef struct _sysctl_clk_th4
 {
     uint32_t i2s2_clk_threshold : 16;
     uint32_t i2s0_mclk_threshold : 8;
@@ -596,7 +596,7 @@ typedef struct _sysctl_clk_th4_t
  *
  *              No. 19 Register (0x4c)
  */
-typedef struct _sysctl_clk_th5_t
+typedef struct _sysctl_clk_th5
 {
     uint32_t i2s2_mclk_threshold : 8;
     uint32_t i2c0_clk_threshold : 8;
@@ -609,7 +609,7 @@ typedef struct _sysctl_clk_th5_t
  *
  *              No. 20 Register (0x50)
  */
-typedef struct _sysctl_clk_th6_t
+typedef struct _sysctl_clk_th6
 {
     uint32_t wdt0_clk_threshold : 8;
     uint32_t wdt1_clk_threshold : 8;
@@ -622,7 +622,7 @@ typedef struct _sysctl_clk_th6_t
  *
  *              No. 21 Register (0x54)
  */
-typedef struct _sysctl_misc_t
+typedef struct _sysctl_misc
 {
     uint32_t debug_sel : 6;
     uint32_t reserved0 : 4;
@@ -635,7 +635,7 @@ typedef struct _sysctl_misc_t
  *
  *              No. 22 Register (0x58)
  */
-typedef struct _sysctl_peri_t
+typedef struct _sysctl_peri
 {
     uint32_t timer0_pause : 1;
     uint32_t timer1_pause : 1;
@@ -671,7 +671,7 @@ typedef struct _sysctl_peri_t
  *
  *              No. 23 Register (0x5c)
  */
-typedef struct _sysctl_spi_sleep_t
+typedef struct _sysctl_spi_sleep
 {
     uint32_t ssi0_sleep : 1;
     uint32_t ssi1_sleep : 1;
@@ -685,7 +685,7 @@ typedef struct _sysctl_spi_sleep_t
  *
  *              No. 24 Register (0x60)
  */
-typedef struct _sysctl_reset_status_t
+typedef struct _sysctl_reset_status
 {
     uint32_t reset_sts_clr : 1;
     uint32_t pin_reset_sts : 1;
@@ -700,7 +700,7 @@ typedef struct _sysctl_reset_status_t
  *
  *              No. 25 Register (0x64)
  */
-typedef struct _sysctl_dma_sel0_t
+typedef struct _sysctl_dma_sel0
 {
     uint32_t dma_sel0 : 6;
     uint32_t dma_sel1 : 6;
@@ -715,7 +715,7 @@ typedef struct _sysctl_dma_sel0_t
  *
  *              No. 26 Register (0x68)
  */
-typedef struct _sysctl_dma_sel1_t
+typedef struct _sysctl_dma_sel1
 {
     uint32_t dma_sel5 : 6;
     uint32_t reserved : 26;
@@ -726,7 +726,7 @@ typedef struct _sysctl_dma_sel1_t
  *
  *              No. 27 Register (0x6c)
  */
-typedef struct _sysctl_power_sel_t
+typedef struct _sysctl_power_sel
 {
     uint32_t power_mode_sel0 : 1;
     uint32_t power_mode_sel1 : 1;
@@ -751,7 +751,7 @@ typedef struct _sysctl_power_sel_t
  *              controller, timer controller, WDT controller and sleep
  *              controller.
  */
-typedef struct _sysctl_t
+typedef struct _sysctl
 {
     /* No. 0 (0x00): Git short commit id */
     sysctl_git_id_t git_id;
@@ -935,7 +935,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_e clock);
  *
  * @param[in]   reset       The reset signal
  */
-void sysctl_reset(sysctl_reset_e reset);
+void sysctl_reset(sysctl_reset_t reset);
 
 /**
  * @brief       Get git commit id

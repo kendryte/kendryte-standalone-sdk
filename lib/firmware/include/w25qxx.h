@@ -64,7 +64,7 @@
 /**
  * @brief      w25qxx operating status enumerate
  */
-typedef enum _w25qxx_status_t
+typedef enum _w25qxx_status
 {
     W25QXX_OK = 0,
     W25QXX_BUSY,
@@ -74,7 +74,7 @@ typedef enum _w25qxx_status_t
 /**
  * @brief      w25qxx read operating enumerate
  */
-typedef enum _w25qxx_read_t
+typedef enum _w25qxx_read
 {
     W25QXX_STANDARD = 0,
     W25QXX_STANDARD_FAST,

@@ -37,9 +37,9 @@ typedef enum _en_bf_dir
     BF_DIR13,
     BF_DIR14,
     BF_DIR15,
-} en_bf_dir;
+} en_bf_dir_t;
 
-typedef struct _audio_bf_ch_cfg_t
+typedef struct _audio_bf_ch_cfg
 {
     /**
      * BF unit sound channel enable control bits.
@@ -101,7 +101,7 @@ typedef struct _audio_bf_ch_cfg_t
     uint32_t we_data_src_mode : 1;
 } __attribute__((packed, aligned(4))) audio_bf_ch_cfg_t;
 
-typedef struct _audio_bf_ctl_t
+typedef struct _audio_bf_ctl
 {
     /**
      * Sound direction searching enable bit.
@@ -149,7 +149,7 @@ typedef struct _audio_bf_ctl_t
 
 } __attribute__((packed, aligned(4))) audio_bf_ctl_t;
 
-typedef struct _audio_bf_dir_bidx_t
+typedef struct _audio_bf_dir_bidx
 {
     uint32_t dir_rd_idx0 : 6;
     uint32_t reserved : 2;
@@ -161,13 +161,13 @@ typedef struct _audio_bf_dir_bidx_t
     uint32_t reserved3 : 2;
 } __attribute__((packed, aligned(4))) audio_bf_dir_bidx_t;
 
-typedef struct _audio_bf_fir_coef_t
+typedef struct _audio_bf_fir_coef
 {
     uint32_t fir_tap0 : 16;
     uint32_t fir_tap1 : 16;
 } __attribute__((packed, aligned(4))) audio_bf_fir_coef_t;
 
-typedef struct _audio_bf_dwsz_cfg_t
+typedef struct _audio_bf_dwsz_cfg
 {
     /**
      * TThe down-sizing ratio used for direction searching.
@@ -201,7 +201,7 @@ typedef struct _audio_bf_dwsz_cfg_t
     uint32_t reserved : 19;
 } __attribute__((packed, aligned(4))) audio_bf_dwsz_cfg_t;
 
-typedef struct _audio_bf_fft_cfg_t
+typedef struct _audio_bf_fft_cfg
 {
     uint32_t fft_shift_factor : 9;
     uint32_t reserved1 : 3;
@@ -209,7 +209,7 @@ typedef struct _audio_bf_fft_cfg_t
     uint32_t reserved2 : 19;
 } __attribute__((packed, aligned(4))) audio_bf_fft_cfg_t;
 
-typedef struct _audio_bf_int_stat_t
+typedef struct _audio_bf_int_stat
 {
     /**
      * sound direction searching data ready interrupt event.
@@ -228,7 +228,7 @@ typedef struct _audio_bf_int_stat_t
     uint32_t reserved : 30;
 } __attribute__((packed, aligned(4))) audio_bf_int_stat_t;
 
-typedef struct _audio_bf_int_mask_t
+typedef struct _audio_bf_int_mask
 {
     /**
      * This is the interrupt mask to dir searching data ready interrupt.
@@ -244,7 +244,7 @@ typedef struct _audio_bf_int_mask_t
     uint32_t reserved : 30;
 } __attribute__((packed, aligned(4))) audio_bf_int_mask_t;
 
-typedef struct _audio_bf_reg_t
+typedef struct _audio_bf_reg
 {
     /* 0x200 */
     audio_bf_ch_cfg_t bf_ch_cfg_reg;
@@ -309,7 +309,7 @@ void audio_bf_dir_clear_int_state(void);
 
 void audio_bf_voc_enable(uint8_t enable_flag);
 void audio_bf_voc_reset(void);
-void audio_bf_voc_set_direction(en_bf_dir direction);
+void audio_bf_voc_set_direction(en_bf_dir_t direction);
 void audio_bf_voc_set_prev_fir(uint16_t* fir_coef);
 void audio_bf_voc_set_post_fir(uint16_t* fir_coef);
 void audio_bf_voc_set_down_size(uint8_t voc_dwn_size);

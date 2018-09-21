@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
-typedef struct _wdt_t
+typedef struct _wdt
 {
     /* WDT Control Register                     (0x00) */
     volatile uint32_t cr;

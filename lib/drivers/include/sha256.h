@@ -26,7 +26,7 @@
  * @brief       AES
  *
  */
-typedef struct _sha256_t
+typedef struct _sha256
 {
     uint32_t sha_result[8];
     uint32_t sha_data_in1;
@@ -57,7 +57,7 @@ struct _SHA256Context
 #endif /* RUNTIME_ENDIAN */
 };
 
-typedef struct _SHA256Context SHA256Context;
+typedef struct _SHA256Context SHA256Context_t;
 
 /**
  * @brief       Sha256 initialize
@@ -70,7 +70,7 @@ typedef struct _SHA256Context SHA256Context;
  *     - 0      Success
  *     - Other  Fail
  */
-int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context *sc);
+int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context_t *sc);
 
 /**
  * @brief       Sha256 update
@@ -80,7 +80,7 @@ int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context *sc);
  * @param[in]   len         Input data size
  *
  */
-void sha256_update(SHA256Context *sc, const void *data, uint32_t len);
+void sha256_update(SHA256Context_t *sc, const void *data, uint32_t len);
 
 /**
  * @brief       Sha256 final
@@ -89,6 +89,6 @@ void sha256_update(SHA256Context *sc, const void *data, uint32_t len);
  * @param[out]  hash        Sha256 result
  *
  */
-void sha256_final(SHA256Context *sc, uint8_t hash[SHA256_HASH_SIZE]);
+void sha256_final(SHA256Context_t *sc, uint8_t hash[SHA256_HASH_SIZE]);
 
 #endif

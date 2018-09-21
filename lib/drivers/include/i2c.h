@@ -26,7 +26,7 @@ extern "C" {
 #define I2C_MAX_NUM 3
 
 /* clang-format off */
-typedef struct _i2c_t
+typedef struct _i2c
 {
     /* I2C Control Register                                 (0x00) */
     volatile uint32_t con;
@@ -330,7 +330,7 @@ typedef enum _i2c_bus_speed_mode
     I2C_BS_STANDARD,
     I2C_BS_FAST,
     I2C_BS_HIGHSPEED
-} i2c_bus_speed_mode;
+} i2c_bus_speed_mode_t;
 
 /**
  * @brief       I2c init
@@ -366,7 +366,7 @@ void i2c_clk_init(uint8_t sel);
  * @param[in]   bus_speed_mode      i2c rate
  */
 void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,
-                            i2c_bus_speed_mode bus_speed_mode);
+                            i2c_bus_speed_mode_t bus_speed_mode);
 
 /**
  * @brief       I2c send data
@@ -409,7 +409,7 @@ int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_write_reg_dma(dmac_channel_number channel_num, uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+int i2c_write_reg_dma(dmac_channel_number_t channel_num, uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
 
 /**
  * @brief       I2c receive data
@@ -424,7 +424,7 @@ int i2c_write_reg_dma(dmac_channel_number channel_num, uint8_t sel, uint8_t reg,
  *     - 0      Success
  *     - Other  Fail
 */
-int i2c_read_reg_dma(dmac_channel_number w_channel_num, dmac_channel_number r_channel_num,
+int i2c_read_reg_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
                         uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
 
 #ifdef __cplusplus

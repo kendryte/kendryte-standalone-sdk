@@ -59,7 +59,7 @@ uint32_t sysctl_get_freq(void)
     return sysctl->clk_freq.clk_freq;
 }
 
-static void sysctl_reset_ctl(sysctl_reset_e reset, uint8_t rst_value)
+static void sysctl_reset_ctl(sysctl_reset_t reset, uint8_t rst_value)
 {
     switch (reset)
     {
@@ -156,7 +156,7 @@ static void sysctl_reset_ctl(sysctl_reset_e reset, uint8_t rst_value)
     }
 }
 
-void sysctl_reset(sysctl_reset_e reset)
+void sysctl_reset(sysctl_reset_t reset)
 {
     sysctl_reset_ctl(reset, 1);
     sysctl_reset_ctl(reset, 0);

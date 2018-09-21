@@ -67,14 +67,15 @@ extern "C" {
  */
 
 /* clang-format off */
-enum kendryte_log_level_e {
+typedef enum _kendryte_log_level
+{
     LOG_NONE,       /*!< No log output */
     LOG_ERROR,      /*!< Critical errors, software module can not recover on its own */
     LOG_WARN,       /*!< Error conditions from which recovery measures have been taken */
     LOG_INFO,       /*!< Information messages which describe normal flow of events */
     LOG_DEBUG,      /*!< Extra information which is not necessary for normal use (values, pointers, sizes, etc). */
     LOG_VERBOSE     /*!< Bigger chunks of debugging information, or frequent messages which can potentially flood the output. */
-};
+} kendryte_log_level_t ;
 /* clang-format on */
 
 /* clang-format off */

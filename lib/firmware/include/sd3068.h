@@ -20,7 +20,7 @@
 #define SD3068_ADDR         0x32
 #define SD3068_ADDR_LENTH   7
 
-typedef struct _time_t
+typedef struct _sd_time
 {
     uint32_t year:6;
     uint32_t month:4;

@@ -26,7 +26,7 @@ typedef struct _complex
 {
     float real;
     float imag;
-} complex;
+} complex_t;
 
 typedef struct _fft_data
 {
@@ -34,9 +34,9 @@ typedef struct _fft_data
     int16_t R1;
     int16_t I2;
     int16_t R2;
-} fft_data;
+} fft_data_t;
 
-typedef enum _fft_point_e
+typedef enum _fft_point
 {
     FFT_N512,
     FFT_N256,
@@ -44,7 +44,7 @@ typedef enum _fft_point_e
     FFT_N64,
 } fft_point_t;
 
-typedef enum _fft_mode_e
+typedef enum _fft_mode
 {
     IFFT_MODE,
     FFT_MODE,
@@ -75,7 +75,7 @@ typedef enum _fft_mode_e
  *
  *             No. 0 Register (0x00)
  */
-typedef struct _fft_fft_input_fifo_t
+typedef struct _fft_fft_input_fifo
 {
     uint64_t fft_input_fifo : 64;
 } __attribute__((packed, aligned(8))) fft_fft_input_fifo_t;
@@ -85,7 +85,7 @@ typedef struct _fft_fft_input_fifo_t
  *
  *             No. 1 Register (0x08)
  */
-typedef struct _fft_fft_ctrl_t
+typedef struct _fft_fft_ctrl
 {
     uint64_t fft_point : 3;
     uint64_t fft_mode : 1;
@@ -102,7 +102,7 @@ typedef struct _fft_fft_ctrl_t
  *
  *             No. 2 Register (0x10)
  */
-typedef struct _fft_fifo_ctrl_t
+typedef struct _fft_fifo_ctrl
 {
     uint64_t resp_fifo_flush_n : 1;
     uint64_t cmd_fifo_flush_n : 1;
@@ -115,7 +115,7 @@ typedef struct _fft_fifo_ctrl_t
  *
  *             No. 3 Register (0x18)
  */
-typedef struct _fft_intr_mask_t
+typedef struct _fft_intr_mask
 {
     uint64_t fft_done_mask : 1;
     uint64_t reserved : 63;
@@ -126,7 +126,7 @@ typedef struct _fft_intr_mask_t
  *
  *             No. 4 Register (0x20)
  */
-typedef struct _fft_intr_clear_t
+typedef struct _fft_intr_clear
 {
     uint64_t fft_done_clear : 1;
     uint64_t reserved1 : 63;
@@ -137,7 +137,7 @@ typedef struct _fft_intr_clear_t
  *
  *             No. 5 Register (0x28)
  */
-typedef struct _fft_fft_status_t
+typedef struct _fft_fft_status
 {
     uint64_t fft_done_status : 1;
     uint64_t reserved1 : 63;
@@ -148,7 +148,7 @@ typedef struct _fft_fft_status_t
  *
  *             No. 6 Register (0x30)
  */
-typedef struct _fft_fft_status_raw_t
+typedef struct _fft_fft_status_raw
 {
     uint64_t fft_done_status_raw : 1;
     uint64_t reserved : 63;
@@ -159,7 +159,7 @@ typedef struct _fft_fft_status_raw_t
  *
  *             No. 7 Register (0x38)
  */
-typedef struct _fft_fft_output_fifo_t
+typedef struct _fft_fft_output_fifo
 {
     uint64_t fft_output_fifo : 64;
 } __attribute__((packed, aligned(8))) fft_fft_output_fifo_t;
@@ -175,7 +175,7 @@ typedef struct _fft_fft_output_fifo_t
  *             transformations by factorizing the DFT matrix into a product of
  *             sparse (mostly zero) factors.
  */
-typedef struct _fft_t
+typedef struct _fft
 {
     /* No. 0 (0x00): input data fifo */
     fft_fft_input_fifo_t fft_input_fifo;

@@ -23,7 +23,7 @@ volatile rtc_t *const rtc = (volatile rtc_t *)RTC_BASE_ADDR;
 
 tm rtc_date_time;
 
-int rtc_timer_set_mode(rtc_timer_mode_e timer_mode)
+int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
 {
     rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
 
@@ -52,10 +52,10 @@ int rtc_timer_set_mode(rtc_timer_mode_e timer_mode)
     return 0;
 }
 
-rtc_timer_mode_e rtc_timer_get_mode(void)
+rtc_timer_mode_t rtc_timer_get_mode(void)
 {
     rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
-    rtc_timer_mode_e timer_mode = RTC_TIMER_PAUSE;
+    rtc_timer_mode_t timer_mode = RTC_TIMER_PAUSE;
 
     if ((!register_ctrl.read_enable) && (!register_ctrl.write_enable))
     {
@@ -451,7 +451,7 @@ int rtc_tick_interrupt_get(void)
     return interrupt_ctrl.tick_enable;
 }
 
-int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_e mode)
+int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_t mode)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
@@ -460,7 +460,7 @@ int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_e mode)
     return 0;
 }
 
-rtc_tick_interrupt_mode_e rtc_tick_interrupt_mode_get(void)
+rtc_tick_interrupt_mode_t rtc_tick_interrupt_mode_get(void)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 

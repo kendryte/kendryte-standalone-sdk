@@ -50,7 +50,7 @@ void i2c_init(uint8_t sel, int clk_pin, int data_pin)
     dmac_init();
 }
 
-void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,i2c_bus_speed_mode bus_speed_mode)
+void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,i2c_bus_speed_mode_t bus_speed_mode)
 {
     configASSERT(sel < I2C_MAX_NUM);
     configASSERT(address_width == 7 || address_width == 10);
@@ -104,7 +104,7 @@ int i2c_write_reg(uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
     return 0;
 }
 
-int i2c_write_reg_dma(dmac_channel_number channel_num, uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
+int i2c_write_reg_dma(dmac_channel_number_t channel_num, uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
 {
     configASSERT(sel < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[sel];
@@ -162,7 +162,7 @@ int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
     return 0;
 }
 
-int i2c_read_reg_dma(dmac_channel_number w_channel_num, dmac_channel_number r_channel_num,
+int i2c_read_reg_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
     uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
 {
     configASSERT(sel < I2C_MAX_NUM);

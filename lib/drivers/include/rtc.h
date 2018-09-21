@@ -51,7 +51,7 @@ typedef enum _rtc_timer_mode_e
     RTC_TIMER_SETTING,
     /* Max count of this enum*/
     RTC_TIMER_MAX
-} rtc_timer_mode_e;
+} rtc_timer_mode_t;
 
 /*
  * @brief      RTC tick interrupt mode
@@ -76,14 +76,15 @@ typedef enum _rtc_tick_interrupt_mode_e
     RTC_INT_DAY,
     /* Max count of this enum*/
     RTC_INT_MAX
-} rtc_tick_interrupt_mode_e;
+} rtc_tick_interrupt_mode_t;
 
 /**
  * @brief      RTC mask structure
  *
  *             RTC mask structure for common use
  */
-typedef struct _rtc_mask_t {
+typedef struct _rtc_mask
+{
     /* Reserved */
     uint32_t resv : 1;
     /* Second mask */
@@ -129,7 +130,7 @@ typedef struct _rtc_mask_t {
  *
  *              No. 0 Register (0x00)
  */
-typedef struct _rtc_date_t
+typedef struct _rtc_date
 {
     /* Week. Range [0,6]. 0 is Sunday. */
     uint32_t week : 3;
@@ -150,7 +151,7 @@ typedef struct _rtc_date_t
  *
  *              No. 1 Register (0x04)
  */
-typedef struct _rtc_time_t
+typedef struct _rtc_time
 {
     /* Reserved */
     uint32_t resv0 : 10;
@@ -171,7 +172,7 @@ typedef struct _rtc_time_t
  *
  *              No. 2 Register (0x08)
  */
-typedef struct _rtc_alarm_date_t
+typedef struct _rtc_alarm_date
 {
     /* Alarm Week. Range [0,6]. 0 is Sunday. */
     uint32_t week : 3;
@@ -192,7 +193,7 @@ typedef struct _rtc_alarm_date_t
  *
  *              No. 3 Register (0x0c)
  */
-typedef struct _rtc_alarm_time_t
+typedef struct _rtc_alarm_time
 {
     /* Reserved */
     uint32_t resv0 : 10;
@@ -213,7 +214,7 @@ typedef struct _rtc_alarm_time_t
  *
  *              No. 4 Register (0x10)
  */
-typedef struct _rtc_initial_count_t
+typedef struct _rtc_initial_count
 {
     /* RTC counter initial value */
     uint32_t count : 32;
@@ -224,7 +225,7 @@ typedef struct _rtc_initial_count_t
  *
  *              No. 5 Register (0x14)
  */
-typedef struct _rtc_current_count_t
+typedef struct _rtc_current_count
 {
     /* RTC counter current value */
     uint32_t count : 32;
@@ -235,7 +236,7 @@ typedef struct _rtc_current_count_t
  *
  *             No. 6 Register (0x18)
  */
-typedef struct _rtc_interrupt_ctrl_t
+typedef struct _rtc_interrupt_ctrl
 {
     /* Reserved */
     uint32_t tick_enable : 1;
@@ -254,7 +255,7 @@ typedef struct _rtc_interrupt_ctrl_t
  *
  *              No. 7 Register (0x1c)
  */
-typedef struct _rtc_register_ctrl_t
+typedef struct _rtc_register_ctrl
 {
     /* RTC timer read enable */
     uint32_t read_enable : 1;
@@ -279,7 +280,7 @@ typedef struct _rtc_register_ctrl_t
  *
  *              No. 8 Register (0x20)
  */
-typedef struct _rtc_reserved0_t
+typedef struct _rtc_reserved0
 {
     /* Reserved */
     uint32_t resv : 32;
@@ -290,7 +291,7 @@ typedef struct _rtc_reserved0_t
  *
  *             No. 9 Register (0x24)
  */
-typedef struct _rtc_reserved1_t
+typedef struct _rtc_reserved1
 {
     /* Reserved */
     uint32_t resv : 32;
@@ -301,7 +302,7 @@ typedef struct _rtc_reserved1_t
  *
  *             No. 10 Register (0x28)
  */
-typedef struct _rtc_extended_t
+typedef struct _rtc_extended
 {
     /* Century. Range [0,31] */
     uint32_t century : 5;
@@ -318,7 +319,7 @@ typedef struct _rtc_extended_t
  *              A real-time clock (RTC) is a computer clock that keeps track of
  *              the current time.
  */
-typedef struct _rtc_t
+typedef struct _rtc
 {
     /* No. 0 (0x00): Timer date information */
     rtc_date_t date;
@@ -359,14 +360,14 @@ extern volatile uint32_t *const rtc_base;
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_timer_mode_set(rtc_timer_mode_e timer_mode);
+int rtc_timer_mode_set(rtc_timer_mode_t timer_mode);
 
 /**
  * @brief       Get RTC timer mode
  *
  * @return      The timer mode
  */
-rtc_timer_mode_e rtc_timer_get_mode(void);
+rtc_timer_mode_t rtc_timer_get_mode(void);
 
 /**
  * @brief       Set date time to RTC
@@ -533,14 +534,14 @@ int rtc_tick_interrupt_get(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_e mode);
+int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_t mode);
 
 /**
  * @brief       Get tick interrupt mode
  *
  * @return      Tick interrupt mode
  */
-rtc_tick_interrupt_mode_e rtc_tick_interrupt_mode_get(void);
+rtc_tick_interrupt_mode_t rtc_tick_interrupt_mode_get(void);
 
 /**
  * @brief       Enable alarm interrupt
@@ -596,7 +597,7 @@ int rtc_init(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_timer_set_mode(rtc_timer_mode_e timer_mode);
+int rtc_timer_set_mode(rtc_timer_mode_t timer_mode);
 
 #ifdef __cplusplus
 }

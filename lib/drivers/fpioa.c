@@ -5238,7 +5238,7 @@ int fpioa_set_io(int number, fpioa_io_config_t *cfg)
     return 0;
 }
 
-int fpioa_set_io_pull(int number, fpioa_pull_e pull)
+int fpioa_set_io_pull(int number, fpioa_pull_t pull)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || pull >= FPIOA_PULL_MAX)
@@ -5275,7 +5275,7 @@ int fpioa_get_io_pull(int number)
     if (number < 0 || number >= FPIOA_NUM_IO)
         return -1;
 
-    fpioa_pull_e pull;
+    fpioa_pull_t pull;
     /* Atomic read register */
     fpioa_io_config_t cfg = fpioa->io[number];
 
@@ -5288,7 +5288,7 @@ int fpioa_get_io_pull(int number)
     return pull;
 }
 
-int fpioa_set_io_driving(int number, fpioa_driving_e driving)
+int fpioa_set_io_driving(int number, fpioa_driving_t driving)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || driving >= FPIOA_DRIVING_MAX)
@@ -5312,7 +5312,7 @@ int fpioa_get_io_driving(int number)
     return fpioa->io[number].ds;
 }
 
-int fpioa_set_function_raw(int number, fpioa_function_e function)
+int fpioa_set_function_raw(int number, fpioa_function_t function)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || function < 0 || function >= FUNC_MAX)
@@ -5338,7 +5338,7 @@ int fpioa_set_function_raw(int number, fpioa_function_e function)
     return 0;
 }
 
-int fpioa_set_function(int number, fpioa_function_e function)
+int fpioa_set_function(int number, fpioa_function_t function)
 {
     uint8_t index = 0;
     /* Check parameters */
@@ -5359,7 +5359,7 @@ int fpioa_set_function(int number, fpioa_function_e function)
     return 0;
 }
 
-int fpioa_set_tie_enable(fpioa_function_e function, int enable)
+int fpioa_set_tie_enable(fpioa_function_t function, int enable)
 {
     /* Check parameters */
     if (function < 0 || function >= FUNC_MAX)
@@ -5372,7 +5372,7 @@ int fpioa_set_tie_enable(fpioa_function_e function, int enable)
     return 0;
 }
 
-int fpioa_set_tie_value(fpioa_function_e function, int value)
+int fpioa_set_tie_value(fpioa_function_t function, int value)
 {
     /* Check parameters */
     if (function < 0 || function >= FUNC_MAX)
@@ -5385,7 +5385,7 @@ int fpioa_set_tie_value(fpioa_function_e function, int value)
     return 0;
 }
 
-int fpioa_get_io_by_func(fpioa_function_e function)
+int fpioa_get_io_by_func(fpioa_function_t function)
 {
     int index = 0;
     for (index = 0; index < FPIOA_NUM_IO; index++)

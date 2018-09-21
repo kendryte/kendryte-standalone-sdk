@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
-typedef struct _timer_channel_t
+typedef struct _timer_channel
 {
     /* TIMER_N Load Count Register              (0x00+(N-1)*0x14) */
     volatile uint32_t load_count;
@@ -36,7 +36,7 @@ typedef struct _timer_channel_t
     volatile uint32_t intr_stat;
 } __attribute__((packed, aligned(4))) timer_channel_t;
 
-typedef struct _kendryte_timer_t
+typedef struct _kendryte_timer
 {
     /* TIMER_N Register                         (0x00-0x4c) */
     volatile timer_channel_t channel[4];
