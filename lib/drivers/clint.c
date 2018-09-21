@@ -30,8 +30,13 @@ uint64_t clint_get_time(void)
 
 int clint_timer_init(void)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+>>>>>>> master
     /* Clear the Machine-Timer bit in MIE */
     clear_csr(mie, MIP_MTIP);
     /* Fill core's instance with original data */
@@ -65,8 +70,13 @@ uint64_t clint_timer_get_freq(void)
 
 int clint_timer_start(uint64_t interval, int single_shot)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+>>>>>>> master
     /* Set timer interval */
     if (clint_timer_set_interval(interval) != 0)
         return -1;
@@ -93,15 +103,26 @@ int clint_timer_start(uint64_t interval, int single_shot)
 
 uint64_t clint_timer_get_interval(void)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
     return clint_timer_instance[core_id].interval;
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+    return clint_timer_instance[hart_id].interval;
+>>>>>>> master
 }
 
 int clint_timer_set_interval(uint64_t interval)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+>>>>>>> master
     /* Check parameter */
     if (interval == 0)
         return -1;
@@ -115,25 +136,44 @@ int clint_timer_set_interval(uint64_t interval)
 
 int clint_timer_get_single_shot(void)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
     /* Get single shot mode by core id */
     return clint_timer_instance[core_id].single_shot;
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+    /* Get single shot mode by hart id */
+    return clint_timer_instance[hart_id].single_shot;
+>>>>>>> master
 }
 
 int clint_timer_set_single_shot(int single_shot)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
     /* Set single shot mode by core id */
     clint_timer_instance[core_id].single_shot = single_shot;
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+    /* Set single shot mode by hart id */
+    clint_timer_instance[hart_id].single_shot = single_shot;
+>>>>>>> master
     return 0;
 }
 
 int clint_timer_register(clint_timer_callback_t callback, void* ctx)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+>>>>>>> master
     /* Set user callback function */
     clint_timer_instance[core_id].callback = callback;
     /* Assign user context */
@@ -149,8 +189,13 @@ int clint_timer_deregister(void)
 
 int clint_ipi_init(void)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+>>>>>>> master
     /* Clear the Machine-Software bit in MIE */
     clear_csr(mie, MIP_MSIP);
     /* Fill core's instance with original data */
@@ -202,8 +247,13 @@ int clint_ipi_clear(size_t core_id)
 
 int clint_ipi_register(clint_ipi_callback_t callback, void* ctx)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+>>>>>>> master
     /* Set user callback function */
     clint_ipi_instance[core_id].callback = callback;
     /* Assign user context */
@@ -219,8 +269,13 @@ int clint_ipi_deregister(void)
 
 uintptr_t handle_irq_m_timer(uintptr_t cause, uintptr_t epc)
 {
+<<<<<<< HEAD
     /* Read core id */
     uint64_t core_id = current_coreid();
+=======
+    /* Read hart id */
+    uint64_t hart_id = read_hartid();
+>>>>>>> master
     uint64_t ie_flag = read_csr(mie);
 
     clear_csr(mie, MIP_MTIP | MIP_MSIP);
@@ -244,8 +299,13 @@ uintptr_t handle_irq_m_timer(uintptr_t cause, uintptr_t epc)
 
 uintptr_t handle_irq_m_soft(uintptr_t cause, uintptr_t epc)
 {
+<<<<<<< HEAD
     /* Read core id */
     uint64_t core_id = current_coreid();
+=======
+    /* Read hart id */
+    uint64_t hart_id = read_hartid();
+>>>>>>> master
     /* Clear the Machine-Software bit in MIE to prevent call again */
     clear_csr(mie, MIP_MSIP);
     set_csr(mstatus, MSTATUS_MIE);

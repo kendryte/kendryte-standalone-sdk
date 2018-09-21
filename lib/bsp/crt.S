@@ -13,6 +13,15 @@
 # limitations under the License.
 # include "encoding.h"
 
+<<<<<<< HEAD
+=======
+#include "encoding.h"
+
+# define LREG ld
+# define SREG sd
+# define LFREG fld
+# define SFREG fsd
+>>>>>>> master
 # define REGBYTES 8
 # define STKSHIFT 17
 
@@ -22,6 +31,11 @@
 _start:
   j 1f
   .word 0xdeadbeef
+  .align 3
+  .global g_wake_up
+  g_wake_up:
+      .dword 1
+      .dword 0
 1:
   csrw mideleg, 0
   csrw medeleg, 0

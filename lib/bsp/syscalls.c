@@ -102,8 +102,13 @@ char *_heap_cur = &_heap_start[0];
 
 void __attribute__((noreturn)) sys_exit(int code)
 {
+<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
+=======
+    /* Read hart id */
+    unsigned long hart_id = read_hartid();
+>>>>>>> master
     /* First print some diagnostic information. */
     LOGW(TAG, "sys_exit called by core %ld with 0x%lx\n", core_id, (uint64_t)code);
     /* Write exit register to pause netlist simulation */
