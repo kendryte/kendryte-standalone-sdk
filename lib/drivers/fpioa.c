@@ -17,7 +17,7 @@
 #include "sysctl.h"
 #include "fpioa.h"
 
-volatile struct fpioa_t *const fpioa = (volatile struct fpioa_t *)FPIOA_BASE_ADDR;
+volatile fpioa_t *const fpioa = (volatile fpioa_t *)FPIOA_BASE_ADDR;
 
 /**
  * @brief      Internal used FPIOA function initialize cell
@@ -25,7 +25,7 @@ volatile struct fpioa_t *const fpioa = (volatile struct fpioa_t *)FPIOA_BASE_ADD
  *             This is NOT fpioa_io_config_t, can't assign directly
  *
  */
-struct fpioa_assign_t
+typedef struct _fpioa_assign_t
 {
     uint32_t ch_sel : 8;
     /* Channel select from 256 input. */
@@ -63,10 +63,10 @@ struct fpioa_assign_t
     /* Reserved bits. */
     uint32_t pad_di : 1;
     /* Read current PAD's data input. */
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) fpioa_assign_t;
 
 /* Function list */
-static const struct fpioa_assign_t function_config[FUNC_MAX] =
+static const fpioa_assign_t function_config[FUNC_MAX] =
 {
     {
         .ch_sel  = FUNC_JTAG_TCLK,
@@ -5198,7 +5198,7 @@ int fpioa_init(void)
     sysctl_clock_enable(SYSCTL_CLOCK_FPIOA);
 
     /* Initialize tie */
-    struct fpioa_tie_t tie = { 0 };
+    fpioa_tie_t tie = { 0 };
 
     /* Set tie enable and tie value */
     for (i = 0; i < FUNC_MAX; i++)
@@ -5218,7 +5218,7 @@ int fpioa_init(void)
     return 0;
 }
 
-int fpioa_get_io(int number, struct fpioa_io_config_t *cfg)
+int fpioa_get_io(int number, fpioa_io_config_t *cfg)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || cfg == NULL)
@@ -5228,7 +5228,7 @@ int fpioa_get_io(int number, struct fpioa_io_config_t *cfg)
     return 0;
 }
 
-int fpioa_set_io(int number, struct fpioa_io_config_t *cfg)
+int fpioa_set_io(int number, fpioa_io_config_t *cfg)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || cfg == NULL)
@@ -5238,14 +5238,14 @@ int fpioa_set_io(int number, struct fpioa_io_config_t *cfg)
     return 0;
 }
 
-int fpioa_set_io_pull(int number, enum fpioa_pull_e pull)
+int fpioa_set_io_pull(int number, fpioa_pull_t pull)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || pull >= FPIOA_PULL_MAX)
         return -1;
 
     /* Atomic read register */
-    struct fpioa_io_config_t cfg = fpioa->io[number];
+    fpioa_io_config_t cfg = fpioa->io[number];
 
     switch (pull)
     {
@@ -5275,9 +5275,9 @@ int fpioa_get_io_pull(int number)
     if (number < 0 || number >= FPIOA_NUM_IO)
         return -1;
 
-    enum fpioa_pull_e pull;
+    fpioa_pull_t pull;
     /* Atomic read register */
-    struct fpioa_io_config_t cfg = fpioa->io[number];
+    fpioa_io_config_t cfg = fpioa->io[number];
 
     if (cfg.pu == 0 && cfg.pd == 1)
         pull = FPIOA_PULL_DOWN;
@@ -5288,14 +5288,14 @@ int fpioa_get_io_pull(int number)
     return pull;
 }
 
-int fpioa_set_io_driving(int number, enum fpioa_driving_e driving)
+int fpioa_set_io_driving(int number, fpioa_driving_t driving)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || driving >= FPIOA_DRIVING_MAX)
         return -1;
 
     /* Atomic read register */
-    struct fpioa_io_config_t cfg = fpioa->io[number];
+    fpioa_io_config_t cfg = fpioa->io[number];
     /* Set IO driving */
     cfg.ds = driving;
     /* Atomic write register */
@@ -5312,13 +5312,13 @@ int fpioa_get_io_driving(int number)
     return fpioa->io[number].ds;
 }
 
-int fpioa_set_function_raw(int number, enum fpioa_function_e function)
+int fpioa_set_function_raw(int number, fpioa_function_t function)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO || function < 0 || function >= FUNC_MAX)
         return -1;
     /* Atomic write register */
-    fpioa->io[number] =(const struct fpioa_io_config_t)
+    fpioa->io[number] =(const fpioa_io_config_t)
     {
         .ch_sel = function_config[function].ch_sel,
         .ds     = function_config[function].ds,
@@ -5338,7 +5338,7 @@ int fpioa_set_function_raw(int number, enum fpioa_function_e function)
     return 0;
 }
 
-int fpioa_set_function(int number, enum fpioa_function_e function)
+int fpioa_set_function(int number, fpioa_function_t function)
 {
     uint8_t index = 0;
     /* Check parameters */
@@ -5359,7 +5359,7 @@ int fpioa_set_function(int number, enum fpioa_function_e function)
     return 0;
 }
 
-int fpioa_set_tie_enable(enum fpioa_function_e function, int enable)
+int fpioa_set_tie_enable(fpioa_function_t function, int enable)
 {
     /* Check parameters */
     if (function < 0 || function >= FUNC_MAX)
@@ -5372,7 +5372,7 @@ int fpioa_set_tie_enable(enum fpioa_function_e function, int enable)
     return 0;
 }
 
-int fpioa_set_tie_value(enum fpioa_function_e function, int value)
+int fpioa_set_tie_value(fpioa_function_t function, int value)
 {
     /* Check parameters */
     if (function < 0 || function >= FUNC_MAX)
@@ -5385,7 +5385,7 @@ int fpioa_set_tie_value(enum fpioa_function_e function, int value)
     return 0;
 }
 
-int fpioa_get_io_by_func(enum fpioa_function_e function)
+int fpioa_get_io_by_func(fpioa_function_t function)
 {
     int index = 0;
     for (index = 0; index < FPIOA_NUM_IO; index++)

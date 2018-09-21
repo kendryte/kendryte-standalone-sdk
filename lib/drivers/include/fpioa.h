@@ -317,7 +317,7 @@ extern "C" {
  */
 
 /* clang-format off */
-enum fpioa_function_e
+typedef enum _fpioa_function
 {
     FUNC_JTAG_TCLK        = 0,  /*!< JTAG Test Clock */
     FUNC_JTAG_TDI         = 1,  /*!< JTAG Test Data In */
@@ -576,7 +576,7 @@ enum fpioa_function_e
     FUNC_DEBUG30          = 254,    /*!< Debug function 30 */
     FUNC_DEBUG31          = 255,    /*!< Debug function 31 */
     FUNC_MAX              = 256,    /*!< Function numbers */
-};
+} fpioa_function_t;
 /* clang-format on */
 
 /**
@@ -594,13 +594,13 @@ enum fpioa_function_e
  */
 
 /* clang-format off */
-enum fpioa_pull_e
+typedef enum _fpioa_pull
 {
     FPIOA_PULL_NONE,      /*!< No Pull */
     FPIOA_PULL_DOWN,      /*!< Pull Down */
     FPIOA_PULL_UP,        /*!< Pull Up */
     FPIOA_PULL_MAX        /*!< Count of pull settings */
-};
+} fpioa_pull_t;
 /* clang-format on */
 
 /**
@@ -638,7 +638,7 @@ enum fpioa_pull_e
  */
 
 /* clang-format off */
-enum fpioa_driving_e
+typedef enum _fpioa_driving
 {
     FPIOA_DRIVING_0,      /*!< 0000 */
     FPIOA_DRIVING_1,      /*!< 0001 */
@@ -657,7 +657,7 @@ enum fpioa_driving_e
     FPIOA_DRIVING_14,     /*!< 1110 */
     FPIOA_DRIVING_15,     /*!< 1111 */
     FPIOA_DRIVING_MAX     /*!< Count of driving settings */
-};
+} fpioa_driving_t;
 /* clang-format on */
 
 /**
@@ -691,7 +691,7 @@ enum fpioa_driving_e
  * | 7:0       | CH_SEL   | Channel select from 256 input.                    |
  *
  */
-struct fpioa_io_config_t
+typedef struct _fpioa_io_config
 {
     uint32_t ch_sel : 8;
     /*!< Channel select from 256 input. */
@@ -725,7 +725,7 @@ struct fpioa_io_config_t
     /*!< Reserved bits. */
     uint32_t pad_di : 1;
     /*!< Read current IO's data input. */
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) fpioa_io_config_t;
 
 /**
  * @brief      FPIOA tie setting
@@ -764,13 +764,13 @@ struct fpioa_io_config_t
  *             Tie high means the SPI Arbitration input is 1
  *
  */
-struct fpioa_tie_t
+typedef struct _fpioa_tie
 {
     uint32_t en[FUNC_MAX / 32];
     /*!< FPIOA GPIO multiplexer tie enable array */
     uint32_t val[FUNC_MAX / 32];
     /*!< FPIOA GPIO multiplexer tie value array */
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) fpioa_tie_t;
 
 /**
  * @brief      FPIOA Object
@@ -832,18 +832,18 @@ struct fpioa_tie_t
  * | 0x0BC     | PAD47    | FPIOA GPIO multiplexer io 47   |
  *
  */
-struct fpioa_t
+typedef struct _fpioa
 {
-    struct fpioa_io_config_t io[FPIOA_NUM_IO];
+    fpioa_io_config_t io[FPIOA_NUM_IO];
     /*!< FPIOA GPIO multiplexer io array */
-    struct fpioa_tie_t tie;
+    fpioa_tie_t tie;
     /*!< FPIOA GPIO multiplexer tie */
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) fpioa_t;
 
 /**
  * @brief       FPIOA object instanse
  */
-extern volatile struct fpioa_t *const fpioa;
+extern volatile fpioa_t *const fpioa;
 
 /**
  * @brief       Initialize FPIOA user custom default settings
@@ -867,7 +867,7 @@ int fpioa_init(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_get_io(int number, struct fpioa_io_config_t *cfg);
+int fpioa_get_io(int number, fpioa_io_config_t *cfg);
 
 /**
  * @brief       Set IO configuration
@@ -879,7 +879,7 @@ int fpioa_get_io(int number, struct fpioa_io_config_t *cfg);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_set_io(int number, struct fpioa_io_config_t *cfg);
+int fpioa_set_io(int number, fpioa_io_config_t *cfg);
 
 /**
  * @brief       Set IO configuration with function number
@@ -894,7 +894,7 @@ int fpioa_set_io(int number, struct fpioa_io_config_t *cfg);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_set_function_raw(int number, enum fpioa_function_e function);
+int fpioa_set_function_raw(int number, fpioa_function_t function);
 
 /**
  * @brief       Set only IO configuration with function number
@@ -909,7 +909,7 @@ int fpioa_set_function_raw(int number, enum fpioa_function_e function);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_set_function(int number, enum fpioa_function_e function);
+int fpioa_set_function(int number, fpioa_function_t function);
 
 /**
  * @brief       Set tie enable to function
@@ -921,7 +921,7 @@ int fpioa_set_function(int number, enum fpioa_function_e function);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_set_tie_enable(enum fpioa_function_e function, int enable);
+int fpioa_set_tie_enable(fpioa_function_t function, int enable);
 
 /**
  * @brief       Set tie value to function
@@ -933,7 +933,7 @@ int fpioa_set_tie_enable(enum fpioa_function_e function, int enable);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_set_tie_value(enum fpioa_function_e function, int value);
+int fpioa_set_tie_value(fpioa_function_t function, int value);
 
 /**
  * @brief      Set IO pull function
@@ -945,7 +945,7 @@ int fpioa_set_tie_value(enum fpioa_function_e function, int value);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_set_io_pull(int number, enum fpioa_pull_e pull);
+int fpioa_set_io_pull(int number, fpioa_pull_t pull);
 
 /**
  * @brief       Get IO pull function
@@ -968,7 +968,7 @@ int fpioa_get_io_pull(int number);
  *     - 0      Success
  *     - Other  Fail
  */
-int fpioa_set_io_driving(int number, enum fpioa_driving_e driving);
+int fpioa_set_io_driving(int number, fpioa_driving_t driving);
 
 /**
  * @brief       Get IO driving
@@ -990,7 +990,7 @@ int fpioa_get_io_driving(int number);
  *     - -1     Fail
  *     - Other  The IO number
  */
-int fpioa_get_io_by_func(enum fpioa_function_e function);
+int fpioa_get_io_by_func(fpioa_function_t function);
 
 
 #ifdef __cplusplus

@@ -48,7 +48,7 @@ extern "C" {
 /**
  * @brief      GPIO bits raw object
  */
-struct gpiohs_raw_t
+typedef struct _gpiohs_raw
 {
     /* Address offset 0x00 */
     uint32_t input_val;
@@ -84,12 +84,12 @@ struct gpiohs_raw_t
     uint32_t iof_sel;
     /* Address offset 0x40 */
     uint32_t output_xor;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) gpiohs_raw_t;
 
 /**
  * @brief       GPIO bits object
  */
-typedef struct
+typedef struct _gpiohs_bits
 {
     uint32_t b0 : 1;
     uint32_t b1 : 1;
@@ -128,7 +128,7 @@ typedef struct
 /**
  * @brief       GPIO bits multi access union
  */
-typedef union
+typedef union _gpiohs_u32
 {
     /* 32x1 bit mode */
     uint32_t u32[1];
@@ -155,7 +155,7 @@ typedef union
  *             written to the *_ip register at that bit.
  */
 
-typedef struct
+typedef struct _gpiohs
 {
     /* Address offset 0x00, Input Values */
     gpiohs_u32_t input_val;
@@ -221,7 +221,7 @@ void gpiohs_pin_init(size_t pin_num, size_t gpio_pin);
  * @param[in]   pin         Gpiohs pin
  * @param[in]   mode        Gpiohs pin drive mode
  */
-void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode mode);
+void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode_t mode);
 
 /**
  * @brief       Get Gpiohs pin value
@@ -232,7 +232,7 @@ void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode mode);
  *     - GPIO_PV_Low     Gpiohs pin low
  *     - GPIO_PV_High    Gpiohs pin high
  */
-gpio_pin_value gpiohs_get_pin_value(size_t pin);
+gpio_pin_value_t gpiohs_get_pin_value(size_t pin);
 
 /**
  * @brief      Set Gpiohs pin value
@@ -240,7 +240,7 @@ gpio_pin_value gpiohs_get_pin_value(size_t pin);
  * @param[in]   pin      Gpiohs pin
  * @param[in]   value    Gpiohs pin value
  */
-void gpiohs_set_pin_value(size_t pin, gpio_pin_value value);
+void gpiohs_set_pin_value(size_t pin, gpio_pin_value_t value);
 
 /**
  * @brief      Set Gpiohs pin edge for interrupt
@@ -248,7 +248,7 @@ void gpiohs_set_pin_value(size_t pin, gpio_pin_value value);
  * @param[in]   pin         Gpiohs pin
  * @param[in]   edge        Gpiohs pin edge type
  */
-void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge edge);
+void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge_t edge);
 
 /**
  * @brief      Set Gpiohs pin interrupt

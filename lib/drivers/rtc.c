@@ -19,13 +19,13 @@
 #include "sysctl.h"
 #include "rtc.h"
 
-volatile struct rtc_t *const rtc = (volatile struct rtc_t *)RTC_BASE_ADDR;
+volatile rtc_t *const rtc = (volatile rtc_t *)RTC_BASE_ADDR;
 
-struct tm rtc_date_time;
+tm rtc_date_time;
 
-int rtc_timer_set_mode(rtc_timer_mode_e timer_mode)
+int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
 {
-    struct rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
+    rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
 
     switch (timer_mode)
     {
@@ -52,10 +52,10 @@ int rtc_timer_set_mode(rtc_timer_mode_e timer_mode)
     return 0;
 }
 
-rtc_timer_mode_e rtc_timer_get_mode(void)
+rtc_timer_mode_t rtc_timer_get_mode(void)
 {
-    struct rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
-    rtc_timer_mode_e timer_mode = RTC_TIMER_PAUSE;
+    rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
+    rtc_timer_mode_t timer_mode = RTC_TIMER_PAUSE;
 
     if ((!register_ctrl.read_enable) && (!register_ctrl.write_enable))
     {
@@ -85,11 +85,11 @@ static inline int rtc_in_range(int value, int min, int max)
     return ((value >= min) && (value <= max));
 }
 
-int rtc_timer_set_tm(const struct tm *tm)
+int rtc_timer_set_tm(const tm *tm)
 {
-    struct rtc_date_t timer_date;
-    struct rtc_time_t timer_time;
-    struct rtc_extended_t timer_extended;
+    rtc_date_t timer_date;
+    rtc_time_t timer_time;
+    rtc_extended_t timer_extended;
 
     if (tm)
     {
@@ -178,10 +178,10 @@ int rtc_timer_set_tm(const struct tm *tm)
     return 0;
 }
 
-int rtc_timer_set_alarm_tm(const struct tm *tm)
+int rtc_timer_set_alarm_tm(const tm *tm)
 {
-    struct rtc_alarm_date_t alarm_date;
-    struct rtc_alarm_time_t alarm_time;
+    rtc_alarm_date_t alarm_date;
+    rtc_alarm_time_t alarm_time;
 
     if (tm) {
         /*
@@ -277,16 +277,16 @@ int rtc_get_wday(int year, int month, int day)
     return weekday;
 }
 
-struct tm *rtc_timer_get_tm(void)
+tm *rtc_timer_get_tm(void)
 {
     if (rtc_timer_get_mode() != RTC_TIMER_RUNNING)
         return NULL;
 
-    struct rtc_date_t timer_date = rtc->date;
-    struct rtc_time_t timer_time = rtc->time;
-    struct rtc_extended_t timer_extended = rtc->extended;
+    rtc_date_t timer_date = rtc->date;
+    rtc_time_t timer_time = rtc->time;
+    rtc_extended_t timer_extended = rtc->extended;
 
-    struct tm *tm = &rtc_date_time;
+    tm *tm = &rtc_date_time;
 
     tm->tm_sec = timer_time.second % 60;
     tm->tm_min = timer_time.minute % 60;
@@ -301,16 +301,16 @@ struct tm *rtc_timer_get_tm(void)
     return tm;
 }
 
-struct tm *rtc_timer_get_alarm_tm(void)
+tm *rtc_timer_get_alarm_tm(void)
 {
     if (rtc_timer_get_mode() != RTC_TIMER_RUNNING)
         return NULL;
 
-    struct rtc_alarm_date_t alarm_date = rtc->alarm_date;
-    struct rtc_alarm_time_t alarm_time = rtc->alarm_time;
-    struct rtc_extended_t timer_extended = rtc->extended;
+    rtc_alarm_date_t alarm_date = rtc->alarm_date;
+    rtc_alarm_time_t alarm_time = rtc->alarm_time;
+    rtc_extended_t timer_extended = rtc->extended;
 
-    struct tm *tm = &rtc_date_time;
+    tm *tm = &rtc_date_time;
 
     tm->tm_sec = alarm_time.second % 60;
     tm->tm_min = alarm_time.minute % 60;
@@ -328,7 +328,7 @@ struct tm *rtc_timer_get_alarm_tm(void)
 
 int rtc_timer_set(int year, int month, int day, int hour, int minute, int second)
 {
-    struct tm date_time =
+    tm date_time =
     {
         .tm_sec = second,
         .tm_min = minute,
@@ -345,7 +345,7 @@ int rtc_timer_set(int year, int month, int day, int hour, int minute, int second
 
 int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *second)
 {
-    struct tm *tm = rtc_timer_get_tm();
+    tm *tm = rtc_timer_get_tm();
 
     if (tm)
     {
@@ -369,7 +369,7 @@ int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *
 
 int rtc_timer_set_alarm(int year, int month, int day, int hour, int minute, int second)
 {
-    struct tm date_time = {
+    tm date_time = {
         .tm_sec = second,
         .tm_min = minute,
         .tm_hour = hour,
@@ -386,7 +386,7 @@ int rtc_timer_set_alarm(int year, int month, int day, int hour, int minute, int 
 
 int rtc_timer_get_alarm(int *year, int *month, int *day, int *hour, int *minute, int *second)
 {
-    struct tm *tm = rtc_timer_get_alarm_tm();
+    tm *tm = rtc_timer_get_alarm_tm();
 
     if (tm) {
         if (year)
@@ -409,7 +409,7 @@ int rtc_timer_get_alarm(int *year, int *month, int *day, int *hour, int *minute,
 
 int rtc_timer_set_clock_frequency(unsigned int frequency)
 {
-    struct rtc_initial_count_t initial_count;
+    rtc_initial_count_t initial_count;
 
     initial_count.count = frequency;
     rtc->initial_count = initial_count;
@@ -423,7 +423,7 @@ unsigned int rtc_timer_get_clock_frequency(void)
 
 int rtc_timer_set_clock_count_value(unsigned int  count)
 {
-    struct rtc_current_count_t current_count;
+    rtc_current_count_t current_count;
 
     current_count.count = count;
     rtc->current_count = current_count;
@@ -437,7 +437,7 @@ unsigned int rtc_timer_get_clock_count_value(void)
 
 int rtc_tick_interrupt_set(int enable)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.tick_enable = enable;
     rtc->interrupt_ctrl = interrupt_ctrl;
@@ -446,30 +446,30 @@ int rtc_tick_interrupt_set(int enable)
 
 int rtc_tick_interrupt_get(void)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     return interrupt_ctrl.tick_enable;
 }
 
-int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_e mode)
+int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_t mode)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.tick_int_mode = mode;
     rtc->interrupt_ctrl = interrupt_ctrl;
     return 0;
 }
 
-rtc_tick_interrupt_mode_e rtc_tick_interrupt_mode_get(void)
+rtc_tick_interrupt_mode_t rtc_tick_interrupt_mode_get(void)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     return interrupt_ctrl.tick_int_mode;
 }
 
 int rtc_alarm_interrupt_set(int enable)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.alarm_enable = enable;
     rtc->interrupt_ctrl = interrupt_ctrl;
@@ -478,34 +478,34 @@ int rtc_alarm_interrupt_set(int enable)
 
 int rtc_alarm_interrupt_get(void)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     return interrupt_ctrl.alarm_enable;
 }
 
-int rtc_alarm_interrupt_mask_set(struct rtc_mask_t mask)
+int rtc_alarm_interrupt_mask_set(rtc_mask_t mask)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.alarm_compare_mask = *(uint8_t *)&mask;
     rtc->interrupt_ctrl = interrupt_ctrl;
     return 0;
 }
 
-struct rtc_mask_t rtc_alarm_interrupt_mask_get(void)
+rtc_mask_t rtc_alarm_interrupt_mask_get(void)
 {
-    struct rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
+    rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     uint8_t compare_mask = interrupt_ctrl.alarm_compare_mask;
 
-    return *(struct rtc_mask_t *)&compare_mask;
+    return *(rtc_mask_t *)&compare_mask;
 }
 
 int rtc_protect_set(int enable)
 {
-    struct rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
+    rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
 
-    struct rtc_mask_t mask =
+    rtc_mask_t mask =
     {
         .second = 1,
         /* Second mask */
@@ -522,7 +522,7 @@ int rtc_protect_set(int enable)
         .year = 1,
     };
 
-    struct rtc_mask_t unmask =
+    rtc_mask_t unmask =
     {
         .second = 0,
         /* Second mask */

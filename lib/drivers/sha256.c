@@ -19,7 +19,7 @@
 #include "syscalls.h"
 #include "sysctl.h"
 
-volatile struct sha256_t* const sha256 = (volatile struct sha256_t*)SHA256_BASE_ADDR;
+volatile sha256_t* const sha256 = (volatile sha256_t*)SHA256_BASE_ADDR;
 
 #define ROTL(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #define ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
@@ -44,7 +44,7 @@ static const uint8_t padding[64] =
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00};
 
-int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context* sc)
+int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context_t* sc)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_SHA);
     sysctl_reset(SYSCTL_RESET_SHA);
@@ -72,7 +72,7 @@ int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context* sc)
     return 1;
 }
 
-void sha256_update(SHA256Context* sc, const void* vdata, uint32_t len)
+void sha256_update(SHA256Context_t* sc, const void* vdata, uint32_t len)
 {
     const uint8_t* data = vdata;
     uint32_t bufferBytesLeft;
@@ -108,7 +108,7 @@ void sha256_update(SHA256Context* sc, const void* vdata, uint32_t len)
     }
 }
 
-void sha256_final(SHA256Context* sc, uint8_t hash[SHA256_HASH_SIZE])
+void sha256_final(SHA256Context_t* sc, uint8_t hash[SHA256_HASH_SIZE])
 {
     uint32_t bytesToPad;
     uint64_t lengthPad;

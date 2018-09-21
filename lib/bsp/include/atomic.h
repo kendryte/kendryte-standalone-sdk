@@ -26,11 +26,11 @@ extern "C" {
         0             \
     }
 
-#define HARTLOCK_INIT          \
+#define CORELOCK_INIT          \
     {                          \
         .lock = SPINLOCK_INIT, \
         .count = 0,            \
-        .hart = -1             \
+        .core = -1             \
     }
 
 
@@ -52,12 +52,12 @@ extern "C" {
 #define atomic_swap(ptr, swp) __sync_lock_test_and_set(ptr, swp)
 #define atomic_cas(ptr, cmp, swp) __sync_val_compare_and_swap(ptr, cmp, swp)
 
-typedef struct
+typedef struct _spinlock
 {
     int lock;
 } spinlock_t;
 
-typedef struct
+typedef struct _semaphore
 {
     spinlock_t lock;
     int count;
@@ -65,12 +65,12 @@ typedef struct
 } semaphore_t;
 
 
-typedef struct
+typedef struct _corelock
 {
     spinlock_t lock;
     int count;
-    int hart;
-} hartlock_t;
+    int core;
+} corelock_t;
 
 
 static inline int spinlock_trylock(spinlock_t *lock)
@@ -136,23 +136,23 @@ static inline int semaphore_waiting(semaphore_t *semaphore)
     return atomic_read(&(semaphore->waiting));
 }
 
-static inline int hartlock_trylock(hartlock_t *lock)
+static inline int corelock_trylock(corelock_t *lock)
 {
     int res = 0;
-    unsigned long hart;
+    unsigned long core;
 
     asm volatile("csrr %0, mhartid;"
-                 : "=r"(hart));
+                 : "=r"(core));
     spinlock_lock(&lock->lock);
 
     if (lock->count == 0)
     {
         /* First time get lock */
         lock->count++;
-        lock->hart = hart;
+        lock->core = core;
         res = 0;
     }
-    else if (lock->hart == hart)
+    else if (lock->core == core)
     {
         /* Same core get lock */
         lock->count++;
@@ -168,21 +168,21 @@ static inline int hartlock_trylock(hartlock_t *lock)
     return res;
 }
 
-static inline void hartlock_lock(hartlock_t *lock)
+static inline void corelock_lock(corelock_t *lock)
 {
-    unsigned long hart;
+    unsigned long core;
 
     asm volatile("csrr %0, mhartid;"
-                 : "=r"(hart));
+                 : "=r"(core));
     spinlock_lock(&lock->lock);
 
     if (lock->count == 0)
     {
         /* First time get lock */
         lock->count++;
-        lock->hart = hart;
+        lock->core = core;
     }
-    else if (lock->hart == hart)
+    else if (lock->core == core)
     {
         /* Same core get lock */
         lock->count++;
@@ -196,26 +196,26 @@ static inline void hartlock_lock(hartlock_t *lock)
         {
             while (atomic_read(&lock->count))
                 ;
-        } while (hartlock_trylock(lock));
+        } while (corelock_trylock(lock));
     }
     spinlock_unlock(&lock->lock);
 }
 
-static inline void hartlock_unlock(hartlock_t *lock)
+static inline void corelock_unlock(corelock_t *lock)
 {
-    unsigned long hart;
+    unsigned long core;
 
     asm volatile("csrr %0, mhartid;"
-                 : "=r"(hart));
+                 : "=r"(core));
     spinlock_lock(&lock->lock);
 
-    if (lock->hart == hart)
+    if (lock->core == core)
     {
         /* Same core release lock */
         lock->count--;
         if (lock->count <= 0)
         {
-            lock->hart = -1;
+            lock->core = -1;
             lock->count = 0;
         }
     }

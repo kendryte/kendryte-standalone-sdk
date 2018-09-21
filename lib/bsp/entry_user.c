@@ -31,7 +31,7 @@ volatile char * const ram = (volatile char*)RAM_BASE_ADDR;
 extern char _heap_start[];
 extern char _heap_end[];
 
-extern volatile unsigned int g_wake_up[2];
+static volatile uint32_t g_wake_up[2] = { 1, 0 };
 
 void thread_entry(int core_id)
 {
@@ -60,8 +60,6 @@ void _init_bsp(int core_id, int number_of_cores)
 
     if (core_id == 0)
     {
-        /* Copy lma data to memory */
-        init_lma();
         /* Initialize bss data to 0 */
         init_bss();
         /* Init FPIOA */

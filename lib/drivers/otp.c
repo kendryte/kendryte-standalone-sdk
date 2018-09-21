@@ -21,7 +21,7 @@
 #define WRTEST_NUM          0xA5U
 /* clang-format on */
 
-volatile struct otp_t* const otp = (volatile struct otp_t*)OTP_BASE_ADDR;
+volatile otp_t* const otp = (volatile otp_t*)OTP_BASE_ADDR;
 
 void otp_init(uint8_t div)
 {
@@ -65,14 +65,14 @@ void otp_key_output_disable(void)
     otp->gb_otp_en = 0;
 }
 
-enum otp_status_t otp_status_get(uint32_t flag)
+otp_status_t otp_status_get(uint32_t flag)
 {
     if (otp->otp_status & flag)
         return OTP_FLAG_SET;
     return OTP_FLAG_UNSET;
 }
 
-static enum otp_status_t otp_bisr_write(void)
+static otp_status_t otp_bisr_write(void)
 {
     uint32_t time_out = 0;
 
@@ -93,7 +93,7 @@ static enum otp_status_t otp_bisr_write(void)
     return OTP_OK;
 }
 
-static enum otp_status_t otp_bisr_read(void)
+static otp_status_t otp_bisr_read(void)
 {
     uint32_t time_out = 0;
 
@@ -112,9 +112,9 @@ static enum otp_status_t otp_bisr_read(void)
     return OTP_OK;
 }
 
-enum otp_status_t otp_blank_check(void)
+otp_status_t otp_blank_check(void)
 {
-    enum otp_status_t status;
+    otp_status_t status;
     uint32_t time_out = 0;
 
     if (otp_func_reg_disable_get(BLANK_TEST_DISABLE) == OTP_FUNC_DISABLE)
@@ -146,7 +146,7 @@ enum otp_status_t otp_blank_check(void)
     return OTP_OK;
 }
 
-enum otp_status_t otp_testdec(void)
+otp_status_t otp_testdec(void)
 {
     uint32_t time_out = 0;
 
@@ -168,7 +168,7 @@ enum otp_status_t otp_testdec(void)
     return OTP_OK;
 }
 
-enum otp_status_t otp_wrtest(void)
+otp_status_t otp_wrtest(void)
 {
     uint16_t addr, data, i, j;
     uint32_t time_out;
@@ -272,9 +272,9 @@ enum otp_status_t otp_wrtest(void)
     return OTP_OK;
 }
 
-static enum otp_status_t otp_write_byte(uint32_t addr, uint8_t* data_buf, uint32_t length)
+static otp_status_t otp_write_byte(uint32_t addr, uint8_t* data_buf, uint32_t length)
 {
-    enum otp_status_t status;
+    otp_status_t status;
     uint8_t data, index;
     uint32_t time_out;
 
@@ -339,7 +339,7 @@ static enum otp_status_t otp_write_byte(uint32_t addr, uint8_t* data_buf, uint32
     return OTP_OK;
 }
 
-static enum otp_status_t otp_read_byte(uint32_t addr, uint8_t* data_buf, uint32_t length)
+static otp_status_t otp_read_byte(uint32_t addr, uint8_t* data_buf, uint32_t length)
 {
     uint32_t time_out;
 
@@ -375,9 +375,9 @@ static enum otp_status_t otp_read_byte(uint32_t addr, uint8_t* data_buf, uint32_
     return OTP_OK;
 }
 
-enum otp_status_t otp_write_data(uint32_t addr, uint8_t* data_buf, uint32_t length)
+otp_status_t otp_write_data(uint32_t addr, uint8_t* data_buf, uint32_t length)
 {
-    enum otp_status_t status;
+    otp_status_t status;
 
     if (addr >= OTP_BISR_DATA_ADDR)
         return OTP_ERROR_ADDRESS;
@@ -389,9 +389,9 @@ enum otp_status_t otp_write_data(uint32_t addr, uint8_t* data_buf, uint32_t leng
     return status;
 }
 
-enum otp_status_t otp_read_data(uint32_t addr, uint8_t* data_buf, uint32_t length)
+otp_status_t otp_read_data(uint32_t addr, uint8_t* data_buf, uint32_t length)
 {
-    enum otp_status_t status;
+    otp_status_t status;
 
     if (addr >= OTP_BISR_DATA_ADDR)
         return OTP_ERROR_ADDRESS;
@@ -403,9 +403,9 @@ enum otp_status_t otp_read_data(uint32_t addr, uint8_t* data_buf, uint32_t lengt
     return status;
 }
 
-enum otp_status_t otp_key_write(uint8_t* data_buf)
+otp_status_t otp_key_write(uint8_t* data_buf)
 {
-    enum otp_status_t status;
+    otp_status_t status;
 
     status = otp_write_byte(OTP_AES_KEY_ADDR, data_buf, 16);
     if (status == OTP_ERROR_ADDRESS)
@@ -413,7 +413,7 @@ enum otp_status_t otp_key_write(uint8_t* data_buf)
     return status;
 }
 
-enum otp_status_t otp_key_compare(uint8_t* data_buf)
+otp_status_t otp_key_compare(uint8_t* data_buf)
 {
     uint32_t time_out = 0;
 
@@ -435,9 +435,9 @@ enum otp_status_t otp_key_compare(uint8_t* data_buf)
     return OTP_OK;
 }
 
-enum otp_status_t otp_data_block_protect_set(enum otp_data_block_t block)
+otp_status_t otp_data_block_protect_set(otp_data_block_t block)
 {
-    enum otp_status_t status;
+    otp_status_t status;
     uint8_t value;
 
     if (block >= DATA_BLOCK_MAX)
@@ -449,9 +449,9 @@ enum otp_status_t otp_data_block_protect_set(enum otp_data_block_t block)
     return status;
 }
 
-enum otp_status_t otp_func_reg_disable_set(enum otp_func_reg_t func)
+otp_status_t otp_func_reg_disable_set(otp_func_reg_t func)
 {
-    enum otp_status_t status;
+    otp_status_t status;
     uint8_t value;
 
     if (func >= FUNC_REG_MAX)
@@ -463,7 +463,7 @@ enum otp_status_t otp_func_reg_disable_set(enum otp_func_reg_t func)
     return status;
 }
 
-enum otp_status_t otp_data_block_protect_get(enum otp_data_block_t block)
+otp_status_t otp_data_block_protect_get(otp_data_block_t block)
 {
     if (block < DATA_BLOCK_MAX / 2)
     {
@@ -480,7 +480,7 @@ enum otp_status_t otp_data_block_protect_get(enum otp_data_block_t block)
     return OTP_BLOCK_NORMAL;
 }
 
-enum otp_status_t otp_func_reg_disable_get(enum otp_func_reg_t func)
+otp_status_t otp_func_reg_disable_get(otp_func_reg_t func)
 {
     if (func < FUNC_REG_MAX / 2)
     {
@@ -497,7 +497,7 @@ enum otp_status_t otp_func_reg_disable_get(enum otp_func_reg_t func)
     return OTP_FUNC_ENABLE;
 }
 
-enum otp_status_t otp_data_block_protect_refresh(enum otp_data_block_t block)
+otp_status_t otp_data_block_protect_refresh(otp_data_block_t block)
 {
     uint8_t value;
 
@@ -507,7 +507,7 @@ enum otp_status_t otp_data_block_protect_refresh(enum otp_data_block_t block)
         return OTP_ERROR_PARAM;
 }
 
-enum otp_status_t otp_soft_write(uint32_t addr, uint8_t* data_buf, uint32_t length)
+otp_status_t otp_soft_write(uint32_t addr, uint8_t* data_buf, uint32_t length)
 {
     uint8_t data, index, count;
 
@@ -567,7 +567,7 @@ enum otp_status_t otp_soft_write(uint32_t addr, uint8_t* data_buf, uint32_t leng
     return OTP_OK;
 }
 
-enum otp_status_t otp_soft_read(uint32_t addr, uint8_t* data_buf, uint32_t length)
+otp_status_t otp_soft_read(uint32_t addr, uint8_t* data_buf, uint32_t length)
 {
     otp->otp_ceb_cpu = 1;
     otp->otp_dle_cpu = 0;

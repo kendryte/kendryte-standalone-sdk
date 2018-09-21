@@ -21,10 +21,10 @@
 
 plic_irq_callback_t wdt_irq[2];
 
-volatile struct wdt_t *const wdt[2] =
+volatile wdt_t *const wdt[2] =
 {
-    (volatile struct wdt_t *)WDT0_BASE_ADDR,
-    (volatile struct wdt_t *)WDT1_BASE_ADDR
+    (volatile wdt_t *)WDT0_BASE_ADDR,
+    (volatile wdt_t *)WDT1_BASE_ADDR
 };
 
 void wdt_feed(uint8_t id)

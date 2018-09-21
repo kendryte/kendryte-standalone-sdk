@@ -95,8 +95,10 @@
 #define DIGITAL_GAMMA_CTL2      0xE3
 #define INTERFACE_CTL           0xF6
 
-#define DCX_IO                  (33)
-#define DCX_GPIONUM             (2)
+#define     DCX_IO          (34)
+#define     RESET_IO        (30)
+#define     RESET_GPIONUM   (3)
+#define     DCX_GPIONUM     (2)
 
 #define SPI_CHANNEL             0
 #define SPI_SLAVE_SELECT        3

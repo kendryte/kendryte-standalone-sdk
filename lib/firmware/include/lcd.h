@@ -18,8 +18,8 @@
 #include <stdint.h>
 
 /* clang-format off */
-#define LCD_X_MAX   (320)
-#define LCD_Y_MAX   (480)
+#define LCD_X_MAX   (240)
+#define LCD_Y_MAX   (320)
 
 #define BLACK       0x0000
 #define NAVY        0x000F
@@ -43,7 +43,7 @@
 #define USER_COLOR  0xAA55
 /* clang-format on */
 
-enum lcd_dir_t
+typedef enum _lcd_dir
 {
     DIR_XY_RLUD = 0x00,
     DIR_YX_RLUD = 0x20,
@@ -55,9 +55,9 @@ enum lcd_dir_t
     DIR_YX_LRDU = 0xE0,
     DIR_XY_MASK = 0x20,
     DIR_MASK = 0xE0,
-};
+} lcd_dir_t;
 
-typedef struct
+typedef struct _lcd_ctl
 {
     uint8_t mode;
     uint8_t dir;
@@ -70,7 +70,7 @@ void lcd_polling_enable(void);
 void lcd_interrupt_enable(void);
 void lcd_init(void);
 void lcd_clear(uint16_t color);
-void lcd_set_direction(enum lcd_dir_t dir);
+void lcd_set_direction(lcd_dir_t dir);
 void lcd_set_area(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void lcd_draw_point(uint16_t x, uint16_t y, uint16_t color);
 void lcd_draw_string(uint16_t x, uint16_t y, char *str, uint16_t color);

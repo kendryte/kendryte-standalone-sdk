@@ -32,13 +32,13 @@ void gpio_pin_init(size_t pin_num, size_t gpio_pin)
     fpioa_set_function(pin_num, FUNC_GPIO0 + gpio_pin);
 }
 
-void gpio_set_drive_mode(size_t pin, gpio_drive_mode mode)
+void gpio_set_drive_mode(size_t pin, gpio_drive_mode_t mode)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     int io_number = fpioa_get_io_by_func(FUNC_GPIO0 + pin);
     configASSERT(io_number > 0);
 
-    enum fpioa_pull_e pull;
+    fpioa_pull_t pull;
     uint32_t dir;
 
     switch (mode)
@@ -67,7 +67,7 @@ void gpio_set_drive_mode(size_t pin, gpio_drive_mode mode)
     set_gpio_bit(gpio->direction.u32, pin, dir);
 }
 
-gpio_pin_value gpio_get_pin_value(size_t pin)
+gpio_pin_value_t gpio_get_pin_value(size_t pin)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     uint32_t dir = get_gpio_bit(gpio->direction.u32, pin);
@@ -75,7 +75,7 @@ gpio_pin_value gpio_get_pin_value(size_t pin)
     return get_gpio_bit(reg, pin);
 }
 
-void gpio_set_pin_value(size_t pin, gpio_pin_value value)
+void gpio_set_pin_value(size_t pin, gpio_pin_value_t value)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     uint32_t dir = get_gpio_bit(gpio->direction.u32, pin);

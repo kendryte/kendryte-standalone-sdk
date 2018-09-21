@@ -21,11 +21,11 @@
 #include "string.h"
 #include "sysctl.h"
 
-volatile struct i2c_t* const i2c[3] =
+volatile i2c_t* const i2c[3] =
 {
-    (volatile struct i2c_t*)I2C0_BASE_ADDR,
-    (volatile struct i2c_t*)I2C1_BASE_ADDR,
-    (volatile struct i2c_t*)I2C2_BASE_ADDR
+    (volatile i2c_t*)I2C0_BASE_ADDR,
+    (volatile i2c_t*)I2C1_BASE_ADDR,
+    (volatile i2c_t*)I2C2_BASE_ADDR
 };
 
 void i2c_pin_init(uint8_t sel, int clk_pin, int data_pin)
@@ -50,7 +50,7 @@ void i2c_init(uint8_t sel, int clk_pin, int data_pin)
     dmac_init();
 }
 
-void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,i2c_bus_speed_mode bus_speed_mode)
+void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,i2c_bus_speed_mode_t bus_speed_mode)
 {
     configASSERT(sel < I2C_MAX_NUM);
     configASSERT(address_width == 7 || address_width == 10);
@@ -64,7 +64,7 @@ void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,i2c_bus_s
             break;
     }
     /*set config*/
-    volatile struct i2c_t* i2c_adapter = i2c[sel];
+    volatile i2c_t* i2c_adapter = i2c[sel];
     i2c_adapter->enable = 0;
     i2c_adapter->con = I2C_CON_MASTER_MODE | I2C_CON_SLAVE_DISABLE | I2C_CON_RESTART_EN |
                        (address_width == 10 ? I2C_CON_10BITADDR_SLAVE : 0) | I2C_CON_SPEED(speed_mode);
@@ -81,7 +81,7 @@ void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,i2c_bus_s
 int i2c_write_reg(uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
 {
     configASSERT(sel < I2C_MAX_NUM);
-    volatile struct i2c_t* i2c_adapter = i2c[sel];
+    volatile i2c_t* i2c_adapter = i2c[sel];
     uint8_t fifo_len, index;
 
     fifo_len = length < 7 ? length : 7;
@@ -104,10 +104,10 @@ int i2c_write_reg(uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
     return 0;
 }
 
-int i2c_write_reg_dma(dmac_channel_number channel_num, uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
+int i2c_write_reg_dma(dmac_channel_number_t channel_num, uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
 {
     configASSERT(sel < I2C_MAX_NUM);
-    volatile struct i2c_t* i2c_adapter = i2c[sel];
+    volatile i2c_t* i2c_adapter = i2c[sel];
 
     uint32_t* buf = malloc((length + 1) * sizeof(uint32_t));
     buf[0] = reg;
@@ -137,7 +137,7 @@ int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
     uint8_t fifo_len, index;
     uint8_t rx_len = length;
     configASSERT(sel < I2C_MAX_NUM);
-    volatile struct i2c_t* i2c_adapter = i2c[sel];
+    volatile i2c_t* i2c_adapter = i2c[sel];
 
     fifo_len = length < 7 ? length : 7;
     i2c_adapter->data_cmd = I2C_DATA_CMD_DATA(reg);
@@ -162,11 +162,11 @@ int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
     return 0;
 }
 
-int i2c_read_reg_dma(dmac_channel_number w_channel_num, dmac_channel_number r_channel_num,
+int i2c_read_reg_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
     uint8_t sel, uint8_t reg, uint8_t* data_buf, uint8_t length)
 {
     configASSERT(sel < I2C_MAX_NUM);
-    volatile struct i2c_t* i2c_adapter = i2c[sel];
+    volatile i2c_t* i2c_adapter = i2c[sel];
 
     uint32_t* write_cmd = malloc(sizeof(uint32_t) * (1 + length));
     size_t i;

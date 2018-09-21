@@ -44,14 +44,14 @@
 extern "C" {
 #endif
 
-typedef enum
+typedef enum _uart_dev
 {
     UART_DEV1 = 0,
     UART_DEV2,
     UART_DEV3,
 } uart_dev_t;
 
-typedef struct
+typedef struct _uart
 {
     union
     {
@@ -110,7 +110,7 @@ typedef struct
     volatile uint32_t CTR;
 } uart_t;
 
-typedef enum
+typedef enum _uart_bitwidth
 {
     UART_BITWIDTH_5BIT = 0,
     UART_BITWIDTH_6BIT,
@@ -118,20 +118,21 @@ typedef enum
     UART_BITWIDTH_8BIT,
 } uart_bitwidth_t;
 
-typedef enum
-{
-    UART_STOPBIT_1 = 0,
-    UART_STOPBIT_1P5OR2,
-} uart_stopbit_t;
-
-typedef enum
+typedef enum _uart_pority
 {
     UART_PORITY_DISABLE = 0,
     UART_PORITY_ODD     = 1,
     UART_PORITY_EVEN    = 3
 } uart_pority_t;
 
-typedef struct
+typedef enum _uart_stopbit
+{
+    UART_STOP_1,
+    UART_STOP_1_5,
+    UART_STOP_2
+} uart_stopbit_t;
+
+typedef struct _uart_info
 {
     uint32_t baudrate;
     uart_bitwidth_t bitwidth;
@@ -140,25 +141,18 @@ typedef struct
     uint32_t is_hw_flow_en;
 } uart_info_t;
 
-typedef enum
+typedef enum _uart_rede_sel
 {
     DISABLE = 0,
     ENABLE,
-} uart_rede_sel;
+} uart_rede_sel_t;
 
-typedef enum
-{
-    UART_STOP_1,
-    UART_STOP_1_5,
-    UART_STOP_2
-} uart_stopbit;
-
-typedef enum
+typedef enum _uart_parity
 {
     UART_PARITY_None,
     UART_PARITY_Odd,
     UART_PARITY_Even
-} uart_parity;
+} uart_parity_t;
 
 /**
  * @brief       Send data from uart
@@ -200,7 +194,7 @@ void uartapb_init(uint8_t channel);
  * @param[in]   parity          Odd Even parity
  *
  */
-void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stopbit stopbit, uart_parity parity);
+void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stopbit_t stopbit, uart_parity_t parity);
 
 #ifdef __cplusplus
 }

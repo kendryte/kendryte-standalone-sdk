@@ -64,15 +64,15 @@ extern "C" {
  *
  */
 
-enum sysctl_pll_e
+typedef enum _sysctl_pll_e
 {
     SYSCTL_PLL0,
     SYSCTL_PLL1,
     SYSCTL_PLL2,
     SYSCTL_PLL_MAX
-};
+} sysctl_pll_e;
 
-enum sysctl_clock_source_e
+typedef enum _sysctl_clock_source_e
 {
     SYSCTL_SOURCE_IN0,
     SYSCTL_SOURCE_PLL0,
@@ -80,9 +80,9 @@ enum sysctl_clock_source_e
     SYSCTL_SOURCE_PLL2,
     SYSCTL_SOURCE_ACLK,
     SYSCTL_SOURCE_MAX
-};
+} sysctl_clock_source_e;
 
-enum sysctl_dma_channel_e
+typedef enum _sysctl_dma_channel_e
 {
     SYSCTL_DMA_CHANNEL_0,
     SYSCTL_DMA_CHANNEL_1,
@@ -91,9 +91,9 @@ enum sysctl_dma_channel_e
     SYSCTL_DMA_CHANNEL_4,
     SYSCTL_DMA_CHANNEL_5,
     SYSCTL_DMA_CHANNEL_MAX
-};
+} sysctl_dma_channel_e;
 
-enum sysctl_dma_select_e
+typedef enum _sysctl_dma_select_e
 {
     SYSCTL_DMA_SELECT_SSI0_RX_REQ,
     SYSCTL_DMA_SELECT_SSI0_TX_REQ,
@@ -129,12 +129,12 @@ enum sysctl_dma_select_e
     SYSCTL_DMA_SELECT_I2S0_BF_DIR_REQ,
     SYSCTL_DMA_SELECT_I2S0_BF_VOICE_REQ,
     SYSCTL_DMA_SELECT_MAX
-};
+} sysctl_dma_select_e;
 
 /**
  * @brief      System controller clock id
  */
-enum sysctl_clock_e
+typedef enum _sysctl_clock_e
 {
     SYSCTL_CLOCK_PLL0,
     SYSCTL_CLOCK_PLL1,
@@ -177,12 +177,12 @@ enum sysctl_clock_e
     SYSCTL_CLOCK_ACLK = 40,
     SYSCTL_CLOCK_HCLK,
     SYSCTL_CLOCK_MAX
-};
+} sysctl_clock_e;
 
 /**
  * @brief      System controller clock select id
  */
-enum sysctl_clock_select_e
+typedef enum _sysctl_clock_select_e
 {
     SYSCTL_CLOCK_SELECT_PLL0_BYPASS,
     SYSCTL_CLOCK_SELECT_PLL1_BYPASS,
@@ -195,12 +195,12 @@ enum sysctl_clock_select_e
     SYSCTL_CLOCK_SELECT_TIMER2,
     SYSCTL_CLOCK_SELECT_SPI3_SAMPLE,
     SYSCTL_CLOCK_SELECT_MAX = 11
-};
+} sysctl_clock_select_e;
 
 /**
  * @brief      System controller clock threshold id
  */
-enum sysctl_threshold_e
+typedef enum _sysctl_threshold_e
 {
     SYSCTL_THRESHOLD_ACLK,
     SYSCTL_THRESHOLD_APB0,
@@ -230,12 +230,12 @@ enum sysctl_threshold_e
     SYSCTL_THRESHOLD_WDT0,
     SYSCTL_THRESHOLD_WDT1,
     SYSCTL_THRESHOLD_MAX = 28
-};
+} sysctl_threshold_e;
 
 /**
  * @brief      System controller reset control id
  */
-enum sysctl_reset_e
+typedef enum _sysctl_reset_e
 {
     SYSCTL_RESET_SOC,
     SYSCTL_RESET_ROM,
@@ -267,34 +267,40 @@ enum sysctl_reset_e
     SYSCTL_RESET_SHA,
     SYSCTL_RESET_RTC,
     SYSCTL_RESET_MAX = 31
-};
+} sysctl_reset_t;
+
+typedef enum _io_power_mode
+{
+    POWER_V33,
+    POWER_V18
+} io_power_mode_t;
 
 /**
  * @brief       Git short commit id
  *
  *              No. 0 Register (0x00)
  */
-struct sysctl_git_id_t
+typedef struct _sysctl_git_id
 {
     uint32_t git_id : 32;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_git_id_t;
 
 /**
  * @brief       System clock base frequency
  *
  *              No. 1 Register (0x04)
  */
-struct sysctl_clk_freq_t
+typedef struct _sysctl_clk_freq
 {
     uint32_t clk_freq : 32;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_freq_t;
 
 /**
  * @brief       PLL0 controller
  *
  *              No. 2 Register (0x08)
  */
-struct sysctl_pll0_t
+typedef struct _sysctl_pll0
 {
     uint32_t clkr0 : 4;
     uint32_t clkf0 : 6;
@@ -308,14 +314,14 @@ struct sysctl_pll0_t
     uint32_t pll_out_en0 : 1;
     uint32_t pll_test_en : 1;
     uint32_t reserved : 5;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_pll0_t;
 
 /**
  * @brief       PLL1 controller
  *
  *              No. 3 Register (0x0c)
  */
-struct sysctl_pll1_t
+typedef struct _sysctl_pll1
 {
     uint32_t clkr1 : 4;
     uint32_t clkf1 : 6;
@@ -328,14 +334,14 @@ struct sysctl_pll1_t
     uint32_t pll_test1 : 1;
     uint32_t pll_out_en1 : 1;
     uint32_t reserved : 6;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_pll1_t;
 
 /**
  * @brief       PLL2 controller
  *
  *              No. 4 Register (0x10)
  */
-struct sysctl_pll2_t
+typedef struct _sysctl_pll2
 {
     uint32_t clkr2 : 4;
     uint32_t clkf2 : 6;
@@ -349,14 +355,14 @@ struct sysctl_pll2_t
     uint32_t pll_out_en2 : 1;
     uint32_t pll_ckin_sel2 : 2;
     uint32_t reserved : 4;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_pll2_t;
 
 /**
  * @brief       PLL lock tester
  *
  *              No. 6 Register (0x18)
  */
-struct sysctl_pll_lock_t
+typedef struct _sysctl_pll_lock
 {
     uint32_t pll_lock0 : 2;
     uint32_t pll_slip_clear0 : 1;
@@ -370,26 +376,26 @@ struct sysctl_pll_lock_t
     uint32_t pll_slip_clear2 : 1;
     uint32_t test_clk_out2 : 1;
     uint32_t reserved2 : 12;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_pll_lock_t;
 
 /**
  * @brief       AXI ROM detector
  *
  *              No. 7 Register (0x1c)
  */
-struct sysctl_rom_error_t
+typedef struct _sysctl_rom_error
 {
     uint32_t rom_mul_error : 1;
     uint32_t rom_one_error : 1;
     uint32_t reserved : 30;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_rom_error_t;
 
 /**
  * @brief       Clock select controller0
  *
  *              No. 8 Register (0x20)
  */
-struct sysctl_clk_sel0_t
+typedef struct _sysctl_clk_sel0
 {
     uint32_t aclk_sel : 1;
     uint32_t aclk_divider_sel : 2;
@@ -401,26 +407,26 @@ struct sysctl_clk_sel0_t
     uint32_t timer1_clk_sel : 1;
     uint32_t timer2_clk_sel : 1;
     uint32_t reserved : 16;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_sel0_t;
 
 /**
  * @brief       Clock select controller1
  *
  *              No. 9 Register (0x24)
  */
-struct sysctl_clk_sel1_t
+typedef struct _sysctl_clk_sel1
 {
     uint32_t spi3_sample_clk_sel : 1;
     uint32_t reserved0 : 30;
     uint32_t reserved1 : 1;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_sel1_t;
 
 /**
  * @brief       Central clock enable
  *
  *              No. 10 Register (0x28)
  */
-struct sysctl_clk_en_cent_t
+typedef struct _sysctl_clk_en_cent
 {
     uint32_t cpu_clk_en : 1;
     uint32_t sram0_clk_en : 1;
@@ -429,14 +435,14 @@ struct sysctl_clk_en_cent_t
     uint32_t apb1_clk_en : 1;
     uint32_t apb2_clk_en : 1;
     uint32_t reserved : 26;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_en_cent_t;
 
 /**
  * @brief       Peripheral clock enable
  *
  *              No. 11 Register (0x2c)
  */
-struct sysctl_clk_en_peri_t
+typedef struct _sysctl_clk_en_peri
 {
     uint32_t rom_clk_en : 1;
     uint32_t dma_clk_en : 1;
@@ -469,25 +475,25 @@ struct sysctl_clk_en_peri_t
     uint32_t reserved : 1;
     uint32_t rtc_clk_en : 1;
     uint32_t reserved0 : 2;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_en_peri_t;
 
 /**
  * @brief       Soft reset ctrl
  *
  *              No. 12 Register (0x30)
  */
-struct sysctl_soft_reset_t
+typedef struct _sysctl_soft_reset
 {
     uint32_t soft_reset : 1;
     uint32_t reserved : 31;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_soft_reset_t;
 
 /**
  * @brief       Peripheral reset controller
  *
  *              No. 13 Register (0x34)
  */
-struct sysctl_peri_reset_t
+typedef struct _sysctl_peri_reset
 {
     uint32_t rom_reset : 1;
     uint32_t dma_reset : 1;
@@ -519,14 +525,14 @@ struct sysctl_peri_reset_t
     uint32_t reserved : 2;
     uint32_t rtc_reset : 1;
     uint32_t reserved0 : 2;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_peri_reset_t;
 
 /**
  * @brief       Clock threshold controller 0
  *
  *              No. 14 Register (0x38)
  */
-struct sysctl_clk_th0_t
+typedef struct _sysctl_clk_th0
 {
     uint32_t sram0_gclk_threshold : 4;
     uint32_t sram1_gclk_threshold : 4;
@@ -534,101 +540,102 @@ struct sysctl_clk_th0_t
     uint32_t dvp_gclk_threshold : 4;
     uint32_t rom_gclk_threshold : 4;
     uint32_t reserved : 12;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_th0_t;
 
 /**
  * @brief       Clock threshold controller 1
  *
  *              No. 15 Register (0x3c)
  */
-struct sysctl_clk_th1_t
+typedef struct _sysctl_clk_th1
 {
     uint32_t spi0_clk_threshold : 8;
     uint32_t spi1_clk_threshold : 8;
     uint32_t spi2_clk_threshold : 8;
     uint32_t spi3_clk_threshold : 8;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_th1_t;
 
 /**
  * @brief       Clock threshold controller 2
  *
  *              No. 16 Register (0x40)
  */
-struct sysctl_clk_th2_t
+typedef struct _sysctl_clk_th2
 {
     uint32_t timer0_clk_threshold : 8;
     uint32_t timer1_clk_threshold : 8;
     uint32_t timer2_clk_threshold : 8;
     uint32_t reserved : 8;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_th2_t;
 
 /**
  * @brief       Clock threshold controller 3
  *
  *              No. 17 Register (0x44)
  */
-struct sysctl_clk_th3_t
+typedef struct _sysctl_clk_th3
 {
     uint32_t i2s0_clk_threshold : 16;
     uint32_t i2s1_clk_threshold : 16;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_th3_t;
 
 /**
  * @brief       Clock threshold controller 4
  *
  *              No. 18 Register (0x48)
  */
-struct sysctl_clk_th4_t
+typedef struct _sysctl_clk_th4
 {
     uint32_t i2s2_clk_threshold : 16;
     uint32_t i2s0_mclk_threshold : 8;
     uint32_t i2s1_mclk_threshold : 8;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_th4_t;
 
 /**
  * @brief       Clock threshold controller 5
  *
  *              No. 19 Register (0x4c)
  */
-struct sysctl_clk_th5_t
+typedef struct _sysctl_clk_th5
 {
     uint32_t i2s2_mclk_threshold : 8;
     uint32_t i2c0_clk_threshold : 8;
     uint32_t i2c1_clk_threshold : 8;
     uint32_t i2c2_clk_threshold : 8;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_th5_t;
 
 /**
  * @brief       Clock threshold controller 6
  *
  *              No. 20 Register (0x50)
  */
-struct sysctl_clk_th6_t
+typedef struct _sysctl_clk_th6
 {
     uint32_t wdt0_clk_threshold : 8;
     uint32_t wdt1_clk_threshold : 8;
     uint32_t reserved0 : 8;
     uint32_t reserved1 : 8;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_clk_th6_t;
 
 /**
  * @brief       Miscellaneous controller
  *
  *              No. 21 Register (0x54)
  */
-struct sysctl_misc_t
+typedef struct _sysctl_misc
 {
     uint32_t debug_sel : 6;
-    uint32_t reserved0 : 5;
+    uint32_t reserved0 : 4;
+    uint32_t spi_dvp_data_enable: 1;
     uint32_t reserved1 : 21;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_misc_t;
 
 /**
  * @brief       Peripheral controller
  *
  *              No. 22 Register (0x58)
  */
-struct sysctl_peri_t
+typedef struct _sysctl_peri
 {
     uint32_t timer0_pause : 1;
     uint32_t timer1_pause : 1;
@@ -657,28 +664,28 @@ struct sysctl_peri_t
     uint32_t debug_clk_bypass : 1;
     uint32_t reserved0 : 1;
     uint32_t reserved1 : 6;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_peri_t;
 
 /**
  * @brief       SPI sleep controller
  *
  *              No. 23 Register (0x5c)
  */
-struct sysctl_spi_sleep_t
+typedef struct _sysctl_spi_sleep
 {
     uint32_t ssi0_sleep : 1;
     uint32_t ssi1_sleep : 1;
     uint32_t ssi2_sleep : 1;
     uint32_t ssi3_sleep : 1;
     uint32_t reserved : 28;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_spi_sleep_t;
 
 /**
  * @brief       Reset source status
  *
  *              No. 24 Register (0x60)
  */
-struct sysctl_reset_status_t
+typedef struct _sysctl_reset_status
 {
     uint32_t reset_sts_clr : 1;
     uint32_t pin_reset_sts : 1;
@@ -686,14 +693,14 @@ struct sysctl_reset_status_t
     uint32_t wdt1_reset_sts : 1;
     uint32_t soft_reset_sts : 1;
     uint32_t reserved : 27;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_reset_status_t;
 
 /**
  * @brief       DMA handshake selector
  *
  *              No. 25 Register (0x64)
  */
-struct sysctl_dma_sel0_t
+typedef struct _sysctl_dma_sel0
 {
     uint32_t dma_sel0 : 6;
     uint32_t dma_sel1 : 6;
@@ -701,25 +708,25 @@ struct sysctl_dma_sel0_t
     uint32_t dma_sel3 : 6;
     uint32_t dma_sel4 : 6;
     uint32_t reserved : 2;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_dma_sel0_t;
 
 /**
  * @brief       DMA handshake selector
  *
  *              No. 26 Register (0x68)
  */
-struct sysctl_dma_sel1_t
+typedef struct _sysctl_dma_sel1
 {
     uint32_t dma_sel5 : 6;
     uint32_t reserved : 26;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_dma_sel1_t;
 
 /**
  * @brief       IO Power Mode Select controller
  *
  *              No. 27 Register (0x6c)
  */
-struct sysctl_power_sel_t
+typedef struct _sysctl_power_sel
 {
     uint32_t power_mode_sel0 : 1;
     uint32_t power_mode_sel1 : 1;
@@ -730,7 +737,7 @@ struct sysctl_power_sel_t
     uint32_t power_mode_sel6 : 1;
     uint32_t power_mode_sel7 : 1;
     uint32_t reserved : 24;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_power_sel_t;
 
 
 /**
@@ -744,64 +751,64 @@ struct sysctl_power_sel_t
  *              controller, timer controller, WDT controller and sleep
  *              controller.
  */
-struct sysctl_t
+typedef struct _sysctl
 {
     /* No. 0 (0x00): Git short commit id */
-    struct sysctl_git_id_t git_id;
+    sysctl_git_id_t git_id;
     /* No. 1 (0x04): System clock base frequency */
-    struct sysctl_clk_freq_t clk_freq;
+    sysctl_clk_freq_t clk_freq;
     /* No. 2 (0x08): PLL0 controller */
-    struct sysctl_pll0_t pll0;
+    sysctl_pll0_t pll0;
     /* No. 3 (0x0c): PLL1 controller */
-    struct sysctl_pll1_t pll1;
+    sysctl_pll1_t pll1;
     /* No. 4 (0x10): PLL2 controller */
-    struct sysctl_pll2_t pll2;
+    sysctl_pll2_t pll2;
     /* No. 5 (0x14): Reserved */
     uint32_t resv5;
     /* No. 6 (0x18): PLL lock tester */
-    struct sysctl_pll_lock_t pll_lock;
+    sysctl_pll_lock_t pll_lock;
     /* No. 7 (0x1c): AXI ROM detector */
-    struct sysctl_rom_error_t rom_error;
+    sysctl_rom_error_t rom_error;
     /* No. 8 (0x20): Clock select controller0 */
-    struct sysctl_clk_sel0_t clk_sel0;
+    sysctl_clk_sel0_t clk_sel0;
     /* No. 9 (0x24): Clock select controller1 */
-    struct sysctl_clk_sel1_t clk_sel1;
+    sysctl_clk_sel1_t clk_sel1;
     /* No. 10 (0x28): Central clock enable */
-    struct sysctl_clk_en_cent_t clk_en_cent;
+    sysctl_clk_en_cent_t clk_en_cent;
     /* No. 11 (0x2c): Peripheral clock enable */
-    struct sysctl_clk_en_peri_t clk_en_peri;
+    sysctl_clk_en_peri_t clk_en_peri;
     /* No. 12 (0x30): Soft reset ctrl */
-    struct sysctl_soft_reset_t soft_reset;
+    sysctl_soft_reset_t soft_reset;
     /* No. 13 (0x34): Peripheral reset controller */
-    struct sysctl_peri_reset_t peri_reset;
+    sysctl_peri_reset_t peri_reset;
     /* No. 14 (0x38): Clock threshold controller 0 */
-    struct sysctl_clk_th0_t clk_th0;
+    sysctl_clk_th0_t clk_th0;
     /* No. 15 (0x3c): Clock threshold controller 1 */
-    struct sysctl_clk_th1_t clk_th1;
+    sysctl_clk_th1_t clk_th1;
     /* No. 16 (0x40): Clock threshold controller 2 */
-    struct sysctl_clk_th2_t clk_th2;
+    sysctl_clk_th2_t clk_th2;
     /* No. 17 (0x44): Clock threshold controller 3 */
-    struct sysctl_clk_th3_t clk_th3;
+    sysctl_clk_th3_t clk_th3;
     /* No. 18 (0x48): Clock threshold controller 4 */
-    struct sysctl_clk_th4_t clk_th4;
+    sysctl_clk_th4_t clk_th4;
     /* No. 19 (0x4c): Clock threshold controller 5 */
-    struct sysctl_clk_th5_t clk_th5;
+    sysctl_clk_th5_t clk_th5;
     /* No. 20 (0x50): Clock threshold controller 6 */
-    struct sysctl_clk_th6_t clk_th6;
+    sysctl_clk_th6_t clk_th6;
     /* No. 21 (0x54): Miscellaneous controller */
-    struct sysctl_misc_t misc;
+    sysctl_misc_t misc;
     /* No. 22 (0x58): Peripheral controller */
-    struct sysctl_peri_t peri;
+    sysctl_peri_t peri;
     /* No. 23 (0x5c): SPI sleep controller */
-    struct sysctl_spi_sleep_t spi_sleep;
+    sysctl_spi_sleep_t spi_sleep;
     /* No. 24 (0x60): Reset source status */
-    struct sysctl_reset_status_t reset_status;
+    sysctl_reset_status_t reset_status;
     /* No. 25 (0x64): DMA handshake selector */
-    struct sysctl_dma_sel0_t dma_sel0;
+    sysctl_dma_sel0_t dma_sel0;
     /* No. 26 (0x68): DMA handshake selector */
-    struct sysctl_dma_sel1_t dma_sel1;
+    sysctl_dma_sel1_t dma_sel1;
     /* No. 27 (0x6c): IO Power Mode Select controller */
-    struct sysctl_power_sel_t power_sel;
+    sysctl_power_sel_t power_sel;
     /* No. 28 (0x70): Reserved */
     uint32_t resv28;
     /* No. 29 (0x74): Reserved */
@@ -810,12 +817,12 @@ struct sysctl_t
     uint32_t resv30;
     /* No. 31 (0x7c): Reserved */
     uint32_t resv31;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sysctl_t;
 
 /**
  * @brief       System controller object instanse
  */
-extern volatile struct sysctl_t *const sysctl;
+extern volatile sysctl_t *const sysctl;
 
 /**
  * @brief       Enable clock for peripheral
@@ -826,7 +833,7 @@ extern volatile struct sysctl_t *const sysctl;
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_clock_enable(enum sysctl_clock_e clock);
+int sysctl_clock_enable(sysctl_clock_e clock);
 
 /**
  * @brief       Enable clock for peripheral
@@ -837,7 +844,7 @@ int sysctl_clock_enable(enum sysctl_clock_e clock);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_clock_disable(enum sysctl_clock_e clock);
+int sysctl_clock_disable(sysctl_clock_e clock);
 
 /**
  * @brief       Sysctl clock set threshold
@@ -849,7 +856,7 @@ int sysctl_clock_disable(enum sysctl_clock_e clock);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_clock_set_threshold(enum sysctl_threshold_e which, int threshold);
+int sysctl_clock_set_threshold(sysctl_threshold_e which, int threshold);
 
 /**
  * @brief       Sysctl clock get threshold
@@ -860,7 +867,7 @@ int sysctl_clock_set_threshold(enum sysctl_threshold_e which, int threshold);
  *     - Other  Value of threshold
  *     - -1     Fail
  */
-int sysctl_clock_get_threshold(enum sysctl_threshold_e which);
+int sysctl_clock_get_threshold(sysctl_threshold_e which);
 
 /**
  * @brief       Sysctl clock set clock select
@@ -872,7 +879,7 @@ int sysctl_clock_get_threshold(enum sysctl_threshold_e which);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_clock_set_clock_select(enum sysctl_clock_select_e which, int select);
+int sysctl_clock_set_clock_select(sysctl_clock_select_e which, int select);
 
 /**
  * @brief       Sysctl clock get clock select
@@ -883,7 +890,7 @@ int sysctl_clock_set_clock_select(enum sysctl_clock_select_e which, int select);
  *     - Other  Value of clock select
  *     - -1     Fail
  */
-int sysctl_clock_get_clock_select(enum sysctl_clock_select_e which);
+int sysctl_clock_get_clock_select(sysctl_clock_select_e which);
 
 /**
  * @brief       Get clock source frequency
@@ -892,7 +899,7 @@ int sysctl_clock_get_clock_select(enum sysctl_clock_select_e which);
  *
  * @return      The frequency of clock source
  */
-uint32_t sysctl_clock_source_get_freq(enum sysctl_clock_source_e input);
+uint32_t sysctl_clock_source_get_freq(sysctl_clock_source_e input);
 
 /**
  * @brief       Get PLL frequency
@@ -901,7 +908,7 @@ uint32_t sysctl_clock_source_get_freq(enum sysctl_clock_source_e input);
  *
  * @return      The frequency of PLL
  */
-uint32_t sysctl_pll_get_freq(enum sysctl_pll_e pll);
+uint32_t sysctl_pll_get_freq(sysctl_pll_e pll);
 
 /**
  * @brief       Set PLL frequency and input clock
@@ -912,7 +919,7 @@ uint32_t sysctl_pll_get_freq(enum sysctl_pll_e pll);
  *
  * @return      The frequency of PLL
  */
-uint32_t sysctl_pll_set_freq(enum sysctl_pll_e pll, enum sysctl_clock_source_e source, uint32_t freq);
+uint32_t sysctl_pll_set_freq(sysctl_pll_e pll, sysctl_clock_source_e source, uint32_t freq);
 
 /**
  * @brief       Get base clock frequency by clock id
@@ -921,14 +928,14 @@ uint32_t sysctl_pll_set_freq(enum sysctl_pll_e pll, enum sysctl_clock_source_e s
  *
  * @return      The clock frequency
  */
-uint32_t sysctl_clock_get_freq(enum sysctl_clock_e clock);
+uint32_t sysctl_clock_get_freq(sysctl_clock_e clock);
 
 /**
  * @brief       Reset device by reset controller
  *
  * @param[in]   reset       The reset signal
  */
-void sysctl_reset(enum sysctl_reset_e reset);
+void sysctl_reset(sysctl_reset_t reset);
 
 /**
  * @brief       Get git commit id
@@ -953,7 +960,7 @@ uint32_t sysctl_get_freq(void);
  *     - 1      Pll is lock
  *     - 0      Pll have lost lock
  */
-int sysctl_pll_is_lock(enum sysctl_pll_e pll);
+int sysctl_pll_is_lock(sysctl_pll_e pll);
 
 /**
  * @brief       Clear pll lock status
@@ -964,7 +971,7 @@ int sysctl_pll_is_lock(enum sysctl_pll_e pll);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_pll_clear_slip(enum sysctl_pll_e pll);
+int sysctl_pll_clear_slip(sysctl_pll_e pll);
 
 /**
  * @brief       Enable the PLL and power on with reset
@@ -975,7 +982,7 @@ int sysctl_pll_clear_slip(enum sysctl_pll_e pll);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_pll_enable(enum sysctl_pll_e pll);
+int sysctl_pll_enable(sysctl_pll_e pll);
 
 /**
  * @brief       Disable the PLL and power off
@@ -986,7 +993,7 @@ int sysctl_pll_enable(enum sysctl_pll_e pll);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_pll_disable(enum sysctl_pll_e pll);
+int sysctl_pll_disable(sysctl_pll_e pll);
 
 /**
  * @brief       Select DMA channel handshake peripheral signal
@@ -998,7 +1005,7 @@ int sysctl_pll_disable(enum sysctl_pll_e pll);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_dma_select(enum sysctl_dma_channel_e channel, enum sysctl_dma_select_e select);
+int sysctl_dma_select(sysctl_dma_channel_e channel, sysctl_dma_select_e select);
 
 /**
  * @brief       Fast set all PLL and CPU clock
@@ -1008,6 +1015,29 @@ int sysctl_dma_select(enum sysctl_dma_channel_e channel, enum sysctl_dma_select_
  *     - Other  Fail
  */
 uint32_t sysctl_pll_fast_enable_pll(void);
+
+/**
+ * @brief       Set SPI0_D0-D7 DVP_D0-D7 as spi and dvp data pin
+ *
+ * @param[in]   en     Enable or not
+ *
+ * @return      Result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+uint32_t sysctl_spi0_dvp_data_set(uint8_t en);
+
+/**
+ * @brief       Set io power mode
+ *
+ * @param[in]   power_bank          IO power bank
+ * @param[in]   io_power_mode       Set power mode 3.3v or 1.8
+ *
+ * @return      Result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+uint32_t sysctl_power_mode_sel(uint8_t power_bank, io_power_mode_t io_power_mode);
 
 #ifdef __cplusplus
 }

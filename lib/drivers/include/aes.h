@@ -32,7 +32,7 @@ typedef struct _aes_mode_ctl
     uint32_t endian : 6;
     uint32_t stream_mode : 3;
     uint32_t reserved : 18;
-} __attribute__((packed, aligned(4))) aes_mode_ctl;
+} __attribute__((packed, aligned(4))) aes_mode_ctl_t;
 
 /**
  * @brief       AES
@@ -46,7 +46,7 @@ typedef struct _aes
      * [1:0], Set the first bit and second bit 00:ecb; 01:cbc;
      * 10,11：aes_gcm
     */
-    aes_mode_ctl mode_ctl;
+    aes_mode_ctl_t mode_ctl;
     uint32_t aes_iv[4];
     /* aes interrupt enable */
     uint32_t aes_endian;
@@ -85,25 +85,25 @@ typedef struct _aes
     uint32_t aes_key_ext[4];
 } __attribute__((packed, aligned(4))) aes_t;
 
-enum aes_cipher_mod
+typedef enum _aes_cipher_mod
 {
     AES_ECB = 0,
     AES_CBC = 1,
     AES_GCM = 2,
-};
+} aes_cipher_mod_t;
 
-enum aes_kmode
+typedef enum _aes_kmode
 {
     AES_128 = 0,
     AES_192 = 1,
     AES_256 = 2,
-};
+} aes_kmode_t;
 
-enum aes_encrypt_sel
+typedef enum _aes_encrypt_sel
 {
     AES_ENCRYPTION = 0,
     AES_DECRYPTION = 1,
-};
+} aes_encrypt_sel_t;
 
 /**
  * @brief       Aes initialize
@@ -123,8 +123,8 @@ enum aes_encrypt_sel
  *     - Other  Fail
  */
 int aes_init(uint8_t* key_addr, uint8_t key_length, uint8_t* aes_iv,
-    uint8_t iv_length, uint8_t* aes_aad, enum aes_cipher_mod cipher_mod,
-    enum aes_encrypt_sel encrypt_sel, uint32_t add_size, uint32_t data_size);
+    uint8_t iv_length, uint8_t* aes_aad, aes_cipher_mod_t cipher_mod,
+    aes_encrypt_sel_t encrypt_sel, uint32_t add_size, uint32_t data_size);
 
 /**
  * @brief       Aes write aad data
@@ -232,7 +232,7 @@ int aes_clear_chk_tag(void);
 int aes_process(uint8_t* aes_in_data,
     uint8_t* aes_out_data,
     uint32_t data_size,
-    enum aes_cipher_mod cipher_mod);
+    aes_cipher_mod_t cipher_mod);
 
 /**
  * @brief       Aes check gcm tag

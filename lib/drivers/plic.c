@@ -19,39 +19,39 @@
 #include "syscalls.h"
 #include "syslog.h"
 
-volatile struct plic_t* const plic = (volatile struct plic_t*)PLIC_BASE_ADDR;
+volatile plic_t* const plic = (volatile plic_t*)PLIC_BASE_ADDR;
 
-struct plic_instance_t
+typedef struct _plic_instance_t
 {
     plic_irq_callback_t callback;
     void* ctx;
-};
+} plic_instance_t;
 
-static struct plic_instance_t plic_instance[PLIC_NUM_HARTS][IRQN_MAX];
+static plic_instance_t plic_instance[PLIC_NUM_CORES][IRQN_MAX];
 
 int plic_init(void)
 {
     int i = 0;
 
-    /* Get current hart id */
-    unsigned long hart_id = read_hartid();
+    /* Get current core id */
+    unsigned long core_id = current_coreid();
 
-    /* Disable all interrupts for the current hart. */
+    /* Disable all interrupts for the current core. */
     for (i = 0; i < ((PLIC_NUM_SOURCES + 32u) / 32u); i++)
-        plic->target_enables.target[hart_id].enable[i] = 0;
+        plic->target_enables.target[core_id].enable[i] = 0;
 
     /* Set priorities to zero. */
     for (i = 0; i < PLIC_NUM_SOURCES; i++)
         plic->source_priorities.priority[i] = 0;
 
     /* Set the threshold to zero. */
-    plic->targets.target[hart_id].priority_threshold = 0;
+    plic->targets.target[core_id].priority_threshold = 0;
 
     /* Clear PLIC instance for every cores */
     for (i = 0; i < IRQN_MAX; i++)
     {
         /* clang-format off */
-        plic_instance[hart_id][i] = (const struct plic_instance_t){
+        plic_instance[core_id][i] = (const plic_instance_t){
             .callback = NULL,
             .ctx      = NULL,
         };
@@ -64,7 +64,7 @@ int plic_init(void)
      * at any time, even if the EIP is not set.
      */
     i = 0;
-    while (plic->targets.target[hart_id].claim_complete > 0 && i < 100)
+    while (plic->targets.target[core_id].claim_complete > 0 && i < 100)
     {
         /* This loop will clear pending bit on the interrupt source */
         i++;
@@ -80,13 +80,13 @@ int plic_irq_enable(plic_irq_t irq_number)
     /* Check parameters */
     if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
-    unsigned long hart_id = read_hartid();
+    unsigned long core_id = current_coreid();
     /* Get current enable bit array by IRQ number */
-    uint32_t current = plic->target_enables.target[hart_id].enable[irq_number / 32];
+    uint32_t current = plic->target_enables.target[core_id].enable[irq_number / 32];
     /* Set enable bit in enable bit array */
     current |= (uint32_t)1 << (irq_number % 32);
     /* Write back the enable bit array */
-    plic->target_enables.target[hart_id].enable[irq_number / 32] = current;
+    plic->target_enables.target[core_id].enable[irq_number / 32] = current;
     return 0;
 }
 
@@ -95,13 +95,13 @@ int plic_irq_disable(plic_irq_t irq_number)
     /* Check parameters */
     if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
-    unsigned long hart_id = read_hartid();
+    unsigned long core_id = current_coreid();
     /* Get current enable bit array by IRQ number */
-    uint32_t current = plic->target_enables.target[hart_id].enable[irq_number / 32];
+    uint32_t current = plic->target_enables.target[core_id].enable[irq_number / 32];
     /* Clear enable bit in enable bit array */
     current &= ~((uint32_t)1 << (irq_number % 32));
     /* Write back the enable bit array */
-    plic->target_enables.target[hart_id].enable[irq_number / 32] = current;
+    plic->target_enables.target[core_id].enable[irq_number / 32] = current;
     return 0;
 }
 
@@ -126,27 +126,27 @@ uint32_t plic_get_priority(plic_irq_t irq_number)
 
 uint32_t plic_irq_claim(void)
 {
-    unsigned long hart_id = read_hartid();
+    unsigned long core_id = current_coreid();
     /* Perform IRQ claim */
-    return plic->targets.target[hart_id].claim_complete;
+    return plic->targets.target[core_id].claim_complete;
 }
 
 int plic_irq_complete(uint32_t source)
 {
-    unsigned long hart_id = read_hartid();
+    unsigned long core_id = current_coreid();
     /* Perform IRQ complete */
-    plic->targets.target[hart_id].claim_complete = source;
+    plic->targets.target[core_id].claim_complete = source;
     return 0;
 }
 
 int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
 {
-    /* Read hart id */
-    unsigned long hart_id = read_hartid();
+    /* Read core id */
+    unsigned long core_id = current_coreid();
     /* Set user callback function */
-    plic_instance[hart_id][irq].callback = callback;
+    plic_instance[core_id][irq].callback = callback;
     /* Assign user context */
-    plic_instance[hart_id][irq].ctx = ctx;
+    plic_instance[core_id][irq].ctx = ctx;
     return 0;
 }
 
@@ -157,7 +157,7 @@ int plic_irq_deregister(plic_irq_t irq)
 }
 
 /*Entry Point for PLIC Interrupt Handler*/
-uintptr_t handle_irq_m_ext(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
+uintptr_t handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
 {
     /*
      * After the highest-priority pending interrupt is claimed by a target
@@ -171,25 +171,25 @@ uintptr_t handle_irq_m_ext(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
      */
     if (read_csr(mip) & MIP_MEIP)
     {
-        /* Get current hart id */
-        uint64_t hart_id = read_hartid();
+        /* Get current core id */
+        uint64_t core_id = current_coreid();
         /* Get primitive interrupt enable flag */
         uint64_t ie_flag = read_csr(mie);
         /* Get current IRQ num */
-        uint32_t int_num = plic->targets.target[hart_id].claim_complete;
+        uint32_t int_num = plic->targets.target[core_id].claim_complete;
         /* Get primitive IRQ threshold */
-        uint32_t int_threshold = plic->targets.target[hart_id].priority_threshold;
+        uint32_t int_threshold = plic->targets.target[core_id].priority_threshold;
         /* Set new IRQ threshold = current IRQ threshold */
-        plic->targets.target[hart_id].priority_threshold = plic->source_priorities.priority[int_num];
+        plic->targets.target[core_id].priority_threshold = plic->source_priorities.priority[int_num];
         /* Disable software interrupt and timer interrupt */
         clear_csr(mie, MIP_MTIP | MIP_MSIP);
         /* Enable global interrupt */
         set_csr(mstatus, MSTATUS_MIE);
-        if (plic_instance[hart_id][int_num].callback)
-            plic_instance[hart_id][int_num].callback(
-                plic_instance[hart_id][int_num].ctx);
+        if (plic_instance[core_id][int_num].callback)
+            plic_instance[core_id][int_num].callback(
+                plic_instance[core_id][int_num].ctx);
         /* Perform IRQ complete */
-        plic->targets.target[hart_id].claim_complete = int_num;
+        plic->targets.target[core_id].claim_complete = int_num;
         /* Disable global interrupt */
         clear_csr(mstatus, MSTATUS_MIE);
         /* Set MPIE and MPP flag used to MRET instructions restore MIE flag */
@@ -197,7 +197,7 @@ uintptr_t handle_irq_m_ext(uintptr_t cause, uintptr_t epc, uintptr_t regs[32])
         /* Restore primitive interrupt enable flag */
         write_csr(mie, ie_flag);
         /* Restore primitive IRQ threshold */
-        plic->targets.target[hart_id].priority_threshold = int_threshold;
+        plic->targets.target[core_id].priority_threshold = int_threshold;
     }
 
     return epc;

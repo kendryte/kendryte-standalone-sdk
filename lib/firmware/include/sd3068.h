@@ -20,7 +20,7 @@
 #define SD3068_ADDR         0x32
 #define SD3068_ADDR_LENTH   7
 
-struct time_t
+typedef struct _sd_time
 {
     uint32_t year:6;
     uint32_t month:4;
@@ -28,18 +28,18 @@ struct time_t
     uint32_t hour:5;
     uint32_t min:6;
     uint32_t sec:6;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) sd_time_t;
 
 void sd3068_init(uint8_t sel);
 int sd3068_write_enable(void);
 int sd3068_write_disable(void);
-int sd3068_set_time(struct time_t time);
-int sd3068_get_time(struct time_t *time);
+int sd3068_set_time(sd_time_t time);
+int sd3068_get_time(sd_time_t *time);
 int sd3068_write_data(uint8_t addr, uint8_t *data_buf, uint8_t length);
 int sd3068_read_data(uint8_t addr, uint8_t *data_buf, uint8_t length);
-int sd3068_set_time_dma(struct time_t time);
+int sd3068_set_time_dma(sd_time_t time);
 int sd3068_write_enable_dma(void);
-int sd3068_get_time_dma(struct time_t *time);
+int sd3068_get_time_dma(sd_time_t *time);
 int sd3068_read_data_dma(uint8_t addr, uint8_t *data_buf, uint8_t length);
 int sd3068_write_data_dma(uint8_t addr, uint8_t *data_buf, uint8_t length);
 
