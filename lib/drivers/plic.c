@@ -33,13 +33,8 @@ int plic_init(void)
 {
     int i = 0;
 
-<<<<<<< HEAD
     /* Get current core id */
     unsigned long core_id = current_coreid();
-=======
-    /* Get current hart id */
-    unsigned long hart_id = read_hartid();
->>>>>>> master
 
     /* Disable all interrupts for the current core. */
     for (i = 0; i < ((PLIC_NUM_SOURCES + 32u) / 32u); i++)
@@ -85,11 +80,7 @@ int plic_irq_enable(plic_irq_t irq_number)
     /* Check parameters */
     if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
-<<<<<<< HEAD
     unsigned long core_id = current_coreid();
-=======
-    unsigned long hart_id = read_hartid();
->>>>>>> master
     /* Get current enable bit array by IRQ number */
     uint32_t current = plic->target_enables.target[core_id].enable[irq_number / 32];
     /* Set enable bit in enable bit array */
@@ -104,11 +95,7 @@ int plic_irq_disable(plic_irq_t irq_number)
     /* Check parameters */
     if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
-<<<<<<< HEAD
     unsigned long core_id = current_coreid();
-=======
-    unsigned long hart_id = read_hartid();
->>>>>>> master
     /* Get current enable bit array by IRQ number */
     uint32_t current = plic->target_enables.target[core_id].enable[irq_number / 32];
     /* Clear enable bit in enable bit array */
@@ -139,22 +126,14 @@ uint32_t plic_get_priority(plic_irq_t irq_number)
 
 uint32_t plic_irq_claim(void)
 {
-<<<<<<< HEAD
     unsigned long core_id = current_coreid();
-=======
-    unsigned long hart_id = read_hartid();
->>>>>>> master
     /* Perform IRQ claim */
     return plic->targets.target[core_id].claim_complete;
 }
 
 int plic_irq_complete(uint32_t source)
 {
-<<<<<<< HEAD
     unsigned long core_id = current_coreid();
-=======
-    unsigned long hart_id = read_hartid();
->>>>>>> master
     /* Perform IRQ complete */
     plic->targets.target[core_id].claim_complete = source;
     return 0;
@@ -162,13 +141,8 @@ int plic_irq_complete(uint32_t source)
 
 int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
 {
-<<<<<<< HEAD
     /* Read core id */
     unsigned long core_id = current_coreid();
-=======
-    /* Read hart id */
-    unsigned long hart_id = read_hartid();
->>>>>>> master
     /* Set user callback function */
     plic_instance[core_id][irq].callback = callback;
     /* Assign user context */
@@ -197,13 +171,8 @@ uintptr_t handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
      */
     if (read_csr(mip) & MIP_MEIP)
     {
-<<<<<<< HEAD
         /* Get current core id */
         uint64_t core_id = current_coreid();
-=======
-        /* Get current hart id */
-        uint64_t hart_id = read_hartid();
->>>>>>> master
         /* Get primitive interrupt enable flag */
         uint64_t ie_flag = read_csr(mie);
         /* Get current IRQ num */

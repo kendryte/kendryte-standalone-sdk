@@ -211,11 +211,7 @@
 
 #define read_time()         read_csr(mtime)
 #define read_cycle()        read_csr(mcycle)
-<<<<<<< HEAD:lib/bsp/include/encoding.h
 #define current_coreid()       read_csr(mhartid)
-=======
-#define read_hartid()       read_csr(mhartid)
->>>>>>> master:lib/bsp/include/encoding.h
 
 #endif
 

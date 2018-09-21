@@ -31,11 +31,7 @@ volatile char * const ram = (volatile char*)RAM_BASE_ADDR;
 extern char _heap_start[];
 extern char _heap_end[];
 
-<<<<<<< HEAD
 static volatile uint32_t g_wake_up[2] = { 1, 0 };
-=======
-extern volatile unsigned int g_wake_up[2];
->>>>>>> master
 
 void thread_entry(int core_id)
 {
