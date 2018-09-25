@@ -92,10 +92,10 @@ const uint16_t ov5640_init_reg_tbl[][2]=
     0x3807, 0xa9, /* VH (VE) */
     0x3814, 0x31, /* timing X inc */
     0x3815, 0x31, /* timing Y inc */
-    0x3808, (320 >> 8), /* DVPHO */
-    0x3809, (320 & 0xff), /* DVPHO */
-    0x380a, (240 >> 8), /* DVPVO */
-    0x380b, (240 & 0xff), /* DVPVO */
+    0x3808, 0x01, /* DVPHO */
+    0x3809, 0x40, /* DVPHO */
+    0x380a, 0x00, /* DVPVO */
+    0x380b, 0xF0, /* DVPVO */
     0x380c, 0x05, /* HTS */
     0x380d, 0xF8, /* HTS */
     0x380e, 0x03, /* VTS */
