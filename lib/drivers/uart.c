@@ -143,13 +143,13 @@ void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stop
     uint32_t parity_val;
     switch (parity)
     {
-        case UART_PARITY_None:
+        case UART_PARITY_NONE:
             parity_val = 0;
             break;
-        case UART_PARITY_Odd:
+        case UART_PARITY_ODD:
             parity_val = 1;
             break;
-        case UART_PARITY_Even:
+        case UART_PARITY_EVEN:
             parity_val = 3;
             break;
         default:

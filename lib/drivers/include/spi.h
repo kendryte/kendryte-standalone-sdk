@@ -197,8 +197,7 @@ void spi_trans_config(uint8_t spi_bus, size_t instruction_length, size_t address
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff,
-                      uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len);
+int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
 
 
 /**
@@ -215,8 +214,7 @@ int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff,
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff,
-                         uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len);
+int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 
 /**
@@ -233,8 +231,7 @@ int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff,
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_special_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff,
-                                    uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len);
+int spi_quad_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi special send data
@@ -250,8 +247,7 @@ int spi_special_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_b
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_special_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff,
-                                uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len);
+int spi_quad_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi set transfer mode
@@ -350,7 +346,7 @@ void spi_set_trans_mode(uint8_t spi_bus, spi_addr_inst_trans_mode_t trans_mode);
  *     - Other  Fail
  */
 int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
-                           uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len);
+                        uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
 
 
 /**
@@ -369,8 +365,8 @@ int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
-                               uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len);
+int spi_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
+                            uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 
 /**
@@ -388,8 +384,8 @@ int spi_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_numbe
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_special_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
-                                     uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len);
+int spi_quad_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
+                                uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi special receive data by dma
@@ -407,8 +403,8 @@ int spi_special_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus,
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_special_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
-                                         uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len);
+int spi_quad_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
+                                        uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi fill dma
@@ -423,8 +419,7 @@ int spi_special_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_chann
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
-                    uint32_t *cmd_buff, uint32_t cmd_len);
+int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len);
 
 /**
  * @brief       Spi normal send by dma
@@ -441,7 +436,17 @@ int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chi
  *     - Other  Fail
  */
 int spi_normal_send_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
-                             void *tx_buff, uint32_t tx_len, spi_transfer_width_t stw);
+                        void *tx_buff, size_t tx_len, spi_transfer_width_t stw);
+
+/**
+ * @brief       Spi normal send by dma
+ *
+ * @param[in]   spi_bus         Spi bus number
+ * @param[in]   spi_clk         Spi clock rate
+ *
+ * @return      The real spi clock rate
+ */
+uint32_t spi_set_clk_rate(uint8_t spi_bus, uint32_t spi_clk);
 
 #ifdef __cplusplus
 }

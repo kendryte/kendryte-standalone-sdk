@@ -30,20 +30,23 @@ volatile spi_t *const spi[4] =
     (volatile spi_t *)SPI3_BASE_ADDR
 };
 
-int spi_clk_init(uint8_t spi_bus){
+int spi_clk_init(uint8_t spi_bus)
+{
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     sysctl_clock_enable(SYSCTL_CLOCK_SPI0 + spi_bus);
     sysctl_clock_set_threshold(SYSCTL_THRESHOLD_SPI0 + spi_bus, 0);
     return 0;
 }
 
-int spi_init(uint8_t spi_bus){
+int spi_init(uint8_t spi_bus)
+{
     spi_clk_init(spi_bus);
     dmac_init();
     return 0;
 }
 
-int spi_master_config(uint8_t spi_bus, spi_mode_t mode, spi_frame_format_t frame_format, size_t data_bit_length){
+int spi_master_config(uint8_t spi_bus, spi_mode_t mode, spi_frame_format_t frame_format, size_t data_bit_length)
+{
     configASSERT(data_bit_length >= 4 && data_bit_length <= 32);
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
 
@@ -92,6 +95,22 @@ int spi_master_config(uint8_t spi_bus, spi_mode_t mode, spi_frame_format_t frame
     return 0;
 }
 
+uint32_t spi_set_clk_rate(uint8_t spi_bus, uint32_t spi_clk)
+{
+    uint32_t spi_baudr = sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_bus) / spi_clk;
+    if(spi_baudr < 2 )
+    {
+        spi_baudr = 2;
+    }
+    else if(spi_baudr > 65534)
+    {
+        spi_baudr = 65534;
+    }
+    volatile spi_t *spi_adapter = spi[spi_bus];
+    spi_adapter->baudr = spi_baudr;
+    return sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_bus) / spi_baudr;
+}
+
 void spi_trans_config(uint8_t spi_bus, size_t instruction_length, size_t address_length,
                                 size_t wait_cycles, spi_addr_inst_trans_mode_t trans_mode)
 {
@@ -125,7 +144,7 @@ void spi_trans_config(uint8_t spi_bus, size_t instruction_length, size_t address
     spi_handle->spi_ctrlr0 = (wait_cycles << 11) | (inst_l << 8) | (addr_l << 2) | trans_mode;
 }
 
-int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
+int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -157,7 +176,7 @@ int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t
 }
 
 int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
-                        uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
+                        uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     volatile spi_t *spi_handle = spi[spi_bus];
@@ -181,7 +200,6 @@ int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32
     dmac_wait_done(channel_num);
     free((void*)buf);
 
-
     while ((spi_handle->sr & 0x05) != 0x04)
         ;
     spi_handle->ser = 0x00;
@@ -190,7 +208,7 @@ int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32
 }
 
 int spi_normal_send_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
-                        void *tx_buff, uint32_t tx_len, spi_transfer_width_t stw)
+                        void *tx_buff, size_t tx_len, spi_transfer_width_t stw)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     volatile spi_t *spi_handle = spi[spi_bus];
@@ -229,7 +247,7 @@ int spi_normal_send_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint
     return 0;
 }
 
-int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
+int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -252,8 +270,8 @@ int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint
     return 0;
 }
 
-int spi_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
-                            uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
+int spi_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
+                            uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     volatile spi_t *spi_handle = spi[spi_bus];
@@ -268,18 +286,17 @@ int spi_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_numbe
     spi_handle->ssienr = 0x01;
     spi_handle->ser = chip_sel;
 
-    sysctl_dma_select(w_channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_bus * 2);
-    sysctl_dma_select(r_channel_num, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_bus * 2);
+    sysctl_dma_select(channel_num_w, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_bus * 2);
+    sysctl_dma_select(channel_num_r, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_bus * 2);
 
-
-    dmac_set_single_mode(r_channel_num, (void *)(&spi_handle->dr[0]), write_cmd, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(channel_num_r, (void *)(&spi_handle->dr[0]), write_cmd, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
                             DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, rx_len);
 
-    dmac_set_single_mode(w_channel_num, write_cmd, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
+    dmac_set_single_mode(channel_num_w, write_cmd, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                             DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, cmd_len);
 
-    dmac_wait_done(w_channel_num);
-    dmac_wait_done(r_channel_num);
+    dmac_wait_done(channel_num_w);
+    dmac_wait_done(channel_num_r);
 
     for(i = 0; i < rx_len; i++){
         rx_buff[i] = write_cmd[i];
@@ -291,8 +308,7 @@ int spi_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_numbe
     return 0;
 }
 
-
-int spi_special_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
+int spi_quad_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -315,47 +331,44 @@ int spi_special_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_b
     return 0;
 }
 
-int spi_special_receive_data_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
-                                    uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
+int spi_quad_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
+                                    uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
-        configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-        volatile spi_t *spi_handle = spi[spi_bus];
+    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    volatile spi_t *spi_handle = spi[spi_bus];
 
-        uint32_t * write_cmd = malloc(sizeof(uint32_t) * (cmd_len + rx_len));
-        size_t i;
-        for (i = 0; i < cmd_len; i++)
-            write_cmd[i] = cmd_buff[i];
+    uint32_t * write_cmd = malloc(sizeof(uint32_t) * (cmd_len + rx_len));
+    size_t i;
+    for (i = 0; i < cmd_len; i++)
+        write_cmd[i] = cmd_buff[i];
 
-        spi_handle->ctrlr1 = rx_len - 1;
-        spi_handle->dmacr = 0x3;
-        spi_handle->ssienr = 0x01;
-        spi_handle->ser = chip_sel;
+    spi_handle->ctrlr1 = rx_len - 1;
+    spi_handle->dmacr = 0x3;
+    spi_handle->ssienr = 0x01;
+    spi_handle->ser = chip_sel;
 
-        sysctl_dma_select(w_channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_bus * 2);
-        sysctl_dma_select(r_channel_num, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_bus * 2);
+    sysctl_dma_select(channel_num_w, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_bus * 2);
+    sysctl_dma_select(channel_num_r, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_bus * 2);
 
+    dmac_set_single_mode(channel_num_r, (void *)(&spi_handle->dr[0]), write_cmd, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+                            DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, rx_len);
 
-        dmac_set_single_mode(r_channel_num, (void *)(&spi_handle->dr[0]), write_cmd, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                                DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, rx_len);
+    dmac_set_single_mode(channel_num_w, write_cmd, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
+                            DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, cmd_len);
 
-        dmac_set_single_mode(w_channel_num, write_cmd, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-                                DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, cmd_len);
+    dmac_wait_done(channel_num_w);
+    dmac_wait_done(channel_num_r);
 
-        dmac_wait_done(w_channel_num);
-        dmac_wait_done(r_channel_num);
-
-        for(i = 0; i < rx_len; i++){
-            rx_buff[i] = write_cmd[i];
-        }
-        free(write_cmd);
-        spi_handle->ser = 0x00;
-        spi_handle->ssienr = 0x00;
-        return 0;
-
+    for(i = 0; i < rx_len; i++){
+        rx_buff[i] = write_cmd[i];
+    }
+    free(write_cmd);
+    spi_handle->ser = 0x00;
+    spi_handle->ssienr = 0x00;
+    return 0;
 }
 
-
-int spi_special_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
+int spi_quad_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
@@ -385,8 +398,8 @@ int spi_special_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff
     return 0;
 }
 
-int spi_special_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
-                                uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
+int spi_quad_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
+                                uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     volatile spi_t *spi_handle = spi[spi_bus];
@@ -417,8 +430,7 @@ int spi_special_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus,
     return 0;
 }
 
-int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
-                                uint32_t *cmd_buff, uint32_t cmd_len)
+int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     volatile spi_t *spi_handle = spi[spi_bus];
@@ -504,11 +516,7 @@ int spi_get_frame_format(uint8_t spi_bus)
     return ((spi_handle->ctrlr0 >> frf_offset) & 0x03);
 }
 
-/*
-    SPI MODE0-3
-    Serial Clock Polarity
-    Serial Clock Phase
-*/
+
 void spi_set_work_mode(uint8_t spi_bus, spi_mode_t mode)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);

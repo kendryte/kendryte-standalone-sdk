@@ -365,8 +365,7 @@ void i2c_clk_init(uint8_t sel);
  * @param[in]   address_width       address width 7bit or 10bit
  * @param[in]   bus_speed_mode      i2c rate
  */
-void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,
-                            i2c_bus_speed_mode_t bus_speed_mode);
+void i2c_config(uint8_t sel, size_t slave_address, size_t address_width,i2c_bus_speed_mode_t bus_speed_mode);
 
 /**
  * @brief       I2c send data
@@ -380,7 +379,7 @@ void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_write_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+int i2c_write_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, size_t buf_len);
 
  /**
  * @brief      I2c receive data
@@ -394,7 +393,7 @@ int i2c_write_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, size_t buf_len);
 
 /**
  * @brief       I2c send data by dma
@@ -409,7 +408,7 @@ int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_write_reg_dma(dmac_channel_number_t channel_num, uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+int i2c_write_reg_dma(dmac_channel_number_t channel_num, uint8_t sel, uint8_t reg, uint8_t *data_buf, size_t buf_len);
 
 /**
  * @brief       I2c receive data
@@ -424,8 +423,8 @@ int i2c_write_reg_dma(dmac_channel_number_t channel_num, uint8_t sel, uint8_t re
  *     - 0      Success
  *     - Other  Fail
 */
-int i2c_read_reg_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
-                        uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+int i2c_read_reg_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
+    uint8_t sel, uint8_t reg, uint8_t *data_buf, size_t buf_len);
 
 #ifdef __cplusplus
 }

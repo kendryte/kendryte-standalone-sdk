@@ -149,9 +149,9 @@ typedef enum _uart_rede_sel
 
 typedef enum _uart_parity
 {
-    UART_PARITY_None,
-    UART_PARITY_Odd,
-    UART_PARITY_Even
+    UART_PARITY_NONE,
+    UART_PARITY_ODD,
+    UART_PARITY_EVEN
 } uart_parity_t;
 
 /**

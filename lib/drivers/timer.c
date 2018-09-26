@@ -124,7 +124,8 @@ void timer_channel_clear_interrupt(uint32_t tim, uint32_t channel)
     timer[tim]->channel[channel].eoi = timer[tim]->channel[channel].eoi;
 }
 
-void timer_set_enable(uint32_t tim, uint32_t channel, uint32_t enable){
+void timer_set_enable(uint32_t tim, uint32_t channel, uint32_t enable)
+{
     if (enable)
         timer[tim]->channel[channel].control = TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
     else

@@ -656,8 +656,7 @@ void i2s_dev_enable(i2s_device_num_t device_num, uint32_t enable);
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_receive_channel_enable(i2s_device_num_t device_num,
-                   i2s_channel_num_t channel_num, uint32_t enable);
+int i2s_receive_channel_enable(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint32_t enable);
 
 /**
  * @brief       Set I2S transmit channel enable or disable
@@ -670,8 +669,17 @@ int i2s_receive_channel_enable(i2s_device_num_t device_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_transmit_channel_enable(i2s_device_num_t device_num,
-                i2s_channel_num_t channel_num, uint32_t enable);
+int i2s_transmit_channel_enable(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint32_t enable);
+
+/**
+* @brief       I2s init
+*
+* @param[in]   device_num          The device number
+* @param[in]   rxtx_mode           I2s work mode
+* @param[in]   channel_mask        Channel mask to which channel work
+*
+*/
+void i2s_init(i2s_device_num_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask);
 
 /**
  * @brief       Read pcm data  from channel_num channel
@@ -679,45 +687,84 @@ int i2s_transmit_channel_enable(i2s_device_num_t device_num,
  * @param[in]   device_num      which of device
  * @param[in]   channel_num     The channel number
  * @param[in]   buf             save read data
- * @param[in]   length          the length to read form i2s
+ * @param[in]   buf_len          the length to read form i2s
  *
  * @return      result
  *     - 0      Success
  *     - Other  Fail
  */
-int32_t i2s_receive_data(i2s_device_num_t device_num,
-      i2s_channel_num_t channel_num, uint64_t *buf,
-      uint32_t length);
+int i2s_receive_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint64_t *buf, size_t buf_len);
 
 /**
  * @brief       Read pcm data from dma
  *
  * @param[in]   device_num      which of device
  * @param[in]   buf             save read data
- * @param[in]   length          the length to read form i2s
+ * @param[in]   buf_len          the length to read form i2s
  * @param[in]   channel_num     The dma channel number
  *
  * @return      result
  *     - 0      Success
  *     - Other  Fail
  */
-int32_t i2s_receive_data_dma(i2s_device_num_t device_num, uint32_t *buf,
-    uint32_t length, dmac_channel_number_t channel_num);
+int i2s_receive_data_dma(i2s_device_num_t device_num, uint32_t *buf, size_t buf_len, dmac_channel_number_t channel_num);
 
 /**
- * @brief       Read pcm data from dma
+ * @brief       Write pcm data to channel_num channel
  *
+ * @param[in]   device_num      The i2s number
+ * @param[in]   channel_num     The channel number
+ * @param[in]   pcm             32bit (16 bits left and 16bits right)pcm data
  * @param[in]   device_num      which of device
- * @param[in]   buf             save read data
- * @param[in]   length          the length to read form i2s
- * @param[in]   channel_num     The dma channel number
  *
  * @return      result
  *     - 0      Success
  *     - Other  Fail
  */
-int32_t i2s_recv_dma(i2s_device_num_t device_num, uint32_t *buf,
-    uint32_t length, dmac_channel_number_t channel_num);
+int i2s_send_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint8_t *pcm, size_t buf_len, size_t single_length);
+
+/**
+ * @brief       Write pcm data to channel_num channel by dma, first wait dmac done
+ *
+ * @param[in]   device_num      which of device
+ * @param[in]   pcm             Send data
+ * @param[in]   buf_len          Send data length
+ * @param[in]   channel_num     dmac channel
+ *
+ */
+void i2s_send_data_dma(i2s_device_num_t device_num, void *pcm, size_t buf_len, dmac_channel_number_t channel_num);
+
+/**
+ * @brief       Write pcm data to channel_num channel by dma
+ *
+ * @param[in]   device_num          which of device
+ * @param[in]   channel_num         which of device
+ * @param[in]   buf                 Send data
+ * @param[in]   buf_len              Send data length
+ * @param[in]   frame               I2s frame number
+ * @param[in]   bits_per_sample     I2s sample bits
+ * @param[in]   track_num           track num
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int i2s_play(i2s_device_num_t device_num,dmac_channel_number_t channel_num, uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num);
+
+/**
+ * @brief       Send receive data to transmit channel by dma
+ *
+ * @param[in]   device_src_num      I2s receive
+ * @param[in]   device_dest_num     I2s transfer
+ * @param[in]   buf_len              Data length
+ * @param[in]   channel_num         Dmac channel
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int i2s_rx_to_tx(i2s_device_num_t device_src_num, i2s_device_num_t device_dest_num,
+    size_t buf_len, dmac_channel_number_t channel_num);
 
 /**
  * @brief       Mask or unmask interrupt
@@ -917,92 +964,6 @@ int i2s_receive_dma_enable(i2s_device_num_t device_num, uint32_t enable);
  *     - Other  Fail
  */
 int i2s_transmit_dma_divide(i2s_device_num_t device_num, uint32_t enable);
-
-/**
- * @brief       Write pcm data to channel_num channel
- *
- * @param[in]   device_num      The i2s number
- * @param[in]   channel_num     The channel number
- * @param[in]   pcm             32bit (16 bits left and 16bits right)pcm data
- * @param[in]   device_num      which of device
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_transmit_data(i2s_device_num_t device_num,
-    i2s_channel_num_t channel_num, uint8_t *pcm, uint32_t length, uint8_t single_length);
-
-/**
- * @brief       I2s init
- *
- * @param[in]   device_num          The device number
- * @param[in]   rxtx_mode           I2s work mode
- * @param[in]   channel_mask        Channel mask to which channel work
- *
- */
-void i2s_init(i2s_device_num_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask);
-
-/**
- * @brief       Write pcm data to channel_num channel by dma
- *
- * @param[in]   device_num          which of device
- * @param[in]   pcm                 Send data
- * @param[in]   length              Send data length
- * @param[in]   single_length       Send data width
- * @param[in]   channel_num         dmac channel
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_transmit_data_dma(i2s_device_num_t device_num,
-    void *pcm, uint32_t length, uint8_t single_length, dmac_channel_number_t channel_num);
-
-/**
- * @brief       Write pcm data to channel_num channel by dma, first wait dmac done
- *
- * @param[in]   device_num      which of device
- * @param[in]   pcm             Send data
- * @param[in]   length          Send data length
- * @param[in]   channel_num     dmac channel
- *
- */
-void i2s_send_data_dma(i2s_device_num_t device_num,
-    void *pcm, uint32_t length, dmac_channel_number_t channel_num);
-
-/**
- * @brief       Write pcm data to channel_num channel by dma
- *
- * @param[in]   device_num          which of device
- * @param[in]   channel_num         which of device
- * @param[in]   buf                 Send data
- * @param[in]   length              Send data length
- * @param[in]   frame               I2s frame number
- * @param[in]   bits_per_sample     I2s sample bits
- * @param[in]   track_num           track num
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_play(i2s_device_num_t device_num,dmac_channel_number_t channel_num,
-    uint8_t *buf, size_t length, uint32_t frame, uint32_t bits_per_sample, uint8_t track_num);
-
-/**
- * @brief       Write pcm data by dma from i2s to i2s
- *
- * @param[in]   device_src_num      I2s receive
- * @param[in]   device_dest_num     I2s transfer
- * @param[in]   length              Data length
- * @param[in]   channel_num         Dmac channel
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int32_t i2s_special_dma(i2s_device_num_t device_src_num, i2s_device_num_t device_dest_num,
-    uint32_t length, dmac_channel_number_t channel_num);
 
 #ifdef __cplusplus
 }

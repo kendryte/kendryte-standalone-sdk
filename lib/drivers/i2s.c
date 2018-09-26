@@ -157,7 +157,7 @@ void i2s_rx_channel_configure(i2s_device_num_t device_num,
     /* flush tx fifo*/
 
     i2s_set_rx_word_length(device_num, word_length, channel_num);
-    /* Word length is RESOLUTION_32_BIT */
+    /* Word buf_len is RESOLUTION_32_BIT */
 
     i2s_master_configure(device_num,
         word_select_size, NO_CLOCK_GATING, word_mode);
@@ -195,7 +195,7 @@ void i2s_tx_channel_configure(i2s_device_num_t device_num,
         i2s_transmit_dma_divide(I2S_DEVICE_0, 1);
     }
     i2s_set_tx_word_length(device_num, word_length, channel_num);
-    /* Word length is RESOLUTION_16_BIT */
+    /* Word buf_len is RESOLUTION_16_BIT */
 
     i2s_master_configure(device_num, word_select_size, NO_CLOCK_GATING, word_mode);
     /* word select size is 16 bits,gating after 16 bit */
@@ -405,9 +405,7 @@ int i2s_transmit_dma_divide(i2s_device_num_t device_num, uint32_t enable)
     return 0;
 }
 
-int32_t i2s_receive_data(i2s_device_num_t device_num,
-      i2s_channel_num_t channel_num, uint64_t *buf,
-      uint32_t length)
+int i2s_receive_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint64_t *buf, size_t buf_len)
 {
     uint32_t i = 0;
     isr_t u_isr;
@@ -415,7 +413,7 @@ int32_t i2s_receive_data(i2s_device_num_t device_num,
     readl(&i2s[device_num]->channel[channel_num].ror);
     /*clear over run*/
 
-    for (i = 0; i < length;)
+    for (i = 0; i < buf_len;)
     {
         u_isr.reg_data = readl(&i2s[device_num]->channel[channel_num].isr);
         if (u_isr.isr.rxda == 1)
@@ -428,18 +426,8 @@ int32_t i2s_receive_data(i2s_device_num_t device_num,
     return 0;
 }
 
-int32_t i2s_receive_data_dma(i2s_device_num_t device_num, uint32_t *buf,
-    uint32_t length, dmac_channel_number_t channel_num)
-{
-    sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
-    dmac_set_single_mode(channel_num, (void *)(&i2s[device_num]->rxdma), /*pcm*/buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, length);
-    dmac_wait_done(channel_num);
-    return 0;
-}
-
-int32_t i2s_recv_dma(i2s_device_num_t device_num, uint32_t *buf,
-    uint32_t length, dmac_channel_number_t channel_num)
+int i2s_receive_data_dma(i2s_device_num_t device_num, uint32_t *buf,
+    size_t buf_len, dmac_channel_number_t channel_num)
 {
     static uint8_t dmac_recv_flag[6] = {0,0,0,0,0,0};
     if(dmac_recv_flag[channel_num])
@@ -447,13 +435,13 @@ int32_t i2s_recv_dma(i2s_device_num_t device_num, uint32_t *buf,
     else
         dmac_recv_flag[channel_num] = 1;
     sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
-    dmac_set_single_mode(channel_num, (void *)(&i2s[device_num]->rxdma), /*pcm*/buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, length);
+    dmac_set_single_mode(channel_num, (void *)(&i2s[device_num]->rxdma), buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
     return 0;
 }
 
-int32_t i2s_special_dma(i2s_device_num_t device_src_num, i2s_device_num_t device_dest_num,
-    uint32_t length, dmac_channel_number_t channel_num)
+int i2s_rx_to_tx(i2s_device_num_t device_src_num, i2s_device_num_t device_dest_num,
+    size_t buf_len, dmac_channel_number_t channel_num)
 {
     static uint8_t dmac_recv_flag[6] = {0,0,0,0,0,0};
     if(dmac_recv_flag[channel_num])
@@ -462,12 +450,11 @@ int32_t i2s_special_dma(i2s_device_num_t device_src_num, i2s_device_num_t device
         dmac_recv_flag[channel_num] = 1;
     sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_src_num * 2);
     dmac_set_single_mode(channel_num, (void *)(&i2s[device_src_num]->rxdma), (void *)(&i2s[device_dest_num]->txdma), DMAC_ADDR_NOCHANGE, DMAC_ADDR_NOCHANGE,
-                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, length);
+                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
     return 0;
 }
 
-int i2s_transmit_data(i2s_device_num_t device_num,
-    i2s_channel_num_t channel_num, uint8_t *pcm, uint32_t length, uint8_t single_length)
+int i2s_send_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint8_t *pcm, size_t buf_len, size_t single_length)
 {
     isr_t u_isr;
     uint32_t left_buffer = 0;
@@ -477,11 +464,11 @@ int i2s_transmit_data(i2s_device_num_t device_num,
     if (channel_num < CHANNEL_0 || channel_num > CHANNEL_3)
         return -1;
 
-    length = length / (single_length / 8) / 2; /* sample num */
+    buf_len = buf_len / (single_length / 8) / 2; /* sample num */
     readl(&i2s[device_num]->channel[channel_num].tor);
     /* read clear overrun flag */
 
-    for (j = 0; j < length;)
+    for (j = 0; j < buf_len;)
     {
         u_isr.reg_data = readl(&i2s[device_num]->channel[channel_num].isr);
         if (u_isr.isr.txfe == 1)
@@ -519,73 +506,7 @@ int i2s_transmit_data(i2s_device_num_t device_num,
     return 0;
 }
 
-int i2s_trans_data(i2s_device_num_t device_num,i2s_channel_num_t channel_num,
-    uint8_t *pcm, uint32_t length, uint8_t single_length, uint8_t track_num)
-{
-    isr_t u_isr;
-    uint32_t left_buffer = 0;
-    uint32_t right_buffer = 0;
-    uint32_t i = 0;
-    uint32_t j = 0;
-    if (channel_num < CHANNEL_0 || channel_num > CHANNEL_3)
-        return -1;
-    readl(&i2s[device_num]->channel[channel_num].tor);
-    /* read clear overrun flag */
-
-    for (j = 0; j < length;)
-    {
-        u_isr.reg_data = readl(&i2s[device_num]->channel[channel_num].isr);
-        if (u_isr.isr.txfe == 1)
-        {
-            switch(single_length)
-            {
-                case 16:
-                    left_buffer = ((uint16_t *)pcm)[i++];
-                    track_num == 2 ? (right_buffer = ((uint16_t *)pcm)[i++]) : (right_buffer = 0);
-                    break;
-                case 24:
-                    left_buffer = 0;
-                    left_buffer |= pcm[i++];
-                    left_buffer |= pcm[i++] << 8;
-                    left_buffer |= pcm[i++] << 16;
-                    right_buffer = 0;
-                    if(track_num == 2)
-                    {
-                        right_buffer |= pcm[i++];
-                        right_buffer |= pcm[i++] << 8;
-                        right_buffer |= pcm[i++] << 16;
-                    }
-                    break;
-                case 32:
-                    left_buffer = ((uint32_t *)pcm)[i++];
-                    track_num == 2 ? (right_buffer = ((uint32_t *)pcm)[i++]) : (right_buffer = 0);
-                    break;
-                default:
-                    left_buffer = pcm[i++];
-                    track_num == 2 ? (right_buffer = pcm[i++]) : (right_buffer = 0);
-                    break;
-            }
-            writel(left_buffer, &i2s[device_num]->channel[channel_num].left_rxtx);
-            writel(right_buffer, &i2s[device_num]->channel[channel_num].right_rxtx);
-            j ++;
-        }
-    }
-    return 0;
-}
-
-int i2s_transmit_data_dma(i2s_device_num_t device_num,
-    void *pcm, uint32_t length, uint8_t single_length, dmac_channel_number_t channel_num)
-{
-    length = length / (single_length / 8) / 2;
-    sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_TX_REQ + device_num * 2);
-    dmac_set_single_mode(channel_num, pcm/*buf*/, (void *)(&i2s[device_num]->txdma), DMAC_ADDR_INCREMENT,
-                         DMAC_ADDR_NOCHANGE,DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, length);
-    dmac_wait_done(channel_num);
-    return 0;
-}
-
-void i2s_send_data_dma(i2s_device_num_t device_num,
-    void *pcm, uint32_t length, dmac_channel_number_t channel_num)
+void i2s_send_data_dma(i2s_device_num_t device_num, void *pcm, size_t buf_len, dmac_channel_number_t channel_num)
 {
     static uint8_t dmac_init_flag[6] = {0,0,0,0,0,0};
     if(dmac_init_flag[channel_num])
@@ -594,10 +515,10 @@ void i2s_send_data_dma(i2s_device_num_t device_num,
         dmac_init_flag[channel_num] = 1;
     sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_TX_REQ + device_num * 2);
     dmac_set_single_mode(channel_num, pcm, (void *)(&i2s[device_num]->txdma), DMAC_ADDR_INCREMENT,
-                         DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, length);
+                         DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
-void parse_voice(uint32_t *buf, uint8_t *pcm, uint32_t length,  uint32_t bits_per_sample,
+void i2s_parse_voice(uint32_t *buf, uint8_t *pcm, uint32_t length,  uint32_t bits_per_sample,
     uint8_t track_num, uint32_t *send_len)
 {
     uint32_t i,j=0;
@@ -640,10 +561,11 @@ void parse_voice(uint32_t *buf, uint8_t *pcm, uint32_t length,  uint32_t bits_pe
     }
 }
 
+
 int i2s_play(i2s_device_num_t device_num,dmac_channel_number_t channel_num,
-    uint8_t *buf, size_t length, uint32_t frame, uint32_t bits_per_sample, uint8_t track_num)
+    uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num)
 {
-    uint32_t sample_cnt = length / ( bits_per_sample / 8 ) / track_num;
+    uint32_t sample_cnt = buf_len / ( bits_per_sample / 8 ) / track_num;
     uint32_t frame_cnt = sample_cnt / frame;
     uint32_t frame_remain = sample_cnt % frame;
     uint32_t i;
@@ -685,14 +607,14 @@ int i2s_play(i2s_device_num_t device_num,dmac_channel_number_t channel_num,
         for (i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
-            parse_voice(buff[flag], trans_buf, frame, bits_per_sample, track_num, &send_len);
+            i2s_parse_voice(buff[flag], trans_buf, frame, bits_per_sample, track_num, &send_len);
             i2s_send_data_dma(device_num,buff[flag], send_len, channel_num);
             flag = !flag;
         }
         if (frame_remain)
         {
             trans_buf = buf + frame_cnt * frame * (bits_per_sample / 8) * track_num;
-            parse_voice(buff[flag], trans_buf, frame_remain, bits_per_sample, track_num, &send_len);
+            i2s_parse_voice(buff[flag], trans_buf, frame_remain, bits_per_sample, track_num, &send_len);
             i2s_send_data_dma(device_num, trans_buf, send_len, channel_num);
         }
         free(buff[0]);

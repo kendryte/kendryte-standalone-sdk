@@ -61,25 +61,25 @@ static w25qxx_status_t w25qxx_send_data_dma(uint8_t *cmd_buff, uint8_t cmd_len, 
 
 static w25qxx_status_t w25qxx_receive_data_enhanced(uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
 {
-    spi_special_receive_data(spi_bus_no, spi_chip_select, cmd_buff, cmd_len, rx_buff, rx_len);
+    spi_quad_receive_data(spi_bus_no, spi_chip_select, cmd_buff, cmd_len, rx_buff, rx_len);
     return W25QXX_OK;
 }
 
 static w25qxx_status_t w25qxx_receive_data_enhanced_dma(uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *rx_buff, uint32_t rx_len)
 {
-    spi_special_receive_data_dma(DMAC_CHANNEL0, DMAC_CHANNEL1, spi_bus_no, spi_chip_select, cmd_buff, cmd_len, rx_buff, rx_len);
+    spi_quad_receive_data_dma(DMAC_CHANNEL0, DMAC_CHANNEL1, spi_bus_no, spi_chip_select, cmd_buff, cmd_len, rx_buff, rx_len);
     return W25QXX_OK;
 }
 
 static w25qxx_status_t w25qxx_send_data_enhanced(uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
 {
-    spi_special_send_data(spi_bus_no, spi_chip_select, cmd_buff, cmd_len, tx_buff, tx_len);
+    spi_quad_send_data(spi_bus_no, spi_chip_select, cmd_buff, cmd_len, tx_buff, tx_len);
     return W25QXX_OK;
 }
 
 static w25qxx_status_t w25qxx_send_data_enhanced_dma(uint32_t *cmd_buff, uint8_t cmd_len, uint8_t *tx_buff, uint32_t tx_len)
 {
-    spi_special_send_data_dma(DMAC_CHANNEL0, spi_bus_no, spi_chip_select, cmd_buff, cmd_len, tx_buff, tx_len);
+    spi_quad_send_data_dma(DMAC_CHANNEL0, spi_bus_no, spi_chip_select, cmd_buff, cmd_len, tx_buff, tx_len);
     return W25QXX_OK;
 }
 
