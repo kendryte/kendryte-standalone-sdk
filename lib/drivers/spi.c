@@ -30,7 +30,7 @@ volatile spi_t *const spi[4] =
     (volatile spi_t *)SPI3_BASE_ADDR
 };
 
-int spi_clk_init(uint8_t spi_bus)
+static int spi_clk_init(uint8_t spi_bus)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
     sysctl_clock_enable(SYSCTL_CLOCK_SPI0 + spi_bus);
@@ -38,17 +38,32 @@ int spi_clk_init(uint8_t spi_bus)
     return 0;
 }
 
-int spi_init(uint8_t spi_bus)
+static void spi_set_tmod(uint8_t spi_bus, uint32_t tmod)
 {
-    spi_clk_init(spi_bus);
-    dmac_init();
-    return 0;
+    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    volatile spi_t *spi_handle = spi[spi_bus];
+    uint8_t tmod_offset = 0;
+    switch(spi_bus){
+    case 0:
+    case 1:
+        tmod_offset = 8;
+        break;
+    case 2:
+        configASSERT(!"Spi Bus 2 Not Support!");
+        break;
+    case 3:
+    default:
+        tmod_offset = 10;
+        break;
+    }
+    set_bit(&spi_handle->ctrlr0, 3 << tmod_offset, tmod << tmod_offset);
 }
 
-int spi_master_config(uint8_t spi_bus, spi_mode_t mode, spi_frame_format_t frame_format, size_t data_bit_length)
+int spi_config(uint8_t spi_bus, spi_mode_t mode, spi_frame_format_t frame_format, size_t data_bit_length)
 {
     configASSERT(data_bit_length >= 4 && data_bit_length <= 32);
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_clk_init(spi_bus);
 
     uint8_t dfs_offset, frf_offset;
     switch(spi_bus){
@@ -95,23 +110,7 @@ int spi_master_config(uint8_t spi_bus, spi_mode_t mode, spi_frame_format_t frame
     return 0;
 }
 
-uint32_t spi_set_clk_rate(uint8_t spi_bus, uint32_t spi_clk)
-{
-    uint32_t spi_baudr = sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_bus) / spi_clk;
-    if(spi_baudr < 2 )
-    {
-        spi_baudr = 2;
-    }
-    else if(spi_baudr > 65534)
-    {
-        spi_baudr = 65534;
-    }
-    volatile spi_t *spi_adapter = spi[spi_bus];
-    spi_adapter->baudr = spi_baudr;
-    return sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_bus) / spi_baudr;
-}
-
-void spi_trans_config(uint8_t spi_bus, size_t instruction_length, size_t address_length,
+void spi_config_non_standard(uint8_t spi_bus, size_t instruction_length, size_t address_length,
                                 size_t wait_cycles, spi_addr_inst_trans_mode_t trans_mode)
 {
     configASSERT(wait_cycles < (1 << 5));
@@ -144,11 +143,27 @@ void spi_trans_config(uint8_t spi_bus, size_t instruction_length, size_t address
     spi_handle->spi_ctrlr0 = (wait_cycles << 11) | (inst_l << 8) | (addr_l << 2) | trans_mode;
 }
 
-int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+uint32_t spi_set_clk_rate(uint8_t spi_bus, uint32_t spi_clk)
+{
+    uint32_t spi_baudr = sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_bus) / spi_clk;
+    if(spi_baudr < 2 )
+    {
+        spi_baudr = 2;
+    }
+    else if(spi_baudr > 65534)
+    {
+        spi_baudr = 65534;
+    }
+    volatile spi_t *spi_adapter = spi[spi_bus];
+    spi_adapter->baudr = spi_baudr;
+    return sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_bus) / spi_baudr;
+}
+
+int spi_send_data_standard(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-
+    spi_set_tmod(spi_bus, SPI_TMOD_TRANS);
     volatile spi_t *spi_handle = spi[spi_bus];
     spi_handle->ssienr = 0x01;
     while (cmd_len){
@@ -175,12 +190,12 @@ int spi_send_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t 
     return 0;
 }
 
-int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
+int spi_send_data_standard_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
                         uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_TRANS);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     uint32_t *buf = malloc((cmd_len + tx_len) * sizeof(uint32_t));
     int i;
     for(i = 0; i < cmd_len; i++){
@@ -207,16 +222,18 @@ int spi_send_data_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32
     return 0;
 }
 
-int spi_normal_send_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
+int spi_send_data_normal_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint32_t chip_sel,
                         void *tx_buff, size_t tx_len, spi_transfer_width_t stw)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_TRANS);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     uint32_t *buf = malloc((tx_len) * sizeof(uint32_t));
     int i;
-    for(i = 0; i < tx_len; i++){
-        switch(stw){
+    for(i = 0; i < tx_len; i++)
+    {
+        switch(stw)
+        {
             case SPI_TRANS_SHORT:
                 buf[i] = ((uint16_t *)tx_buff)[i];
             break;
@@ -247,18 +264,19 @@ int spi_normal_send_dma(dmac_channel_number_t channel_num, uint8_t spi_bus, uint
     return 0;
 }
 
-int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+int spi_receive_data_standard(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_EEROM);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     spi_handle->ctrlr1 = rx_len - 1;
     spi_handle->ssienr = 0x01;
     while (cmd_len--)
         spi_handle->dr[0] = *cmd_buff++;
     spi_handle->ser = chip_sel;
-    while (rx_len) {
+    while (rx_len)
+    {
         fifo_len = spi_handle->rxflr;
         fifo_len = fifo_len < rx_len ? fifo_len : rx_len;
         for (index = 0; index < fifo_len; index++)
@@ -270,12 +288,12 @@ int spi_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size
     return 0;
 }
 
-int spi_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
+int spi_receive_data_standard_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
                             uint8_t spi_bus, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_EEROM);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     uint32_t * write_cmd = malloc(sizeof(uint32_t) * (cmd_len + rx_len));
     size_t i;
     for (i = 0; i < cmd_len; i++)
@@ -308,12 +326,12 @@ int spi_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_numbe
     return 0;
 }
 
-int spi_quad_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+int spi_receive_data_multiple(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_RECV);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     spi_handle->ctrlr1 = rx_len - 1;
     spi_handle->ssienr = 0x01;
     while (cmd_len--)
@@ -331,12 +349,12 @@ int spi_quad_receive_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff
     return 0;
 }
 
-int spi_quad_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
+int spi_receive_data_multiple_dma(dmac_channel_number_t channel_num_w, dmac_channel_number_t channel_num_r,
                                     uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_RECV);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     uint32_t * write_cmd = malloc(sizeof(uint32_t) * (cmd_len + rx_len));
     size_t i;
     for (i = 0; i < cmd_len; i++)
@@ -368,13 +386,12 @@ int spi_quad_receive_data_dma(dmac_channel_number_t channel_num_w, dmac_channel_
     return 0;
 }
 
-int spi_quad_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+int spi_send_data_multiple(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-
+    spi_set_tmod(spi_bus, SPI_TMOD_TRANS);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     spi_handle->ssienr = 0x01;
     while (cmd_len--)
         spi_handle->dr[0] = *cmd_buff++;
@@ -398,12 +415,12 @@ int spi_quad_send_data(uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, s
     return 0;
 }
 
-int spi_quad_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
+int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel,
                                 uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_TRANS);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     uint32_t *buf = malloc((cmd_len + tx_len) * sizeof(uint32_t));
     int i;
     for(i = 0; i < cmd_len; i++){
@@ -433,8 +450,8 @@ int spi_quad_send_data_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, ui
 int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len)
 {
     configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
+    spi_set_tmod(spi_bus, SPI_TMOD_TRANS);
     volatile spi_t *spi_handle = spi[spi_bus];
-
     spi_handle->dmacr = 0x2;    /*enable dma transmit*/
     spi_handle->ssienr = 0x01;
 
@@ -449,176 +466,5 @@ int spi_fill_dma(dmac_channel_number_t channel_num,uint8_t spi_bus, uint32_t chi
     spi_handle->ser = 0x00;
     spi_handle->ssienr = 0x00;
     return 0;
-}
-
-void spi_set_tmod(uint8_t spi_bus, uint32_t tmod)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile spi_t *spi_handle = spi[spi_bus];
-    uint8_t tmod_offset = 0;
-    switch(spi_bus){
-    case 0:
-    case 1:
-        tmod_offset = 8;
-        break;
-    case 2:
-        configASSERT(!"Spi Bus 2 Not Support!");
-        break;
-    case 3:
-    default:
-        tmod_offset = 10;
-        break;
-    }
-
-    set_bit(&spi_handle->ctrlr0, 3 << tmod_offset, tmod << tmod_offset);
-}
-
-void spi_set_frame_format(uint8_t spi_bus, uint32_t spi_frf)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile spi_t *spi_handle = spi[spi_bus];
-    uint8_t frf_offset = 0;
-    switch(spi_bus){
-    case 0:
-    case 1:
-        frf_offset = 21;
-        break;
-    case 2:
-        configASSERT(!"Spi Bus 2 Not Support!");
-        break;
-    case 3:
-    default:
-        frf_offset = 22;
-        break;
-    }
-
-    set_bit(&spi_handle->ctrlr0, 3 << frf_offset, spi_frf << frf_offset);
-}
-
-int spi_get_frame_format(uint8_t spi_bus)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile spi_t *spi_handle = spi[spi_bus];
-    uint8_t frf_offset = 0;
-    switch(spi_bus){
-    case 0:
-    case 1:
-        frf_offset = 21;
-        break;
-    case 2:
-        configASSERT(!"Spi Bus 2 Not Support!");
-        break;
-    case 3:
-    default:
-        frf_offset = 22;
-        break;
-    }
-    return ((spi_handle->ctrlr0 >> frf_offset) & 0x03);
-}
-
-
-void spi_set_work_mode(uint8_t spi_bus, spi_mode_t mode)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile spi_t *spi_handle = spi[spi_bus];
-    set_bit(&spi_handle->ctrlr0, 0x3 << 6, mode << 6);
-}
-
-void spi_set_frame_size(uint8_t spi_bus, uint32_t dfs)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    volatile spi_t *spi_handle = spi[spi_bus];
-
-    uint8_t dfs_offset;
-    switch(spi_bus){
-        case 0:
-        case 1:
-            dfs_offset = 16;
-            break;
-        case 2:
-            configASSERT(!"Spi Bus 2 Not Support!");
-            break;
-        case 3:
-        default:
-            dfs_offset = 0;
-            break;
-    }
-    int frame_format = spi_get_frame_format(spi_bus);
-    switch (frame_format)
-    {
-    case SPI_FF_DUAL:
-        configASSERT(dfs % 2 == 0);
-        break;
-    case SPI_FF_QUAD:
-        configASSERT(dfs % 4 == 0);
-        break;
-    case SPI_FF_OCTAL:
-        configASSERT(dfs % 8 == 0);
-        break;
-    default:
-        break;
-    }
-    set_bit(&spi_handle->ctrlr0, 0x1F << dfs_offset, (dfs-1) << dfs_offset);
-}
-
-void spi_set_wait_cycles(uint8_t spi_bus, uint32_t wcycles)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    configASSERT(wcycles < (1 << 5));
-    int frame_format = spi_get_frame_format(spi_bus);
-    configASSERT(frame_format != SPI_FF_STANDARD);
-    volatile spi_t *spi_handle = spi[spi_bus];
-
-    set_bit(&spi_handle->spi_ctrlr0, 0x1F << 11, wcycles << 11);
-}
-
-void spi_set_inst_length(uint8_t spi_bus, uint32_t instruction_length)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    int frame_format = spi_get_frame_format(spi_bus);
-    configASSERT(frame_format != SPI_FF_STANDARD);
-    volatile spi_t *spi_handle = spi[spi_bus];
-
-    uint32_t inst_l = 0;
-    switch (instruction_length)
-    {
-    case 0:
-        inst_l = 0;
-        break;
-    case 4:
-        inst_l = 1;
-        break;
-    case 8:
-        inst_l = 2;
-        break;
-    case 16:
-        inst_l = 3;
-        break;
-    default:
-        configASSERT("Invalid instruction length");
-        break;
-    }
-
-    set_bit(&spi_handle->spi_ctrlr0, 0x3 << 8, inst_l << 8);
-}
-
-void spi_set_address_length(uint8_t spi_bus, uint32_t address_length)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    int frame_format = spi_get_frame_format(spi_bus);
-    configASSERT(frame_format != SPI_FF_STANDARD);
-    configASSERT(address_length % 4 == 0 && address_length <= 60);
-    volatile spi_t *spi_handle = spi[spi_bus];
-    uint32_t addr_l = address_length / 4;
-    set_bit(&spi_handle->spi_ctrlr0, 0xF << 2, addr_l << 2);
-}
-
-void spi_set_trans_mode(uint8_t spi_bus, spi_addr_inst_trans_mode_t trans_mode)
-{
-    configASSERT(spi_bus < SPI_MAX_NUM && spi_bus != 2);
-    int frame_format = spi_get_frame_format(spi_bus);
-    configASSERT(frame_format != SPI_FF_STANDARD);
-    volatile spi_t *spi_handle = spi[spi_bus];
-    set_bit(&spi_handle->spi_ctrlr0, 0x3 << 0, trans_mode << 0);
 }
 
