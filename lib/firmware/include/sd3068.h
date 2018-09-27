@@ -16,6 +16,7 @@
 #define _SD3068_H
 
 #include <stdint.h>
+#include "i2c.h"
 
 #define SD3068_ADDR         0x32
 #define SD3068_ADDR_LENTH   7
@@ -30,7 +31,7 @@ typedef struct _sd_time
     uint32_t sec:6;
 } __attribute__((packed, aligned(4))) sd_time_t;
 
-void sd3068_init(uint8_t sel);
+void sd3068_init(i2c_device_num_t i2c_num, uint32_t slave_address, uint32_t address_width,i2c_bus_speed_mode_t bus_speed_mode);
 int sd3068_write_enable(void);
 int sd3068_write_disable(void);
 int sd3068_set_time(sd_time_t time);

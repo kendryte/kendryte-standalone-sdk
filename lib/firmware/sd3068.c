@@ -17,36 +17,47 @@
 #include "fpioa.h"
 #include "common.h"
 #include "sysctl.h"
-#include "i2c.h"
+#include <stdlib.h>
+#include <string.h>
 
-uint8_t i2c_bus_no = 0;
+uint32_t i2c_bus_no = 0;
 
-void sd3068_init(uint8_t sel)
+void sd3068_init(i2c_device_num_t i2c_num, uint32_t slave_address, uint32_t address_width,i2c_bus_speed_mode_t bus_speed_mode)
 {
-    i2c_bus_no = sel;
+    i2c_bus_no = i2c_num;
+    i2c_config(i2c_num, slave_address, address_width, bus_speed_mode);
 }
 
 static int sd3068_write_reg(uint8_t reg, uint8_t *data_buf, uint8_t length)
 {
-    i2c_write_reg(i2c_bus_no, reg, data_buf, length);
+    uint8_t *buf = malloc(length + 1);
+    buf[0] = reg;
+    memcpy(buf + 1, data_buf, length);
+    i2c_send_data(i2c_bus_no, buf, length + 1);
+    free(buf);
     return 0;
 }
 
 static int sd3068_write_reg_dma(uint8_t reg, uint8_t *data_buf, uint8_t length)
 {
-    i2c_write_reg_dma(DMAC_CHANNEL0, i2c_bus_no, reg, data_buf, length);
+
+    uint8_t *buf = malloc(length + 1);
+    buf[0] = reg;
+    memcpy(buf + 1, data_buf, length);
+    i2c_send_data_dma(DMAC_CHANNEL0, i2c_bus_no, buf, length + 1);
+    free(buf);
     return 0;
 }
 
 static int sd3068_read_reg(uint8_t reg, uint8_t *data_buf, uint8_t length)
 {
-    i2c_read_reg(i2c_bus_no, reg, data_buf, length);
+    i2c_receive_data(i2c_bus_no, &reg, 1, data_buf, length);
     return 0;
 }
 
 static int sd3068_read_reg_dma(uint8_t reg, uint8_t *data_buf, uint8_t length)
 {
-    i2c_read_reg_dma(DMAC_CHANNEL0, DMAC_CHANNEL1, i2c_bus_no, reg, data_buf, length);
+    i2c_receive_data_dma(DMAC_CHANNEL0, DMAC_CHANNEL1, i2c_bus_no, &reg, 1, data_buf, length);
     return 0;
 }
 
