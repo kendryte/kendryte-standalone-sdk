@@ -118,34 +118,21 @@ typedef struct _wdt
 extern volatile wdt_t *const wdt[2];
 
 /**
- * @brief       Feed wdt
- */
-void wdt_feed(uint8_t id);
-
-/**
  * @brief       Enable wdt
  *
  * @param[in]   id      Wdt id 0 or 1
  *
  */
-void wdt_enable(uint8_t id);
+static void wdt_enable(uint8_t id);
 
 /**
- * @brief       Clear wdt interrupt
+ * @brief       Response to wdt timeouted
  *
  * @param[in]   id      Wdt id 0 or 1
+ * @param[in]   mode    Set wdt reseponse mode
  *
  */
-void wdt_interrupt_clear(uint8_t id);
-
-/**
- * @brief       Clear wdt interrupt
- *
- * @param[in]   id      Wdt id 0 or 1
- * @param[in]   mode    Set wdt work mode
- *
- */
-void wdt_response_mode(uint8_t id, uint8_t mode);
+static void wdt_response_mode(uint8_t id, uint8_t mode);
 
 /**
  * @brief       Set wdt timeout
@@ -154,7 +141,20 @@ void wdt_response_mode(uint8_t id, uint8_t mode);
  * @param[in]   timeout     Wdt trigger time
  *
  */
-void wdt_timeout_set(uint8_t id, uint8_t timeout);
+static void wdt_set_timeout(uint8_t id, uint8_t timeout);
+
+/**
+ * @brief       Feed wdt
+ */
+void wdt_feed(uint8_t id);
+
+/**
+ * @brief       Clear wdt interrupt
+ *
+ * @param[in]   id      Wdt id 0 or 1
+ *
+ */
+void wdt_clear_interrupt(uint8_t id);
 
 /**
  * @brief       Start wdt
@@ -163,7 +163,7 @@ void wdt_timeout_set(uint8_t id, uint8_t timeout);
  * @param[in]   toms        Wdt trigger time
  *
  */
-int wdt_start(uint8_t id, size_t toms);
+int wdt_start(uint8_t id, uint64_t toms);
 
 /**
  * @brief       Stop wdt
