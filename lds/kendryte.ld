@@ -138,6 +138,7 @@ SECTIONS
     *(.data .data.* .gnu.linkonce.d.*)
     SORT(CONSTRUCTORS)
   } > ram : DATA
+
   /* We want the small data sections together, so single-instruction offsets
      can access them all, and initialized data all before uninitialized, so
      we can shorten the on-disk segment size.  */
@@ -148,7 +149,7 @@ SECTIONS
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   } > ram : DATA
   _edata = .; PROVIDE (edata = .);
-
+  /*. = ALIGN(64);*/
   __bss_start = .;
   .sbss :
   {
