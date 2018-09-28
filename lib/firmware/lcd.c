@@ -16,7 +16,7 @@
 #include "lcd.h"
 #include "nt35310.h"
 #include "font.h"
-#include "common.h"
+#include "utils.h"
 #include "sleep.h"
 
 static lcd_ctl_t lcd_ctl;

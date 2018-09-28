@@ -28,13 +28,13 @@ void hal_delay(uint32_t delay)
 
 uint8_t ov5640_wr_reg(uint16_t reg,uint8_t data)
 {
-    dvp_sccb_write(OV5640_ADDR, reg, data);
+    dvp_sccb_write_data(OV5640_ADDR, reg, data);
     return 0;
 }
 
 uint8_t ov5640_rd_reg(uint16_t reg)
 {
-    return dvp_sccb_read(OV5640_ADDR, reg);
+    return dvp_sccb_read_data(OV5640_ADDR, reg);
 }
 
 uint8_t ov5640_init(void)

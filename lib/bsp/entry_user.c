@@ -21,10 +21,13 @@
 #include "fpioa.h"
 #include "platform.h"
 #include "plic.h"
-#include "sysclock.h"
 #include "sysctl.h"
 #include "syslog.h"
 #include "uarths.h"
+
+#define PLL0_OUTPUT_FREQ 320000000UL
+#define PLL1_OUTPUT_FREQ 160000000UL
+#define PLL2_OUTPUT_FREQ 45158400UL
 
 volatile char * const ram = (volatile char*)RAM_BASE_ADDR;
 
@@ -65,9 +68,9 @@ void _init_bsp(int core_id, int number_of_cores)
         /* Init FPIOA */
         fpioa_init();
         /* PLL init */
-        sys_clock_init();
+        sysctl_set_pll_frequency(PLL0_OUTPUT_FREQ, PLL1_OUTPUT_FREQ, PLL2_OUTPUT_FREQ);
         /* Init UART */
-        uart_init();
+        uarths_init();
         /* Dmac init */
         dmac_init();
         /* Plic init */

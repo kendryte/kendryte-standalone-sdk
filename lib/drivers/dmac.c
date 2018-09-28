@@ -18,7 +18,7 @@
 #include "dmac.h"
 #include "sysctl.h"
 #include "fpioa.h"
-#include "common.h"
+#include "utils.h"
 #include "plic.h"
 #include "stdlib.h"
 
@@ -45,7 +45,7 @@ uint64_t dmac_read_channel_id(dmac_channel_number_t channel_num)
     return dmac->channel[channel_num].axi_id;
 }
 
-void dmac_enable(void)
+static void dmac_enable(void)
 {
     dmac_cfg_u_t  dmac_cfg;
 
@@ -75,7 +75,7 @@ void src_transaction_complete_int_enable(dmac_channel_number_t channel_num)
     writeq(ch_intstat.data, &dmac->channel[channel_num].intstatus_en);
 }
 
-void dmac_channel_enable(dmac_channel_number_t channel_num)
+static void dmac_channel_enable(dmac_channel_number_t channel_num)
 {
     dmac_chen_u_t chen;
 
@@ -113,7 +113,7 @@ void dmac_channel_enable(dmac_channel_number_t channel_num)
     writeq(chen.data, &dmac->chen);
 }
 
-void dmac_channel_disable(dmac_channel_number_t channel_num)
+static void dmac_channel_disable(dmac_channel_number_t channel_num)
 {
     dmac_chen_u_t chen;
 
@@ -241,7 +241,7 @@ void dmac_enable_common_interrupt_signal(void)
     writeq(intsignal.data, &dmac->com_intsignal_en);
 }
 
-void dmac_enable_channel_interrupt_status(dmac_channel_number_t channel_num)
+static void dmac_enable_channel_interrupt_status(dmac_channel_number_t channel_num)
 {
     writeq(0xffffffff, &dmac->channel[channel_num].intclear);
     writeq(0xffffffff, &dmac->channel[channel_num].intstatus_en);
@@ -258,7 +258,7 @@ void dmac_enable_channel_interrupt_signal(dmac_channel_number_t channel_num,
 
 }
 
-void dmac_chanel_interrupt_clear(dmac_channel_number_t channel_num)
+static void dmac_chanel_interrupt_clear(dmac_channel_number_t channel_num)
 {
     writeq(0xffffffff, &dmac->channel[channel_num].intclear);
 }
@@ -333,7 +333,7 @@ int dmac_set_channel_config(dmac_channel_number_t channel_num,
     return 0;
 }
 
-int dmac_set_channel_param(dmac_channel_number_t channel_num,
+static int dmac_set_channel_param(dmac_channel_number_t channel_num,
     void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
     dmac_burst_trans_length_t dmac_msize,
     dmac_transfer_width_t dmac_trans_width,
@@ -547,7 +547,7 @@ void dmac_init(void)
     dmac_cfg_u_t dmac_cfg;
     dmac_reset_u_t dmac_reset;
 
-    sysctl_clock_enable(SYSCTL_CLOCK_DMA);
+    sysctl_clock_tnable(SYSCTL_CLOCK_DMA);
 
     dmac_reset.data = readq(&dmac->reset);
     dmac_reset.reset.rst = 1;

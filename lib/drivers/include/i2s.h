@@ -29,13 +29,13 @@ extern "C" {
 #define I2S0_SCLK   88
 #define I2S0_WS    89
 
-typedef enum _i2s_device_num
+typedef enum _i2s_device_number
 {
     I2S_DEVICE_0 = 0,
     I2S_DEVICE_1 = 1,
     I2S_DEVICE_2 = 2,
     I2S_DEVICE_MAX
-} i2s_device_num_t;
+} i2s_device_number_t;
 
 typedef enum _i2s_channel_num
 {
@@ -635,7 +635,7 @@ extern volatile i2s_t *const i2s[3];
  * @param[in]   device_num      the device of i2s
  *
  */
-void i2s_device_enable(i2s_device_num_t device_num);
+void i2s_device_enable(i2s_device_number_t device_num);
 
 /**
  * @brief       Enable or disable i2s device
@@ -643,7 +643,7 @@ void i2s_device_enable(i2s_device_num_t device_num);
  * @param[in]   device_num      The device of i2s
  * @param[in]   enable          Enable flag 0:disable, 1:enable
  */
-void i2s_dev_enable(i2s_device_num_t device_num, uint32_t enable);
+void i2s_dev_enable(i2s_device_number_t device_num, uint32_t enable);
 
 /**
  * @brief       Set I2S recive channel enable or disable
@@ -656,7 +656,7 @@ void i2s_dev_enable(i2s_device_num_t device_num, uint32_t enable);
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_receive_channel_enable(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint32_t enable);
+int i2s_receive_channel_enable(i2s_device_number_t device_num, i2s_channel_num_t channel_num, uint32_t enable);
 
 /**
  * @brief       Set I2S transmit channel enable or disable
@@ -669,7 +669,7 @@ int i2s_receive_channel_enable(i2s_device_num_t device_num, i2s_channel_num_t ch
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_transmit_channel_enable(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint32_t enable);
+int i2s_transmit_channel_enable(i2s_device_number_t device_num, i2s_channel_num_t channel_num, uint32_t enable);
 
 /**
 * @brief       I2s init
@@ -679,7 +679,7 @@ int i2s_transmit_channel_enable(i2s_device_num_t device_num, i2s_channel_num_t c
 * @param[in]   channel_mask        Channel mask to which channel work
 *
 */
-void i2s_init(i2s_device_num_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask);
+void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask);
 
 /**
  * @brief       Read pcm data  from channel_num channel
@@ -693,7 +693,7 @@ void i2s_init(i2s_device_num_t device_num, i2s_transmit_t rxtx_mode, uint32_t ch
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_receive_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint64_t *buf, size_t buf_len);
+int i2s_receive_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num, uint64_t *buf, size_t buf_len);
 
 /**
  * @brief       Read pcm data from dma
@@ -707,7 +707,7 @@ int i2s_receive_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_receive_data_dma(i2s_device_num_t device_num, uint32_t *buf, size_t buf_len, dmac_channel_number_t channel_num);
+int i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf, size_t buf_len, dmac_channel_number_t channel_num);
 
 /**
  * @brief       Write pcm data to channel_num channel
@@ -721,7 +721,7 @@ int i2s_receive_data_dma(i2s_device_num_t device_num, uint32_t *buf, size_t buf_
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_send_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num, uint8_t *pcm, size_t buf_len, size_t single_length);
+int i2s_send_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num, uint8_t *pcm, size_t buf_len, size_t single_length);
 
 /**
  * @brief       Write pcm data to channel_num channel by dma, first wait dmac done
@@ -732,7 +732,7 @@ int i2s_send_data(i2s_device_num_t device_num, i2s_channel_num_t channel_num, ui
  * @param[in]   channel_num     dmac channel
  *
  */
-void i2s_send_data_dma(i2s_device_num_t device_num, void *pcm, size_t buf_len, dmac_channel_number_t channel_num);
+void i2s_send_data_dma(i2s_device_number_t device_num, void *pcm, size_t buf_len, dmac_channel_number_t channel_num);
 
 /**
  * @brief       Write pcm data to channel_num channel by dma
@@ -749,7 +749,7 @@ void i2s_send_data_dma(i2s_device_num_t device_num, void *pcm, size_t buf_len, d
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_play(i2s_device_num_t device_num,dmac_channel_number_t channel_num, uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num);
+int i2s_play(i2s_device_number_t device_num,dmac_channel_number_t channel_num, uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num);
 
 /**
  * @brief       Send receive data to transmit channel by dma
@@ -763,7 +763,7 @@ int i2s_play(i2s_device_num_t device_num,dmac_channel_number_t channel_num, uint
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_rx_to_tx(i2s_device_num_t device_src_num, i2s_device_num_t device_dest_num,
+int i2s_rx_to_tx(i2s_device_number_t device_src_num, i2s_device_number_t device_dest_num,
     size_t buf_len, dmac_channel_number_t channel_num);
 
 /**
@@ -780,7 +780,7 @@ int i2s_rx_to_tx(i2s_device_num_t device_src_num, i2s_device_num_t device_dest_n
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_set_mask_interrupt(i2s_device_num_t device_num,
+int i2s_set_mask_interrupt(i2s_device_number_t device_num,
                i2s_channel_num_t channel_num,
                uint32_t rx_available, uint32_t rx_overrun_int,
                uint32_t tx_empty_int, uint32_t tx_overrun_int);
@@ -795,7 +795,7 @@ int i2s_set_mask_interrupt(i2s_device_num_t device_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_set_tx_threshold(i2s_device_num_t device_num,
+int i2s_set_tx_threshold(i2s_device_number_t device_num,
              fifo_threshold_t threshold,
              i2s_channel_num_t channel_num);
 
@@ -810,7 +810,7 @@ int i2s_set_tx_threshold(i2s_device_num_t device_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_set_rx_threshold(i2s_device_num_t device_num,
+int i2s_set_rx_threshold(i2s_device_number_t device_num,
              fifo_threshold_t threshold,
              i2s_channel_num_t channel_num);
 
@@ -827,7 +827,7 @@ int i2s_set_rx_threshold(i2s_device_num_t device_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_master_configure(i2s_device_num_t device_num,
+int i2s_master_configure(i2s_device_number_t device_num,
     word_select_cycles_t word_select_size,
     sclk_gating_cycles_t gating_cycles,
     i2s_work_mode_t word_mode);
@@ -842,7 +842,7 @@ int i2s_master_configure(i2s_device_num_t device_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_set_rx_word_length(i2s_device_num_t device_num,
+int i2s_set_rx_word_length(i2s_device_number_t device_num,
                word_length_t word_length,
                i2s_channel_num_t channel_num);
 
@@ -857,7 +857,7 @@ int i2s_set_rx_word_length(i2s_device_num_t device_num,
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_set_tx_word_length(i2s_device_num_t device_num,
+int i2s_set_tx_word_length(i2s_device_number_t device_num,
                word_length_t word_length,
                i2s_channel_num_t channel_num);
 
@@ -876,7 +876,7 @@ int i2s_fpioa_sysctl(void);
  * @param[in]   device_num      The device number
  * @param[in]   channel_num     The channel number
  */
-void i2s_receive_enable(i2s_device_num_t device_num,
+void i2s_receive_enable(i2s_device_number_t device_num,
             i2s_channel_num_t channel_num);
 
 /**
@@ -885,7 +885,7 @@ void i2s_receive_enable(i2s_device_num_t device_num,
  * @param[in]   device_num      The device number
  * @param[in]   channel_num     The channel number
  */
-void i2s_transimit_enable(i2s_device_num_t device_num,
+void i2s_transimit_enable(i2s_device_number_t device_num,
               i2s_channel_num_t channel_num);
 
 /**
@@ -897,7 +897,7 @@ void i2s_transimit_enable(i2s_device_num_t device_num,
  * @param[in]   word_select_size        The word select size
  * @param[in]   trigger_level           The trigger level
  */
-void i2s_rx_channel_configure(i2s_device_num_t device_num,
+void i2s_rx_channel_configure(i2s_device_number_t device_num,
     i2s_channel_num_t channel_num,
     word_length_t word_length,
     word_select_cycles_t word_select_size,
@@ -913,7 +913,7 @@ void i2s_rx_channel_configure(i2s_device_num_t device_num,
  * @param[in]   word_select_size        The word select size
  * @param[in]   trigger_level           The trigger level
  */
-void i2s_tx_channel_configure(i2s_device_num_t device_num,
+void i2s_tx_channel_configure(i2s_device_number_t device_num,
     i2s_channel_num_t channel_num,
     word_length_t word_length,
     word_select_cycles_t word_select_size,
@@ -926,7 +926,7 @@ void i2s_tx_channel_configure(i2s_device_num_t device_num,
  * @param[in]   device_num      The device number
  * @param[in]   rxtx_mode       The rxtx mode
  */
-void i2s_disable_block(i2s_device_num_t device_num,
+void i2s_disable_block(i2s_device_number_t device_num,
     i2s_transmit_t rxtx_mode);
 
 /**
@@ -939,7 +939,7 @@ void i2s_disable_block(i2s_device_num_t device_num,
  *       0     Success
  *       Other Fail
  */
-int i2s_transmit_dma_enable(i2s_device_num_t device_num, uint32_t enable);
+int i2s_transmit_dma_enable(i2s_device_number_t device_num, uint32_t enable);
 
 /**
  * @brief       Enable I2S receive DMA
@@ -951,7 +951,7 @@ int i2s_transmit_dma_enable(i2s_device_num_t device_num, uint32_t enable);
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_receive_dma_enable(i2s_device_num_t device_num, uint32_t enable);
+int i2s_receive_dma_enable(i2s_device_number_t device_num, uint32_t enable);
 
 /**
  * @brief       Split I2S transmit DMA from 32bit to two 16bit left and right
@@ -963,7 +963,7 @@ int i2s_receive_dma_enable(i2s_device_num_t device_num, uint32_t enable);
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_transmit_dma_divide(i2s_device_num_t device_num, uint32_t enable);
+int i2s_transmit_dma_divide(i2s_device_number_t device_num, uint32_t enable);
 
 #ifdef __cplusplus
 }

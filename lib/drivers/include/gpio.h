@@ -134,20 +134,12 @@ extern volatile gpio_t *const gpio;
 int gpio_init(void);
 
 /**
- * @brief       Gpio pin initialize, map Pin number to Gpio function pin
- *
- * @param[in]   pin_num         Pin number
- * @param[in]   gpio_pin        Gpio pin
- */
-void gpio_pin_init(size_t pin_num, size_t gpio_pin);
-
-/**
  * @brief       Set Gpio drive mode
  *
  * @param[in]   pin         Gpio pin
  * @param[in]   mode        Gpio pin drive mode
  */
-void gpio_set_drive_mode(size_t pin, gpio_drive_mode_t mode);
+void gpio_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode);
 
 /**
  * @brief       Get Gpio pin value
@@ -158,7 +150,7 @@ void gpio_set_drive_mode(size_t pin, gpio_drive_mode_t mode);
  *     - GPIO_PV_Low     Gpio pin low
  *     - GPIO_PV_High    Gpio pin high
  */
-gpio_pin_value_t gpio_get_pin_value(size_t pin);
+gpio_pin_value_t gpio_get_pin(uint8_t pin);
 
 /**
  * @brief       Set Gpio pin value
@@ -166,7 +158,7 @@ gpio_pin_value_t gpio_get_pin_value(size_t pin);
  * @param[in]   pin         Gpio pin
  * @param[in]   value       Gpio pin value
  */
-void gpio_set_pin_value(size_t pin, gpio_pin_value_t value);
+void gpio_set_pin(uint8_t pin, gpio_pin_value_t value);
 
 #ifdef __cplusplus
 }

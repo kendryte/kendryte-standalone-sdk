@@ -60,6 +60,13 @@ typedef struct _wdt
     volatile uint32_t comp_type;
 } __attribute__((packed, aligned(4))) wdt_t;
 
+typedef enum _wdt_device_number
+{
+    WDT_DEVICE_0,
+    WDT_DEVICE_1,
+    WDT_DEVICE_MAX,
+} wdt_device_number_t;
+
 
 #define WDT_RESET_ALL                                       0x00000000U
 #define WDT_RESET_CPU                                       0x00000001U
@@ -113,40 +120,9 @@ typedef struct _wdt
 /* clang-format on */
 
 /**
- * @brief       WDT object instanse
- */
-extern volatile wdt_t *const wdt[2];
-
-/**
- * @brief       Enable wdt
- *
- * @param[in]   id      Wdt id 0 or 1
- *
- */
-static void wdt_enable(uint8_t id);
-
-/**
- * @brief       Response to wdt timeouted
- *
- * @param[in]   id      Wdt id 0 or 1
- * @param[in]   mode    Set wdt reseponse mode
- *
- */
-static void wdt_response_mode(uint8_t id, uint8_t mode);
-
-/**
- * @brief       Set wdt timeout
- *
- * @param[in]   id          Wdt id 0 or 1
- * @param[in]   timeout     Wdt trigger time
- *
- */
-static void wdt_set_timeout(uint8_t id, uint8_t timeout);
-
-/**
  * @brief       Feed wdt
  */
-void wdt_feed(uint8_t id);
+void wdt_feed(wdt_device_number_t id);
 
 /**
  * @brief       Clear wdt interrupt
@@ -154,16 +130,16 @@ void wdt_feed(uint8_t id);
  * @param[in]   id      Wdt id 0 or 1
  *
  */
-void wdt_clear_interrupt(uint8_t id);
+void wdt_clear_interrupt(wdt_device_number_t id);
 
 /**
  * @brief       Start wdt
  *
  * @param[in]   id          Wdt id 0 or 1
- * @param[in]   toms        Wdt trigger time
+ * @param[in]   time_out_ms        Wdt trigger time
  *
  */
-int wdt_start(uint8_t id, uint64_t toms);
+int wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq);
 
 /**
  * @brief       Stop wdt
@@ -171,7 +147,7 @@ int wdt_start(uint8_t id, uint64_t toms);
  * @param[in]   id      Wdt id 0 or 1
  *
  */
-void wdt_stop(uint8_t id);
+void wdt_stop(wdt_device_number_t id);
 
 /**
  * @brief       Set wdt interrupt function
@@ -180,7 +156,7 @@ void wdt_stop(uint8_t id);
  * @param[in]   on_irq      Wdt interrupt function
  *
  */
-void wdt_set_irq(uint8_t id, plic_irq_callback_t on_irq);
+void wdt_set_irq(wdt_device_number_t id, plic_irq_callback_t on_irq);
 
 #ifdef __cplusplus
 }

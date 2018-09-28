@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "gpiohs.h"
-#include "common.h"
+#include "utils.h"
 #include "fpioa.h"
 #include "sysctl.h"
 #define GPIOHS_MAX_PINNO 32
@@ -38,13 +38,7 @@ int gpiohs_init(void)
     return 0;
 }
 
-void gpiohs_pin_init(size_t pin_num, size_t gpio_pin)
-{
-    configASSERT(gpio_pin < GPIOHS_MAX_PINNO);
-    fpioa_set_function(pin_num, FUNC_GPIOHS0 + gpio_pin);
-}
-
-void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode_t mode)
+void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
     int io_number = fpioa_get_io_by_func(FUNC_GPIOHS0 + pin);
@@ -82,19 +76,19 @@ void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode_t mode)
     set_gpio_bit(reg, pin, 1);
 }
 
-gpio_pin_value_t gpiohs_get_pin_value(size_t pin)
+gpio_pin_value_t gpiohs_get_pin(uint8_t pin)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
     return get_gpio_bit(gpiohs->input_val.u32, pin);
 }
 
-void gpiohs_set_pin_value(size_t pin, gpio_pin_value_t value)
+void gpiohs_set_pin(uint8_t pin, gpio_pin_value_t value)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
     set_gpio_bit(gpiohs->output_val.u32, pin, value);
 }
 
-void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge_t edge)
+void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
 {
     uint32_t rise, fall, irq;
     switch (edge)
@@ -168,7 +162,7 @@ int gpiohs_pin_onchange_isr(void* userdata)
     return 0;
 }
 
-void gpiohs_set_irq(size_t pin, uint32_t priority, void (*func)())
+void gpiohs_set_irq(uint8_t pin, uint32_t priority, void (*func)())
 {
 
     pin_context[pin].pin = pin;

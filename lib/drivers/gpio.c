@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "gpio.h"
-#include "common.h"
+#include "utils.h"
 #include "fpioa.h"
 #include "sysctl.h"
 #define GPIO_MAX_PINNO 8
@@ -22,17 +22,10 @@ volatile gpio_t* const gpio = (volatile gpio_t*)GPIO_BASE_ADDR;
 
 int gpio_init(void)
 {
-    sysctl_clock_enable(SYSCTL_CLOCK_GPIO);
-    return 0;
+    return sysctl_clock_tnable(SYSCTL_CLOCK_GPIO);
 }
 
-void gpio_pin_init(size_t pin_num, size_t gpio_pin)
-{
-    configASSERT(gpio_pin < GPIO_MAX_PINNO);
-    fpioa_set_function(pin_num, FUNC_GPIO0 + gpio_pin);
-}
-
-void gpio_set_drive_mode(size_t pin, gpio_drive_mode_t mode)
+void gpio_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     int io_number = fpioa_get_io_by_func(FUNC_GPIO0 + pin);
@@ -67,7 +60,7 @@ void gpio_set_drive_mode(size_t pin, gpio_drive_mode_t mode)
     set_gpio_bit(gpio->direction.u32, pin, dir);
 }
 
-gpio_pin_value_t gpio_get_pin_value(size_t pin)
+gpio_pin_value_t gpio_get_pin(uint8_t pin)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     uint32_t dir = get_gpio_bit(gpio->direction.u32, pin);
@@ -75,7 +68,7 @@ gpio_pin_value_t gpio_get_pin_value(size_t pin)
     return get_gpio_bit(reg, pin);
 }
 
-void gpio_set_pin_value(size_t pin, gpio_pin_value_t value)
+void gpio_set_pin(uint8_t pin, gpio_pin_value_t value)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     uint32_t dir = get_gpio_bit(gpio->direction.u32, pin);

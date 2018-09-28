@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _DRIVER_COMMON_H
-#define _DRIVER_COMMON_H
+#ifndef _DRIVER_UTILS_H
+#define _DRIVER_UTILS_H
 
 #ifdef __cplusplus
 #include <cstdbool>

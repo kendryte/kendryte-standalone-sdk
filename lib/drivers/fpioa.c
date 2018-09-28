@@ -5195,7 +5195,7 @@ int fpioa_init(void)
     int i = 0;
 
     /* Enable fpioa clock in system controller */
-    sysctl_clock_enable(SYSCTL_CLOCK_FPIOA);
+    sysctl_clock_tnable(SYSCTL_CLOCK_FPIOA);
 
     /* Initialize tie */
     fpioa_tie_t tie = { 0 };

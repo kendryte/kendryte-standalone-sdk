@@ -29,8 +29,6 @@
 extern "C" {
 #endif
 
-typedef struct tm tm;
-
 /**
  * @brief      RTC timer mode
  *
@@ -351,16 +349,17 @@ typedef struct _rtc
  */
 extern volatile rtc_t *const rtc;
 extern volatile uint32_t *const rtc_base;
+
 /**
- * @brief       Set RTC timer mode
+ * @brief       RTC timer set mode
  *
- * @param[in]   timer_mode  The timer mode
+ * @param       timer_mode      timer mode
  *
- * @return      result
+ * @return      Result
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_timer_mode_set(rtc_timer_mode_t timer_mode);
+int rtc_timer_set_mode(rtc_timer_mode_t timer_mode);
 
 /**
  * @brief       Get RTC timer mode
@@ -378,14 +377,14 @@ rtc_timer_mode_t rtc_timer_get_mode(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_timer_set_tm(const tm *tm);
+int rtc_timer_set_tm(const struct tm *tm);
 
 /**
  * @brief       Get date time from RTC
  *
  * @return      The Broken-down date time
  */
-tm *rtc_timer_get_tm(void);
+struct tm *rtc_timer_get_tm(void);
 
 /**
  * @brief       Set date time to Alarm
@@ -396,14 +395,14 @@ tm *rtc_timer_get_tm(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int rtc_timer_set_alarm_tm(const tm *tm);
+int rtc_timer_set_alarm_tm(const struct tm *tm);
 
 /**
  * @brief       Get date time from Alarm
  *
  * @return      The Broken-down date time
  */
-tm *rtc_timer_get_alarm_tm(void);
+struct tm *rtc_timer_get_alarm_tm(void);
 
 /**
  * @brief       Check if it is a leap year
@@ -587,17 +586,6 @@ rtc_mask_t rtc_alarm_interrupt_mask_get(void);
  *     - Other  Fail
  */
 int rtc_init(void);
-
-/**
- * @brief       RTC timer set mode
- *
- * @param       timer_mode      timer mode
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_timer_set_mode(rtc_timer_mode_t timer_mode);
 
 #ifdef __cplusplus
 }

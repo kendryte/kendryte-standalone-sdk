@@ -21,7 +21,7 @@
 
 volatile rtc_t *const rtc = (volatile rtc_t *)RTC_BASE_ADDR;
 
-tm rtc_date_time;
+struct tm rtc_date_time;
 
 int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
 {
@@ -85,7 +85,7 @@ static inline int rtc_in_range(int value, int min, int max)
     return ((value >= min) && (value <= max));
 }
 
-int rtc_timer_set_tm(const tm *tm)
+int rtc_timer_set_tm(const struct tm *tm)
 {
     rtc_date_t timer_date;
     rtc_time_t timer_time;
@@ -178,7 +178,7 @@ int rtc_timer_set_tm(const tm *tm)
     return 0;
 }
 
-int rtc_timer_set_alarm_tm(const tm *tm)
+int rtc_timer_set_alarm_tm(const struct tm *tm)
 {
     rtc_alarm_date_t alarm_date;
     rtc_alarm_time_t alarm_time;
@@ -277,7 +277,7 @@ int rtc_get_wday(int year, int month, int day)
     return weekday;
 }
 
-tm *rtc_timer_get_tm(void)
+struct tm *rtc_timer_get_tm(void)
 {
     if (rtc_timer_get_mode() != RTC_TIMER_RUNNING)
         return NULL;
@@ -286,7 +286,7 @@ tm *rtc_timer_get_tm(void)
     rtc_time_t timer_time = rtc->time;
     rtc_extended_t timer_extended = rtc->extended;
 
-    tm *tm = &rtc_date_time;
+    struct tm *tm = &rtc_date_time;
 
     tm->tm_sec = timer_time.second % 60;
     tm->tm_min = timer_time.minute % 60;
@@ -301,7 +301,7 @@ tm *rtc_timer_get_tm(void)
     return tm;
 }
 
-tm *rtc_timer_get_alarm_tm(void)
+struct tm *rtc_timer_get_alarm_tm(void)
 {
     if (rtc_timer_get_mode() != RTC_TIMER_RUNNING)
         return NULL;
@@ -310,7 +310,7 @@ tm *rtc_timer_get_alarm_tm(void)
     rtc_alarm_time_t alarm_time = rtc->alarm_time;
     rtc_extended_t timer_extended = rtc->extended;
 
-    tm *tm = &rtc_date_time;
+    struct tm *tm = &rtc_date_time;
 
     tm->tm_sec = alarm_time.second % 60;
     tm->tm_min = alarm_time.minute % 60;
@@ -328,7 +328,7 @@ tm *rtc_timer_get_alarm_tm(void)
 
 int rtc_timer_set(int year, int month, int day, int hour, int minute, int second)
 {
-    tm date_time =
+    struct tm date_time =
     {
         .tm_sec = second,
         .tm_min = minute,
@@ -345,7 +345,7 @@ int rtc_timer_set(int year, int month, int day, int hour, int minute, int second
 
 int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *second)
 {
-    tm *tm = rtc_timer_get_tm();
+    struct tm *tm = rtc_timer_get_tm();
 
     if (tm)
     {
@@ -369,7 +369,7 @@ int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *
 
 int rtc_timer_set_alarm(int year, int month, int day, int hour, int minute, int second)
 {
-    tm date_time = {
+    struct tm date_time = {
         .tm_sec = second,
         .tm_min = minute,
         .tm_hour = hour,
@@ -386,7 +386,7 @@ int rtc_timer_set_alarm(int year, int month, int day, int hour, int minute, int 
 
 int rtc_timer_get_alarm(int *year, int *month, int *day, int *hour, int *minute, int *second)
 {
-    tm *tm = rtc_timer_get_alarm_tm();
+    struct tm *tm = rtc_timer_get_alarm_tm();
 
     if (tm) {
         if (year)
@@ -565,7 +565,7 @@ int rtc_init(void)
     /* Reset RTC */
     sysctl_reset(SYSCTL_RESET_RTC);
     /* Enable RTC */
-    sysctl_clock_enable(SYSCTL_CLOCK_RTC);
+    sysctl_clock_tnable(SYSCTL_CLOCK_RTC);
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     /* Unprotect RTC */
     rtc_protect_set(0);

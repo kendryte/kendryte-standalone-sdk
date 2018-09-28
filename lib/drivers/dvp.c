@@ -15,12 +15,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "dvp.h"
-#include "common.h"
+#include "utils.h"
 #include "fpioa.h"
 #include "sysctl.h"
 
 volatile dvp_t* const dvp = (volatile dvp_t*)DVP_BASE_ADDR;
-static uint8_t reg_len = 8;
+static uint8_t g_sccb_reg_len = 8;
 
 void mdelay(uint32_t ms)
 {
@@ -52,45 +52,45 @@ static void dvp_sccb_start_transfer(void)
         ;
 }
 
-int dvp_sccb_write(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data)
+int dvp_sccb_write_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data)
 {
     uint32_t tmp;
 
     tmp = dvp->sccb_cfg & (~DVP_SCCB_BYTE_NUM_MASK);
 
-    (reg_len == 8) ? (tmp |= DVP_SCCB_BYTE_NUM_3) : (tmp |= DVP_SCCB_BYTE_NUM_4);
+    (g_sccb_reg_len == 8) ? (tmp |= DVP_SCCB_BYTE_NUM_3) : (tmp |= DVP_SCCB_BYTE_NUM_4);
 
     dvp->sccb_cfg = tmp;
 
-    if (reg_len == 8)
+    if (g_sccb_reg_len == 8)
     {
-        dvp->sccb_ctl = DVP_SCCB_WRITE_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr) | DVP_SCCB_WDATA_BYTE0(reg_data);
+        dvp->sccb_ctl = dvp_sccb_write_data_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr) | DVP_SCCB_WDATA_BYTE0(reg_data);
     }
     else
     {
-        dvp->sccb_ctl = DVP_SCCB_WRITE_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr >> 8) | DVP_SCCB_WDATA_BYTE0(reg_addr & 0xff) | DVP_SCCB_WDATA_BYTE1(reg_data);
+        dvp->sccb_ctl = dvp_sccb_write_data_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr >> 8) | DVP_SCCB_WDATA_BYTE0(reg_addr & 0xff) | DVP_SCCB_WDATA_BYTE1(reg_data);
     }
     dvp_sccb_start_transfer();
 
     return 0;
 }
 
-uint8_t dvp_sccb_read(uint8_t dev_addr, uint16_t reg_addr)
+uint8_t dvp_sccb_read_data(uint8_t dev_addr, uint16_t reg_addr)
 {
     uint32_t tmp;
 
     tmp = dvp->sccb_cfg & (~DVP_SCCB_BYTE_NUM_MASK);
-    (reg_len == 8) ? (tmp |= DVP_SCCB_BYTE_NUM_2) : (tmp |= DVP_SCCB_BYTE_NUM_3);
+    (g_sccb_reg_len == 8) ? (tmp |= DVP_SCCB_BYTE_NUM_2) : (tmp |= DVP_SCCB_BYTE_NUM_3);
 
     dvp->sccb_cfg = tmp;
 
-    if (reg_len == 8)
+    if (g_sccb_reg_len == 8)
     {
-        dvp->sccb_ctl = DVP_SCCB_WRITE_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr);
+        dvp->sccb_ctl = dvp_sccb_write_data_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr);
     }
     else
     {
-        dvp->sccb_ctl = DVP_SCCB_WRITE_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr >> 8) | DVP_SCCB_WDATA_BYTE0(reg_addr & 0xff);
+        dvp->sccb_ctl = dvp_sccb_write_data_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr >> 8) | DVP_SCCB_WDATA_BYTE0(reg_addr & 0xff);
     }
     dvp_sccb_start_transfer();
 
@@ -130,10 +130,10 @@ static void dvp_reset(void)
     mdelay(200);
 }
 
-int dvp_init(uint8_t reglen)
+int dvp_init(uint8_t reg_len)
 {
-    reg_len = reglen;
-    sysctl_clock_enable(SYSCTL_CLOCK_DVP);
+    g_sccb_reg_len = reg_len;
+    sysctl_clock_tnable(SYSCTL_CLOCK_DVP);
     sysctl_reset(SYSCTL_RESET_DVP);
     dvp->cmos_cfg &= (~DVP_CMOS_CLK_DIV_MASK);
     dvp->cmos_cfg |= DVP_CMOS_CLK_DIV(0) | DVP_CMOS_CLK_ENABLE;
@@ -154,7 +154,7 @@ int dvp_set_image_format(uint32_t format)
     return 0;
 }
 
-void dvp_burst_enable(void)
+void dvp_enable_burst(void)
 {
     dvp->dvp_cfg |= DVP_CFG_BURST_SIZE_4BEATS;
 
@@ -162,7 +162,7 @@ void dvp_burst_enable(void)
     dvp->axi |= DVP_AXI_GM_MLEN_4BYTE;
 }
 
-void dvp_burst_disable(void)
+void dvp_disable_burst(void)
 {
     dvp->dvp_cfg &= (~DVP_CFG_BURST_SIZE_4BEATS);
 
@@ -204,7 +204,7 @@ int dvp_set_display_addr(uint32_t addr)
     return 0;
 }
 
-int dvp_frame_start(void)
+int dvp_start_frame(void)
 {
     while (!(dvp->sts & DVP_STS_FRAME_START))
         ;
@@ -213,12 +213,12 @@ int dvp_frame_start(void)
     return 0;
 }
 
-void dvp_convert_start(void)
+void dvp_start_convert(void)
 {
     dvp->sts = DVP_STS_DVP_EN | DVP_STS_DVP_EN_WE;
 }
 
-int dvp_convert_finish(void)
+int dvp_finish_convert(void)
 {
     while (!(dvp->sts & DVP_STS_FRAME_FINISH))
         ;
@@ -241,7 +241,7 @@ int dvp_get_image(void)
     return 0;
 }
 
-void dvp_interrupt_config(uint32_t interrupt, uint8_t status)
+void dvp_config_interrupt(uint32_t interrupt, uint8_t status)
 {
     if (status)
         dvp->dvp_cfg |= interrupt;
@@ -249,14 +249,14 @@ void dvp_interrupt_config(uint32_t interrupt, uint8_t status)
         dvp->dvp_cfg &= (~interrupt);
 }
 
-int dvp_interrupt_get(uint32_t interrupt)
+int dvp_get_interrupt(uint32_t interrupt)
 {
     if (dvp->sts & interrupt)
         return 1;
     return 0;
 }
 
-void dvp_interrupt_clear(uint32_t interrupt)
+void dvp_clear_interrupt(uint32_t interrupt)
 {
     interrupt |= (interrupt << 1);
     dvp->sts |= interrupt;

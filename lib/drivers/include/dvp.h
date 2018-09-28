@@ -73,7 +73,7 @@ typedef struct _dvp
 #define DVP_SCCB_RDATA_BYTE(x)                  ((x) >> 24)
 
 /* DVP SCCB Control Register */
-#define DVP_SCCB_WRITE_ENABLE                   0x00000001
+#define dvp_sccb_write_data_ENABLE                   0x00000001
 #define DVP_SCCB_DEVICE_ADDRESS(x)              ((x) << 0)
 #define DVP_SCCB_REG_ADDRESS(x)                 ((x) << 8)
 #define DVP_SCCB_WDATA_BYTE0(x)                 ((x) << 16)
@@ -107,7 +107,7 @@ extern volatile dvp_t* const dvp;
  *     - 0      Success
  *     - Other  Fail
  */
-int dvp_init(uint8_t reglen);
+int dvp_init(uint8_t reg_len);
 
 /**
  * @brief       Set image format
@@ -165,7 +165,7 @@ int dvp_set_display_addr(uint32_t addr);
  *     - 0      Success
  *     - Other  Fail
  */
-int dvp_frame_start(void);
+int dvp_start_frame(void);
 
 /**
  * @brief       The DVP convert start
@@ -174,7 +174,7 @@ int dvp_frame_start(void);
  *     - 0      Success
  *     - Other  Fail
  */
-void dvp_convert_start(void);
+void dvp_start_convert(void);
 
 /**
  * @brief       The DVP convert finish
@@ -183,7 +183,7 @@ void dvp_convert_start(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int dvp_convert_finish(void);
+int dvp_finish_convert(void);
 
 /**
  * @brief       Get the image data
@@ -207,7 +207,7 @@ int dvp_get_image(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int dvp_sccb_write(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
+int dvp_sccb_write_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
 
 /**
  * @brief       Use SCCB read register
@@ -217,17 +217,17 @@ int dvp_sccb_write(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
  *
  * @return      The register value
  */
-uint8_t dvp_sccb_read(uint8_t dev_addr, uint16_t reg_addr);
+uint8_t dvp_sccb_read_data(uint8_t dev_addr, uint16_t reg_addr);
 
 /**
  * @brief       Enable dvp burst
  */
-void dvp_burst_enable(void);
+void dvp_enable_burst(void);
 
 /**
  * @brief       Disable dvp burst
  */
-void dvp_burst_disable(void);
+void dvp_disable_burst(void);
 
 /**
  * @brief       Enable or disable dvp interrupt
@@ -236,7 +236,7 @@ void dvp_burst_disable(void);
  * @param[in]   status          0:disable 1:enable
  *
  */
-void dvp_interrupt_config(uint32_t interrupt, uint8_t status);
+void dvp_config_interrupt(uint32_t interrupt, uint8_t status);
 
 /**
  * @brief       Get dvp interrupt status
@@ -248,7 +248,7 @@ void dvp_interrupt_config(uint32_t interrupt, uint8_t status);
  *     - 0      false
  *     - 1      true
  */
-int dvp_interrupt_get(uint32_t interrupt);
+int dvp_get_interrupt(uint32_t interrupt);
 
 /**
  * @brief       Clear dvp interrupt status
@@ -256,7 +256,7 @@ int dvp_interrupt_get(uint32_t interrupt);
  * @param[in]   interrupt       Dvp interrupt
  *
  */
-void dvp_interrupt_clear(uint32_t interrupt);
+void dvp_clear_interrupt(uint32_t interrupt);
 
 /**
  * @brief       Enable dvp auto mode
