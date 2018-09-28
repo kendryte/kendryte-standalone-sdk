@@ -181,7 +181,7 @@ void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stop
 
 void uartapb_init(uint8_t channel)
 {
-    sysctl_clock_tnable(SYSCTL_CLOCK_UART1 + channel);
+    sysctl_clock_enable(SYSCTL_CLOCK_UART1 + channel);
 
     ring_buff_t *rb = malloc(sizeof(ring_buff_t));
     rb->head = 0;

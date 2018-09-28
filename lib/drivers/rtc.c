@@ -565,7 +565,7 @@ int rtc_init(void)
     /* Reset RTC */
     sysctl_reset(SYSCTL_RESET_RTC);
     /* Enable RTC */
-    sysctl_clock_tnable(SYSCTL_CLOCK_RTC);
+    sysctl_clock_enable(SYSCTL_CLOCK_RTC);
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     /* Unprotect RTC */
     rtc_protect_set(0);

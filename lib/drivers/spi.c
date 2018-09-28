@@ -31,7 +31,7 @@ volatile spi_t *const spi[4] =
 static int spi_clk_init(uint8_t spi_num)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
-    sysctl_clock_tnable(SYSCTL_CLOCK_SPI0 + spi_num);
+    sysctl_clock_enable(SYSCTL_CLOCK_SPI0 + spi_num);
     sysctl_clock_set_threshold(SYSCTL_THRESHOLD_SPI0 + spi_num, 0);
     return 0;
 }

@@ -97,7 +97,7 @@ int wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t 
 
     sysctl_reset(id ? SYSCTL_RESET_WDT1 : SYSCTL_RESET_WDT0);
     sysctl_clock_set_threshold(id ? SYSCTL_THRESHOLD_WDT1 : SYSCTL_THRESHOLD_WDT0, 0);
-    sysctl_clock_tnable(id ? SYSCTL_CLOCK_WDT1 : SYSCTL_CLOCK_WDT0);
+    sysctl_clock_enable(id ? SYSCTL_CLOCK_WDT1 : SYSCTL_CLOCK_WDT0);
     wdt_response_mode(id, WDT_CR_RMOD_INTERRUPT);
     uint8_t m_top = wdt_get_top(id, time_out_ms);
     wdt_set_timeout(id, m_top);

@@ -22,7 +22,7 @@
 
 void pwm_init(uint32_t tim)
 {
-    sysctl_clock_tnable(SYSCTL_CLOCK_TIMER0 + tim);
+    sysctl_clock_enable(SYSCTL_CLOCK_TIMER0 + tim);
 }
 
 void pwm_set_enable(uint32_t tim, uint32_t channel, int enable)

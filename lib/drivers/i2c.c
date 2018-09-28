@@ -31,7 +31,7 @@ volatile i2c_t* const i2c[3] =
 static void i2c_clk_init(i2c_device_number_t i2c_num)
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
-    sysctl_clock_tnable(SYSCTL_CLOCK_I2C0 + i2c_num);
+    sysctl_clock_enable(SYSCTL_CLOCK_I2C0 + i2c_num);
     sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2C0 + i2c_num, 3);
 }
 

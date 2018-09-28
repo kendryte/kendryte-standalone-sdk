@@ -833,7 +833,7 @@ extern volatile sysctl_t *const sysctl;
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_clock_tnable(sysctl_clock_t clock);
+int sysctl_clock_enable(sysctl_clock_t clock);
 
 /**
  * @brief       Enable clock for peripheral
@@ -982,7 +982,7 @@ int sysctl_pll_clear_slip(sysctl_pll_t pll);
  *     - 0      Success
  *     - Other  Fail
  */
-int sysctl_pll_tnable(sysctl_pll_t pll);
+int sysctl_pll_enable(sysctl_pll_t pll);
 
 /**
  * @brief       Disable the PLL and power off

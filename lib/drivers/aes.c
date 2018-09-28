@@ -22,7 +22,7 @@ volatile aes_t* const aes = (volatile aes_t*)AES_BASE_ADDR;
 
 void aes_clkinit()
 {
-    sysctl_clock_tnable(SYSCTL_CLOCK_AES);
+    sysctl_clock_enable(SYSCTL_CLOCK_AES);
     sysctl_reset(SYSCTL_RESET_AES);
 }
 

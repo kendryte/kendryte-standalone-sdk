@@ -547,7 +547,7 @@ void dmac_init(void)
     dmac_cfg_u_t dmac_cfg;
     dmac_reset_u_t dmac_reset;
 
-    sysctl_clock_tnable(SYSCTL_CLOCK_DMA);
+    sysctl_clock_enable(SYSCTL_CLOCK_DMA);
 
     dmac_reset.data = readq(&dmac->reset);
     dmac_reset.reset.rst = 1;

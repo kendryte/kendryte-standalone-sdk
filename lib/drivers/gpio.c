@@ -22,7 +22,7 @@ volatile gpio_t* const gpio = (volatile gpio_t*)GPIO_BASE_ADDR;
 
 int gpio_init(void)
 {
-    return sysctl_clock_tnable(SYSCTL_CLOCK_GPIO);
+    return sysctl_clock_enable(SYSCTL_CLOCK_GPIO);
 }
 
 void gpio_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)

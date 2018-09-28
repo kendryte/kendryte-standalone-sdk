@@ -28,7 +28,7 @@ volatile kendryte_timer_t *const timer[3] =
 
 void timer_init(timer_device_number_t tim)
 {
-    sysctl_clock_tnable(SYSCTL_CLOCK_TIMER0 + tim);
+    sysctl_clock_enable(SYSCTL_CLOCK_TIMER0 + tim);
 }
 
 void timer_set_clock_div(timer_device_number_t tim, uint32_t div)

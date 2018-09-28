@@ -46,7 +46,7 @@ static const uint8_t padding[64] =
 
 int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context_t* sc)
 {
-    sysctl_clock_tnable(SYSCTL_CLOCK_SHA);
+    sysctl_clock_enable(SYSCTL_CLOCK_SHA);
     sysctl_reset(SYSCTL_RESET_SHA);
     input_size = (input_size + 64) / 64;
     if (dma_en)

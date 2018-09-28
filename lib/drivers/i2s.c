@@ -27,7 +27,7 @@ volatile i2s_t *const i2s[3] =
 
 void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask)
 {
-    sysctl_clock_tnable(SYSCTL_CLOCK_I2S0 + device_num);
+    sysctl_clock_enable(SYSCTL_CLOCK_I2S0 + device_num);
     sysctl_reset(SYSCTL_RESET_I2S0  + device_num);
     sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2S0  + device_num, 7);
     /*96k:5,44k:12,24k:23,22k:25 16k:35 sampling*/
