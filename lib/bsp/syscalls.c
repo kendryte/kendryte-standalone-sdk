@@ -307,23 +307,11 @@ static int sys_gettimeofday(struct timeval *tp, void *tzp)
     return 0;
 }
 
-#define SYS_RET(epc_val, err_val) \
-syscall_ret_t ret =               \
-{                                 \
-    .err = err_val,               \
-    .epc = epc_val                \
-};                                \
-return ret;
-
-typedef struct _syscall_ret
+uintptr_t __attribute__((weak))
+handle_ecall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
 {
-    ssize_t err;
-    uintptr_t epc;
-} syscall_ret_t;
-
-syscall_ret_t __attribute__((weak))
-handle_ecall(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t epc, uintptr_t n)
-{
+    UNUSED(cause);
+    UNUSED(fregs);
     enum syscall_id_e
     {
         SYS_ID_NOSYS,
@@ -401,32 +389,31 @@ handle_ecall(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a
 #pragma GCC diagnostic warning "-Woverride-init"
 #endif
 
-    ssize_t err = syscall_table[syscall_id_table[0xFF & n]]
+    regs[10] = syscall_table[syscall_id_table[0xFF & regs[17]]]
     (
-        a0, /* a0 */
-        a1, /* a1 */
-        a2, /* a2 */
-        a3, /* a3 */
-        a4, /* a4 */
-        a5, /* a5 */
-        n /* n */
+        regs[10], /* a0 */
+        regs[11], /* a1 */
+        regs[12], /* a2 */
+        regs[13], /* a3 */
+        regs[14], /* a4 */
+        regs[15], /* a5 */
+        regs[17]  /* n */
     );
-    epc += ((*(unsigned short*)epc & 3) == 3 ? 4 : 2);
-    SYS_RET(epc, err);
-//    return epc + ((*(unsigned short *)epc & 3) == 3 ? 4 : 2);
+
+    return epc + ((*(unsigned short *)epc & 3) == 3 ? 4 : 2);
 }
 
-syscall_ret_t __attribute__((weak, alias("handle_ecall")))
-handle_ecall_u(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t epc, uintptr_t n);
+uintptr_t __attribute__((weak, alias("handle_ecall")))
+handle_ecall_u(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]);
 
-syscall_ret_t __attribute__((weak, alias("handle_ecall")))
-handle_ecall_h(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t epc, uintptr_t n);
+uintptr_t __attribute__((weak, alias("handle_ecall")))
+handle_ecall_h(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]);
 
-syscall_ret_t __attribute__((weak, alias("handle_ecall")))
-handle_ecall_s(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t epc, uintptr_t n);
+uintptr_t __attribute__((weak, alias("handle_ecall")))
+handle_ecall_s(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]);
 
-syscall_ret_t __attribute__((weak, alias("handle_ecall")))
-handle_ecall_m(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t epc, uintptr_t n);
+uintptr_t __attribute__((weak, alias("handle_ecall")))
+handle_ecall_m(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]);
 
 uintptr_t __attribute__((weak))
 handle_misaligned_fetch(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
@@ -625,9 +612,33 @@ handle_fault_store(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t
     return epc;
 }
 
-syscall_ret_t handle_syscall(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t epc, uintptr_t n)
+#if 0
+uintptr_t handle_syscall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
 {
-    static syscall_ret_t (* const cause_table[])(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t epc, uintptr_t n) =
+
+    static uintptr_t (* const cause_table[])(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]) =
+    {
+        [CAUSE_MISALIGNED_FETCH]      = handle_misaligned_fetch,
+        [CAUSE_FAULT_FETCH]           = handle_fault_fetch,
+        [CAUSE_ILLEGAL_INSTRUCTION]   = handle_illegal_instruction,
+        [CAUSE_BREAKPOINT]            = handle_breakpoint,
+        [CAUSE_MISALIGNED_LOAD]       = handle_misaligned_load,
+        [CAUSE_FAULT_LOAD]            = handle_fault_load,
+        [CAUSE_MISALIGNED_STORE]      = handle_misaligned_store,
+        [CAUSE_FAULT_STORE]           = handle_fault_store,
+        [CAUSE_USER_ECALL]            = handle_ecall_u,
+        [CAUSE_SUPERVISOR_ECALL]      = handle_ecall_h,
+        [CAUSE_HYPERVISOR_ECALL]      = handle_ecall_s,
+        [CAUSE_MACHINE_ECALL]         = handle_ecall_m,
+    };
+
+    return cause_table[cause](cause, epc, regs, fregs);
+}
+#else
+uintptr_t handle_syscall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
+{
+
+    static uintptr_t (* const cause_table[])(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]) =
     {
         [CAUSE_USER_ECALL]            = handle_ecall_u,
         [CAUSE_SUPERVISOR_ECALL]      = handle_ecall_h,
@@ -635,7 +646,7 @@ syscall_ret_t handle_syscall(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t
         [CAUSE_MACHINE_ECALL]         = handle_ecall_m,
     };
 
-    return cause_table[read_csr(mcause)](a0, a1, a2, a3, a4, a5, epc, n);
+    return cause_table[cause](cause, epc, regs, fregs);
 }
 uintptr_t handle_except(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
 {
@@ -653,5 +664,12 @@ uintptr_t handle_except(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uint
     };
 
     return cause_table[cause](cause, epc, regs, fregs);
+}
+
+#endif
+
+size_t get_free_heap_size(void)
+{
+    return (size_t)(&_heap_end[0] - _heap_cur);
 }
 
