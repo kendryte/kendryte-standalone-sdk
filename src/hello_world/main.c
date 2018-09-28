@@ -15,6 +15,9 @@
 #include <stdio.h>
 #include "sleep.h"
 #include "encoding.h"
+float power[512];
+uint64_t fft_out_data[256];
+
 int main()
 {
     uint64_t core_id = current_coreid();

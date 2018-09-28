@@ -612,7 +612,6 @@ handle_fault_store(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t
     return epc;
 }
 
-#if 0
 uintptr_t handle_syscall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
 {
 
@@ -634,39 +633,6 @@ uintptr_t handle_syscall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uin
 
     return cause_table[cause](cause, epc, regs, fregs);
 }
-#else
-uintptr_t handle_syscall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
-{
-
-    static uintptr_t (* const cause_table[])(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]) =
-    {
-        [CAUSE_USER_ECALL]            = handle_ecall_u,
-        [CAUSE_SUPERVISOR_ECALL]      = handle_ecall_h,
-        [CAUSE_HYPERVISOR_ECALL]      = handle_ecall_s,
-        [CAUSE_MACHINE_ECALL]         = handle_ecall_m,
-    };
-
-    return cause_table[cause](cause, epc, regs, fregs);
-}
-uintptr_t handle_except(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
-{
-
-    static uintptr_t (* const cause_table[])(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]) =
-    {
-        [CAUSE_MISALIGNED_FETCH]      = handle_misaligned_fetch,
-        [CAUSE_FAULT_FETCH]           = handle_fault_fetch,
-        [CAUSE_ILLEGAL_INSTRUCTION]   = handle_illegal_instruction,
-        [CAUSE_BREAKPOINT]            = handle_breakpoint,
-        [CAUSE_MISALIGNED_LOAD]       = handle_misaligned_load,
-        [CAUSE_FAULT_LOAD]            = handle_fault_load,
-        [CAUSE_MISALIGNED_STORE]      = handle_misaligned_store,
-        [CAUSE_FAULT_STORE]           = handle_fault_store,
-    };
-
-    return cause_table[cause](cause, epc, regs, fregs);
-}
-
-#endif
 
 size_t get_free_heap_size(void)
 {
