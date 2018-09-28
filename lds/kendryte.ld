@@ -148,8 +148,8 @@ SECTIONS
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata .srodata.*)
     *(.sdata .sdata.* .gnu.linkonce.s.*)
   } > ram : DATA
+  . = ALIGN(64);
   _edata = .; PROVIDE (edata = .);
-  /*. = ALIGN(64);*/
   __bss_start = .;
   .sbss :
   {
