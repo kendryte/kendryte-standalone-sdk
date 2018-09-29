@@ -20,30 +20,30 @@
 #include "plic.h"
 #include "io.h"
 
-void pwm_init(uint32_t tim)
+void pwm_init(pwm_device_number_t pwm_number)
 {
-    sysctl_clock_enable(SYSCTL_CLOCK_TIMER0 + tim);
+    sysctl_clock_enable(SYSCTL_CLOCK_TIMER0 + pwm_number);
 }
 
-void pwm_set_enable(uint32_t tim, uint32_t channel, int enable)
+void pwm_set_enable(pwm_device_number_t pwm_number, pwm_channel_number_t channel, int enable)
 {
     if (enable)
-        timer[tim]->channel[channel].control = TIMER_CR_INTERRUPT_MASK | TIMER_CR_PWM_ENABLE | TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
+        timer[pwm_number]->channel[channel].control = TIMER_CR_INTERRUPT_MASK | TIMER_CR_PWM_ENABLE | TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
     else
-        timer[tim]->channel[channel].control = TIMER_CR_INTERRUPT_MASK;
+        timer[pwm_number]->channel[channel].control = TIMER_CR_INTERRUPT_MASK;
 }
 
-double pwm_set_frequency(uint32_t tim, uint32_t channel, double frequency, double duty)
+double pwm_set_frequency(pwm_device_number_t pwm_number, pwm_channel_number_t channel, double frequency, double duty)
 {
-    uint32_t clk_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_TIMER0 + tim);
+    uint32_t clk_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_TIMER0 + pwm_number);
 
     int32_t periods = (int32_t)(clk_freq / frequency);
     configASSERT(periods > 0 && periods <= INT32_MAX);
     frequency = clk_freq / (double)periods;
 
     uint32_t percent = (uint32_t)(duty * periods);
-    timer[tim]->channel[channel].load_count = periods - percent;
-    timer[tim]->load_count2[channel] = percent;
+    timer[pwm_number]->channel[channel].load_count = periods - percent;
+    timer[pwm_number]->load_count2[channel] = percent;
 
     return frequency;
 }

@@ -21,22 +21,18 @@ extern "C" {
 
 typedef enum _gpio_drive_mode
 {
-    GPIO_DM_Input,
-    GPIO_DM_InputPullDown,
-    GPIO_DM_InputPullUp,
-    GPIO_DM_Output,
-    GPIO_DM_OutputOpenDrain,
-    GPIO_DM_OutputOpenDrainPullUp,
-    GPIO_DM_OutputOpenSource,
-    GPIO_DM_OutputOpenSourcePullDown
+    GPIO_DM_INPUT,
+    GPIO_DM_INPUT_PULL_DOWN,
+    GPIO_DM_INPUT_PULL_UP,
+    GPIO_DM_OUTPUT,
 } gpio_drive_mode_t;
 
 typedef enum _gpio_pin_edge
 {
-    GPIO_PE_None,
-    GPIO_PE_Falling,
-    GPIO_PE_Rising,
-    GPIO_PE_Both
+    GPIO_PE_NONE,
+    GPIO_PE_FALLING,
+    GPIO_PE_RISING,
+    GPIO_PE_BOTH
 } gpio_pin_edge_t;
 
 typedef enum _gpio_pin_value

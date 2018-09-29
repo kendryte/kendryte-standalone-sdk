@@ -229,15 +229,15 @@ int ov2640_init(void)
 {
     uint16_t index = 0;
     for (index = 0; ov2640_config[index][0]; index++)
-        dvp_sccb_write_data(OV2640_ADDR, ov2640_config[index][0], ov2640_config[index][1]);
+        dvp_sccb_send_data(OV2640_ADDR, ov2640_config[index][0], ov2640_config[index][1]);
     return 0;
 }
 
 int ov2640_read_id(uint16_t *manuf_id, uint16_t *device_id)
 {
-    dvp_sccb_write_data(OV2640_ADDR, 0xFF, 0x01);
-    *manuf_id = (dvp_sccb_read_data(OV2640_ADDR, 0x1C) << 8) | dvp_sccb_read_data(OV2640_ADDR, 0x1D);
-    *device_id = (dvp_sccb_read_data(OV2640_ADDR, 0x0A) << 8) | dvp_sccb_read_data(OV2640_ADDR, 0x0B);
+    dvp_sccb_send_data(OV2640_ADDR, 0xFF, 0x01);
+    *manuf_id = (dvp_sccb_receive_data(OV2640_ADDR, 0x1C) << 8) | dvp_sccb_receive_data(OV2640_ADDR, 0x1D);
+    *device_id = (dvp_sccb_receive_data(OV2640_ADDR, 0x0A) << 8) | dvp_sccb_receive_data(OV2640_ADDR, 0x0B);
     return 0;
 }
 

@@ -95,6 +95,12 @@ typedef struct _dvp
 #define DVP_STS_SCCB_EN_WE                      0x02000000
 /* clang-format on */
 
+typedef enum _dvp_output_mode
+{
+    DVP_OUTPUT_AI,
+    DVP_OUTPUT_DISPLAY,
+} dvp_output_mode_t;
+
 /**
  * @brief       DVP object instance
  */
@@ -207,7 +213,7 @@ int dvp_get_image(void);
  *     - 0      Success
  *     - Other  Fail
  */
-int dvp_sccb_write_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
+int dvp_sccb_send_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
 
 /**
  * @brief       Use SCCB read register
@@ -217,7 +223,7 @@ int dvp_sccb_write_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
  *
  * @return      The register value
  */
-uint8_t dvp_sccb_read_data(uint8_t dev_addr, uint16_t reg_addr);
+uint8_t dvp_sccb_receive_data(uint8_t dev_addr, uint16_t reg_addr);
 
 /**
  * @brief       Enable dvp burst
@@ -236,7 +242,7 @@ void dvp_disable_burst(void);
  * @param[in]   status          0:disable 1:enable
  *
  */
-void dvp_config_interrupt(uint32_t interrupt, uint8_t status);
+void dvp_config_interrupt(uint32_t interrupt, uint8_t enable);
 
 /**
  * @brief       Get dvp interrupt status
@@ -275,7 +281,7 @@ void dvp_disable_auto(void);
  * @param[in]   enable      0:disable, 1:enable
  *
  */
-void dvp_set_output_enable(size_t index, int enable);
+void dvp_set_output_enable(dvp_output_mode_t index, int enable);
 
 #ifdef __cplusplus
 }

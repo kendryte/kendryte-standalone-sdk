@@ -125,14 +125,6 @@ typedef enum _wdt_device_number
 void wdt_feed(wdt_device_number_t id);
 
 /**
- * @brief       Clear wdt interrupt
- *
- * @param[in]   id      Wdt id 0 or 1
- *
- */
-void wdt_clear_interrupt(wdt_device_number_t id);
-
-/**
  * @brief       Start wdt
  *
  * @param[in]   id          Wdt id 0 or 1
@@ -148,15 +140,6 @@ int wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t 
  *
  */
 void wdt_stop(wdt_device_number_t id);
-
-/**
- * @brief       Set wdt interrupt function
- *
- * @param[in]   id          Wdt id 0 or 1
- * @param[in]   on_irq      Wdt interrupt function
- *
- */
-void wdt_set_irq(wdt_device_number_t id, plic_irq_callback_t on_irq);
 
 #ifdef __cplusplus
 }

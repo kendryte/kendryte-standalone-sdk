@@ -26,8 +26,11 @@ volatile dmac_t *const dmac = (dmac_t *)DMAC_BASE_ADDR;
 
 static int is_memory(uintptr_t address)
 {
-    enum { mem_len = 6 * 1024 * 1024 };
-    return ((address >= 0x80000000) && (address < 0x80000000 + mem_len)) || ((address >= 0x40000000) && (address < 0x40000000 + mem_len)) || (address == 0x50450040);
+    enum {
+        mem_len = 6 * 1024 * 1024,
+        mem_no_cache_len = 8 * 1024 * 1024,
+    };
+    return ((address >= 0x80000000) && (address < 0x80000000 + mem_len)) || ((address >= 0x40000000) && (address < 0x40000000 + mem_no_cache_len)) || (address == 0x50450040);
 }
 
 uint64_t dmac_read_id(void)
@@ -335,7 +338,7 @@ int dmac_set_channel_config(dmac_channel_number_t channel_num,
 
 static int dmac_set_channel_param(dmac_channel_number_t channel_num,
     void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
-    dmac_burst_trans_length_t dmac_msize,
+    dmac_burst_trans_length_t dmac_burst_size,
     dmac_transfer_width_t dmac_trans_width,
     uint32_t blockSize)
 {
@@ -383,8 +386,8 @@ static int dmac_set_channel_param(dmac_channel_number_t channel_num,
     ctl.ch_ctl.src_tr_width = dmac_trans_width;
     ctl.ch_ctl.dst_tr_width  = dmac_trans_width;
     /* transfer width */
-    ctl.ch_ctl.src_msize = dmac_msize;
-    ctl.ch_ctl.dst_msize = dmac_msize;
+    ctl.ch_ctl.src_msize = dmac_burst_size;
+    ctl.ch_ctl.dst_msize = dmac_burst_size;
 
     writeq(ctl.data, &dmac->channel[channel_num].ctl);
 
@@ -695,13 +698,13 @@ void dmac_set_shadow_invalid_flag(dmac_channel_number_t channel_num)
 
 void dmac_set_single_mode(dmac_channel_number_t channel_num,
     void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
-    dmac_burst_trans_length_t dmac_msize,
+    dmac_burst_trans_length_t dmac_burst_size,
     dmac_transfer_width_t dmac_trans_width,
     uint32_t blockSize)
 {
     dmac_channel_disable(channel_num);
     dmac_set_channel_param(channel_num, src, dest, src_inc,dest_inc,
-        dmac_msize,dmac_trans_width,blockSize);
+        dmac_burst_size,dmac_trans_width,blockSize);
     dmac_enable();
     dmac_chanel_interrupt_clear(channel_num); /* clear interrupt */
     dmac_enable_channel_interrupt_status(channel_num);

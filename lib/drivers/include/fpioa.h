@@ -72,8 +72,8 @@ extern "C" {
  * | 15        | SPI0_SS3         | SPI0 Chip Select 3                |
  * | 16        | SPI0_ARB         | SPI0 Arbitration                  |
  * | 17        | SPI0_SCLK        | SPI0 Serial Clock                 |
- * | 18        | UARTHS_RX        | UART High speed Receiver          |
- * | 19        | UARTHS_TX        | UART High speed Transmitter       |
+ * | 18        | UARTHS_RX        | UART High speed I2S_RECEIVER          |
+ * | 19        | UARTHS_TX        | UART High speed I2S_TRANSMITTER       |
  * | 20        | CLK_IN1          | Clock Input 1                     |
  * | 21        | CLK_IN2          | Clock Input 2                     |
  * | 22        | CLK_SPI1         | Clock SPI1                        |
@@ -118,12 +118,12 @@ extern "C" {
  * | 61        | GPIO5            | GPIO pin 5                        |
  * | 62        | GPIO6            | GPIO pin 6                        |
  * | 63        | GPIO7            | GPIO pin 7                        |
- * | 64        | UART1_RX         | UART1 Receiver                    |
- * | 65        | UART1_TX         | UART1 Transmitter                 |
- * | 66        | UART2_RX         | UART2 Receiver                    |
- * | 67        | UART2_TX         | UART2 Transmitter                 |
- * | 68        | UART3_RX         | UART3 Receiver                    |
- * | 69        | UART3_TX         | UART3 Transmitter                 |
+ * | 64        | UART1_RX         | UART1 I2S_RECEIVER                    |
+ * | 65        | UART1_TX         | UART1 I2S_TRANSMITTER                 |
+ * | 66        | UART2_RX         | UART2 I2S_RECEIVER                    |
+ * | 67        | UART2_TX         | UART2 I2S_TRANSMITTER                 |
+ * | 68        | UART3_RX         | UART3 I2S_RECEIVER                    |
+ * | 69        | UART3_TX         | UART3 I2S_TRANSMITTER                 |
  * | 70        | SPI1_D0          | SPI1 Data 0                       |
  * | 71        | SPI1_D1          | SPI1 Data 1                       |
  * | 72        | SPI1_D2          | SPI1 Data 2                       |
@@ -213,7 +213,7 @@ extern "C" {
  * | 156       | UART1_OUT1       | UART1 User-designated Output 1    |
  * | 157       | UART1_SIR_OUT    | UART1 Serial Infrared Output      |
  * | 158       | UART1_BAUD       | UART1 Transmit Clock Output       |
- * | 159       | UART1_RE         | UART1 Receiver Output Enable      |
+ * | 159       | UART1_RE         | UART1 I2S_RECEIVER Output Enable      |
  * | 160       | UART1_DE         | UART1 Driver Output Enable        |
  * | 161       | UART1_RS485_EN   | UART1 RS485 Enable                |
  * | 162       | UART2_CTS        | UART2 Clear To Send               |
@@ -227,7 +227,7 @@ extern "C" {
  * | 170       | UART2_OUT1       | UART2 User-designated Output 1    |
  * | 171       | UART2_SIR_OUT    | UART2 Serial Infrared Output      |
  * | 172       | UART2_BAUD       | UART2 Transmit Clock Output       |
- * | 173       | UART2_RE         | UART2 Receiver Output Enable      |
+ * | 173       | UART2_RE         | UART2 I2S_RECEIVER Output Enable      |
  * | 174       | UART2_DE         | UART2 Driver Output Enable        |
  * | 175       | UART2_RS485_EN   | UART2 RS485 Enable                |
  * | 176       | UART3_CTS        | UART3 Clear To Send               |
@@ -241,7 +241,7 @@ extern "C" {
  * | 184       | UART3_OUT1       | UART3 User-designated Output 1    |
  * | 185       | UART3_SIR_OUT    | UART3 Serial Infrared Output      |
  * | 186       | UART3_BAUD       | UART3 Transmit Clock Output       |
- * | 187       | UART3_RE         | UART3 Receiver Output Enable      |
+ * | 187       | UART3_RE         | UART3 I2S_RECEIVER Output Enable      |
  * | 188       | UART3_DE         | UART3 Driver Output Enable        |
  * | 189       | UART3_RS485_EN   | UART3 RS485 Enable                |
  * | 190       | TIMER0_TOGGLE1   | TIMER0 Toggle Output 1            |
@@ -337,8 +337,8 @@ typedef enum _fpioa_function
     FUNC_SPI0_SS3         = 15, /*!< SPI0 Chip Select 3 */
     FUNC_SPI0_ARB         = 16, /*!< SPI0 Arbitration */
     FUNC_SPI0_SCLK        = 17, /*!< SPI0 Serial Clock */
-    FUNC_UARTHS_RX        = 18, /*!< UART High speed Receiver */
-    FUNC_UARTHS_TX        = 19, /*!< UART High speed Transmitter */
+    FUNC_UARTHS_RX        = 18, /*!< UART High speed I2S_RECEIVER */
+    FUNC_UARTHS_TX        = 19, /*!< UART High speed I2S_TRANSMITTER */
     FUNC_CLK_IN1          = 20, /*!< Clock Input 1 */
     FUNC_CLK_IN2          = 21, /*!< Clock Input 2 */
     FUNC_CLK_SPI1         = 22, /*!< Clock SPI1 */
@@ -383,12 +383,12 @@ typedef enum _fpioa_function
     FUNC_GPIO5            = 61, /*!< GPIO pin 5 */
     FUNC_GPIO6            = 62, /*!< GPIO pin 6 */
     FUNC_GPIO7            = 63, /*!< GPIO pin 7 */
-    FUNC_UART1_RX         = 64, /*!< UART1 Receiver */
-    FUNC_UART1_TX         = 65, /*!< UART1 Transmitter */
-    FUNC_UART2_RX         = 66, /*!< UART2 Receiver */
-    FUNC_UART2_TX         = 67, /*!< UART2 Transmitter */
-    FUNC_UART3_RX         = 68, /*!< UART3 Receiver */
-    FUNC_UART3_TX         = 69, /*!< UART3 Transmitter */
+    FUNC_UART1_RX         = 64, /*!< UART1 I2S_RECEIVER */
+    FUNC_UART1_TX         = 65, /*!< UART1 I2S_TRANSMITTER */
+    FUNC_UART2_RX         = 66, /*!< UART2 I2S_RECEIVER */
+    FUNC_UART2_TX         = 67, /*!< UART2 I2S_TRANSMITTER */
+    FUNC_UART3_RX         = 68, /*!< UART3 I2S_RECEIVER */
+    FUNC_UART3_TX         = 69, /*!< UART3 I2S_TRANSMITTER */
     FUNC_SPI1_D0          = 70, /*!< SPI1 Data 0 */
     FUNC_SPI1_D1          = 71, /*!< SPI1 Data 1 */
     FUNC_SPI1_D2          = 72, /*!< SPI1 Data 2 */
@@ -478,7 +478,7 @@ typedef enum _fpioa_function
     FUNC_UART1_OUT1       = 156,    /*!< UART1 User-designated Output 1 */
     FUNC_UART1_SIR_OUT    = 157,    /*!< UART1 Serial Infrared Output */
     FUNC_UART1_BAUD       = 158,    /*!< UART1 Transmit Clock Output */
-    FUNC_UART1_RE         = 159,    /*!< UART1 Receiver Output Enable */
+    FUNC_UART1_RE         = 159,    /*!< UART1 I2S_RECEIVER Output Enable */
     FUNC_UART1_DE         = 160,    /*!< UART1 Driver Output Enable */
     FUNC_UART1_RS485_EN   = 161,    /*!< UART1 RS485 Enable */
     FUNC_UART2_CTS        = 162,    /*!< UART2 Clear To Send */
@@ -492,7 +492,7 @@ typedef enum _fpioa_function
     FUNC_UART2_OUT1       = 170,    /*!< UART2 User-designated Output 1 */
     FUNC_UART2_SIR_OUT    = 171,    /*!< UART2 Serial Infrared Output */
     FUNC_UART2_BAUD       = 172,    /*!< UART2 Transmit Clock Output */
-    FUNC_UART2_RE         = 173,    /*!< UART2 Receiver Output Enable */
+    FUNC_UART2_RE         = 173,    /*!< UART2 I2S_RECEIVER Output Enable */
     FUNC_UART2_DE         = 174,    /*!< UART2 Driver Output Enable */
     FUNC_UART2_RS485_EN   = 175,    /*!< UART2 RS485 Enable */
     FUNC_UART3_CTS        = 176,    /*!< UART3 Clear To Send */
@@ -506,7 +506,7 @@ typedef enum _fpioa_function
     FUNC_UART3_OUT1       = 184,    /*!< UART3 User-designated Output 1 */
     FUNC_UART3_SIR_OUT    = 185,    /*!< UART3 Serial Infrared Output */
     FUNC_UART3_BAUD       = 186,    /*!< UART3 Transmit Clock Output */
-    FUNC_UART3_RE         = 187,    /*!< UART3 Receiver Output Enable */
+    FUNC_UART3_RE         = 187,    /*!< UART3 I2S_RECEIVER Output Enable */
     FUNC_UART3_DE         = 188,    /*!< UART3 Driver Output Enable */
     FUNC_UART3_RS485_EN   = 189,    /*!< UART3 RS485 Enable */
     FUNC_TIMER0_TOGGLE1   = 190,    /*!< TIMER0 Toggle Output 1 */

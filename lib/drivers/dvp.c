@@ -52,7 +52,7 @@ static void dvp_sccb_start_transfer(void)
         ;
 }
 
-int dvp_sccb_write_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data)
+int dvp_sccb_send_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data)
 {
     uint32_t tmp;
 
@@ -75,7 +75,7 @@ int dvp_sccb_write_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data)
     return 0;
 }
 
-uint8_t dvp_sccb_read_data(uint8_t dev_addr, uint16_t reg_addr)
+uint8_t dvp_sccb_receive_data(uint8_t dev_addr, uint16_t reg_addr)
 {
     uint32_t tmp;
 
@@ -241,9 +241,9 @@ int dvp_get_image(void)
     return 0;
 }
 
-void dvp_config_interrupt(uint32_t interrupt, uint8_t status)
+void dvp_config_interrupt(uint32_t interrupt, uint8_t enable)
 {
-    if (status)
+    if (enable)
         dvp->dvp_cfg |= interrupt;
     else
         dvp->dvp_cfg &= (~interrupt);
@@ -272,7 +272,7 @@ void dvp_disable_auto(void)
     dvp->dvp_cfg &= (~DVP_CFG_AUTO_ENABLE);
 }
 
-void dvp_set_output_enable(size_t index, int enable)
+void dvp_set_output_enable(dvp_output_mode_t index, int enable)
 {
     configASSERT(index < 2);
 

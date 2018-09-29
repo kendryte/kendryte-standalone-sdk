@@ -46,9 +46,7 @@ int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
             register_ctrl.write_enable = 0;
             break;
     }
-
     rtc->register_ctrl = register_ctrl;
-
     return 0;
 }
 
@@ -409,10 +407,13 @@ int rtc_timer_get_alarm(int *year, int *month, int *day, int *hour, int *minute,
 
 int rtc_timer_set_clock_frequency(unsigned int frequency)
 {
+
     rtc_initial_count_t initial_count;
 
     initial_count.count = frequency;
+    rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->initial_count = initial_count;
+    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
@@ -423,10 +424,13 @@ unsigned int rtc_timer_get_clock_frequency(void)
 
 int rtc_timer_set_clock_count_value(unsigned int  count)
 {
+
     rtc_current_count_t current_count;
 
     current_count.count = count;
+    rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->current_count = current_count;
+    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
@@ -438,9 +442,10 @@ unsigned int rtc_timer_get_clock_count_value(void)
 int rtc_tick_interrupt_set(int enable)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
-
     interrupt_ctrl.tick_enable = enable;
+    rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
@@ -456,7 +461,9 @@ int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_t mode)
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.tick_int_mode = mode;
+    rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
@@ -555,8 +562,9 @@ int rtc_protect_set(int enable)
         register_ctrl.initial_count_mask = 1;
         register_ctrl.interrupt_register_mask = 1;
     }
-
+    rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->register_ctrl = register_ctrl;
+    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
@@ -566,7 +574,6 @@ int rtc_init(void)
     sysctl_reset(SYSCTL_RESET_RTC);
     /* Enable RTC */
     sysctl_clock_enable(SYSCTL_CLOCK_RTC);
-    rtc_timer_set_mode(RTC_TIMER_SETTING);
     /* Unprotect RTC */
     rtc_protect_set(0);
     /* Set RTC clock frequency */

@@ -92,14 +92,14 @@ extern volatile kendryte_timer_t *const timer[3];
  *
  * @return      the real timeout
  */
-size_t timer_set_interval(timer_device_number_t timer, timer_channel_number_t channel, size_t nanoseconds);
+size_t timer_set_interval(timer_device_number_t timer_number, timer_channel_number_t channel, size_t nanoseconds);
 
 /**
  * @brief       Init timer
  *
  * @param[in]   timer       timer
  */
-void timer_init(timer_device_number_t timer);
+void timer_init(timer_device_number_t timer_number);
 
 /**
  * @brief       Set timer timeout function
@@ -110,7 +110,7 @@ void timer_init(timer_device_number_t timer);
  * @param[in]   priority        interrupt priority
  *
  */
-void timer_set_irq(timer_device_number_t timer, timer_channel_number_t channel, void(*func)(),  uint32_t priority);
+void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void(*func)(),  uint32_t priority);
 
 /**
  * @brief       Enable timer
@@ -120,7 +120,7 @@ void timer_set_irq(timer_device_number_t timer, timer_channel_number_t channel, 
  * @param[in]   enable      Enable or disable
  *
  */
-void timer_set_enable(timer_device_number_t timer, timer_channel_number_t channel, uint32_t enable);
+void timer_set_enable(timer_device_number_t timer_number, timer_channel_number_t channel, uint32_t enable);
 
 #ifdef __cplusplus
 }

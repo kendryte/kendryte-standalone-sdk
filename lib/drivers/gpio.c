@@ -36,19 +36,19 @@ void gpio_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 
     switch (mode)
     {
-    case GPIO_DM_Input:
+    case GPIO_DM_INPUT:
         pull = FPIOA_PULL_NONE;
         dir = 0;
         break;
-    case GPIO_DM_InputPullDown:
+    case GPIO_DM_INPUT_PULL_DOWN:
         pull = FPIOA_PULL_DOWN;
         dir = 0;
         break;
-    case GPIO_DM_InputPullUp:
+    case GPIO_DM_INPUT_PULL_UP:
         pull = FPIOA_PULL_UP;
         dir = 0;
         break;
-    case GPIO_DM_Output:
+    case GPIO_DM_OUTPUT:
         pull = FPIOA_PULL_DOWN;
         dir = 1;
         break;

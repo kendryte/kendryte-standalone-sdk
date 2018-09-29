@@ -111,10 +111,10 @@ typedef enum _spi_device_num
 
 typedef enum _spi_work_mode
 {
-    SPI_MODE_0,
-    SPI_MODE_1,
-    SPI_MODE_2,
-    SPI_MODE_3,
+    SPI_WORK_MODE_0,
+    SPI_WORK_MODE_1,
+    SPI_WORK_MODE_2,
+    SPI_WORK_MODE_3,
 } spi_work_mode_t;
 
 typedef enum _spi_frame_format
@@ -125,12 +125,12 @@ typedef enum _spi_frame_format
     SPI_FF_OCTAL
 } spi_frame_format_t;
 
-typedef enum _spi_addr_inst_trans_mode
+typedef enum _spi_instruction_address_trans_mode
 {
     SPI_AITM_STANDARD,
     SPI_AITM_ADDR_STANDARD,
     SPI_AITM_AS_FRAME_FORMAT
-} spi_addr_inst_trans_mode_t;
+} spi_instruction_address_trans_mode_t;
 
 typedef enum _spi_transfer_mode
 {
@@ -148,6 +148,16 @@ typedef enum _spi_transfer_width
     SPI_TRANS_INT   = 0x2,
 } spi_transfer_width_t;
 
+typedef enum _spi_chip_select
+{
+    SPI_CHIP_SELECT_0,
+    SPI_CHIP_SELECT_1,
+    SPI_CHIP_SELECT_2,
+    SPI_CHIP_SELECT_3,
+    SPI_CHIP_SELECT_MAX,
+} spi_chip_select_t;
+
+
 extern volatile spi_t *const spi[4];
 
 /**
@@ -162,26 +172,26 @@ extern volatile spi_t *const spi[4];
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_config(spi_device_num_t spi_num, spi_work_mode_t mode, spi_frame_format_t frame_format, size_t data_bit_length);
+int spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format, size_t data_bit_length);
 
 /**
  * @brief       Set multiline configuration
  *
- * @param[in]   spi_num                 Spi bus number
- * @param[in]   instruction_length      Instruction length
- * @param[in]   address_length          Address length
- * @param[in]   wait_cycles             Wait cycles
- * @param[in]   trans_mode              Spi transfer mode
+ * @param[in]   spi_num                                 Spi bus number
+ * @param[in]   instruction_length                      Instruction length
+ * @param[in]   address_length                          Address length
+ * @param[in]   wait_cycles                             Wait cycles
+ * @param[in]   instruction_address_trans_mode          Spi transfer mode
  *
  */
-void spi_config_non_standard(spi_device_num_t spi_num, size_t instruction_length, size_t address_length,
-                           size_t wait_cycles, spi_addr_inst_trans_mode_t trans_mode);
+int spi_config_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
+                           uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode);
 
 /**
  * @brief       Spi send data
  *
  * @param[in]   spi_num         Spi bus number
- * @param[in]   chip_sel        Spi chip select
+ * @param[in]   chip_select     Spi chip select
  * @param[in]   cmd_buff        Spi command buffer point
  * @param[in]   cmd_len         Spi command length
  * @param[in]   tx_buff         Spi transmit buffer point
@@ -191,14 +201,13 @@ void spi_config_non_standard(spi_device_num_t spi_num, size_t instruction_length
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
-
+int spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi receive data
  *
  * @param[in]   spi_num             Spi bus number
- * @param[in]   chip_sel            Spi chip select
+ * @param[in]   chip_select         Spi chip select
  * @param[in]   cmd_buff            Spi command buffer point
  * @param[in]   cmd_len             Spi command length
  * @param[in]   rx_buff             Spi receive buffer point
@@ -208,14 +217,13 @@ int spi_send_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8_t 
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
-
+int spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi special receive data
  *
  * @param[in]   spi_num         Spi bus number
- * @param[in]   chip_sel        Spi chip select
+ * @param[in]   chip_select     Spi chip select
  * @param[in]   cmd_buff        Spi command buffer point
  * @param[in]   cmd_len         Spi command length
  * @param[in]   rx_buff         Spi receive buffer point
@@ -225,13 +233,13 @@ int spi_receive_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
+int spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi special send data
  *
  * @param[in]   spi_num         Spi bus number
- * @param[in]   chip_sel        Spi chip select
+ * @param[in]   chip_select     Spi chip select
  * @param[in]   cmd_buff        Spi command buffer point
  * @param[in]   cmd_len         Spi command length
  * @param[in]   tx_buff         Spi transmit buffer point
@@ -241,14 +249,14 @@ int spi_receive_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint3
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
+int spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi send data by dma
  *
  * @param[in]   channel_num     Dmac channel number
  * @param[in]   spi_num         Spi bus number
- * @param[in]   chip_sel        Spi chip select
+ * @param[in]   chip_select     Spi chip select
  * @param[in]   cmd_buff        Spi command buffer point
  * @param[in]   cmd_len         Spi command length
  * @param[in]   tx_buff         Spi transmit buffer point
@@ -258,9 +266,8 @@ int spi_send_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint32_t
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, uint32_t chip_sel,
+int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
                         uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
-
 
 /**
  * @brief       Spi receive data by dma
@@ -268,7 +275,7 @@ int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num
  * @param[in]   w_channel_num       Dmac write channel number
  * @param[in]   r_channel_num       Dmac read channel number
  * @param[in]   spi_num             Spi bus number
- * @param[in]   chip_sel            Spi chip select
+ * @param[in]   chip_select         Spi chip select
  * @param[in]   cmd_buff            Spi command buffer point
  * @param[in]   cmd_len             Spi command length
  * @param[in]   rx_buff             Spi receive buffer point
@@ -279,15 +286,14 @@ int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num
  *     - Other  Fail
  */
 int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                            spi_device_num_t spi_num, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
-
+                            spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi special send data by dma
  *
  * @param[in]   channel_num     Dmac channel number
  * @param[in]   spi_num         Spi bus number
- * @param[in]   chip_sel        Spi chip select
+ * @param[in]   chip_select     Spi chip select
  * @param[in]   cmd_buff        Spi command buffer point
  * @param[in]   cmd_len         Spi command length
  * @param[in]   tx_buff         Spi transmit buffer point
@@ -297,49 +303,49 @@ int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dm
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, uint32_t chip_sel,
+int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, spi_chip_select_t chip_select,
                                 uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi special receive data by dma
  *
- * @param[in]   w_channel_num       Dmac write channel number
- * @param[in]   r_channel_num       Dmac read channel number
- * @param[in]   spi_num             Spi bus number
- * @param[in]   chip_sel            Spi chip select
- * @param[in]   cmd_buff            Spi command buffer point
- * @param[in]   cmd_len             Spi command length
- * @param[in]   rx_buff             Spi receive buffer point
- * @param[in]   rx_len              Spi receive buffer length
+ * @param[in]   dma_send_channel_num        Dmac write channel number
+ * @param[in]   dma_receive_channel_num     Dmac read channel number
+ * @param[in]   spi_num                     Spi bus number
+ * @param[in]   chip_select                 Spi chip select
+ * @param[in]   cmd_buff                    Spi command buffer point
+ * @param[in]   cmd_len                     Spi command length
+ * @param[in]   rx_buff                     Spi receive buffer point
+ * @param[in]   rx_len                      Spi receive buffer length
  *
  * @return      Result
  *     - 0      Success
  *     - Other  Fail
  */
 int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                                        spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
+                                        spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi fill dma
  *
  * @param[in]   channel_num     Dmac channel number
  * @param[in]   spi_num         Spi bus number
- * @param[in]   chip_sel        Spi chip select
- * @param[in]   cmd_buff        Spi command buffer point
- * @param[in]   cmd_len         Spi command length
+ * @param[in]   chip_select     Spi chip select
+ * @param[in]   tx_buff        Spi command buffer point
+ * @param[in]   tx_len         Spi command length
  *
  * @return      Result
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_fill_data_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len);
+int spi_fill_data_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi normal send by dma
  *
  * @param[in]   channel_num     Dmac channel number
  * @param[in]   spi_num         Spi bus number
- * @param[in]   chip_sel        Spi chip select
+ * @param[in]   chip_select     Spi chip select
  * @param[in]   tx_buff         Spi transmit buffer point
  * @param[in]   tx_len          Spi transmit buffer length
  * @param[in]   stw             Spi transfer width
@@ -348,8 +354,8 @@ int spi_fill_data_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, uint32_t chip_sel,
-                        void *tx_buff, size_t tx_len, spi_transfer_width_t stw);
+int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
+                        void *tx_buff, size_t tx_len, spi_transfer_width_t spi_transfer_width);
 
 /**
  * @brief       Spi normal send by dma

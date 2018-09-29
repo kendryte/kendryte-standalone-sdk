@@ -58,7 +58,7 @@ static void spi_set_tmod(uint8_t spi_num, uint32_t tmod)
     set_bit(&spi_handle->ctrlr0, 3 << tmod_offset, tmod << tmod_offset);
 }
 
-int spi_config(spi_device_num_t spi_num, spi_work_mode_t mode, spi_frame_format_t frame_format, size_t data_bit_length)
+int spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format, size_t data_bit_length)
 {
     configASSERT(data_bit_length >= 4 && data_bit_length <= 32);
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -105,16 +105,16 @@ int spi_config(spi_device_num_t spi_num, spi_work_mode_t mode, spi_frame_format_
     spi_adapter->dmardlr = 0x00;
     spi_adapter->ser = 0x00;
     spi_adapter->ssienr = 0x00;
-    spi_adapter->ctrlr0 = (mode << 6) | (frame_format << frf_offset) | ((data_bit_length - 1) << dfs_offset);
+    spi_adapter->ctrlr0 = (work_mode << 6) | (frame_format << frf_offset) | ((data_bit_length - 1) << dfs_offset);
     spi_adapter->spi_ctrlr0 = 0;
     return 0;
 }
 
-void spi_config_non_standard(spi_device_num_t spi_num, size_t instruction_length, size_t address_length,
-                                size_t wait_cycles, spi_addr_inst_trans_mode_t trans_mode)
+int spi_config_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
+                                uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode)
 {
     configASSERT(wait_cycles < (1 << 5));
-    configASSERT(trans_mode < 3);
+    configASSERT(instruction_address_trans_mode < 3);
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     volatile spi_t *spi_handle = spi[spi_num];
     uint32_t inst_l;
@@ -140,7 +140,8 @@ void spi_config_non_standard(spi_device_num_t spi_num, size_t instruction_length
     configASSERT(address_length % 4 == 0 && address_length <= 60);
     uint32_t addr_l = address_length / 4;
 
-    spi_handle->spi_ctrlr0 = (wait_cycles << 11) | (inst_l << 8) | (addr_l << 2) | trans_mode;
+    spi_handle->spi_ctrlr0 = (wait_cycles << 11) | (inst_l << 8) | (addr_l << 2) | instruction_address_trans_mode;
+    return 0;
 }
 
 uint32_t spi_set_clk_rate(spi_device_num_t spi_num, uint32_t spi_clk)
@@ -159,7 +160,7 @@ uint32_t spi_set_clk_rate(spi_device_num_t spi_num, uint32_t spi_clk)
     return sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_num) / spi_baudr;
 }
 
-int spi_send_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+int spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -176,7 +177,7 @@ int spi_send_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8_t 
     for (index = 0; index < fifo_len; index++)
         spi_handle->dr[0] = *tx_buff++;
     tx_len -= fifo_len;
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
     while (tx_len)
     {
         fifo_len = 32 - spi_handle->txflr;
@@ -192,7 +193,7 @@ int spi_send_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8_t 
     return 0;
 }
 
-int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, uint32_t chip_sel,
+int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
                         uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -215,7 +216,7 @@ int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num
     sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
     dmac_set_single_mode(channel_num, buf, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                                 DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, cmd_len + tx_len);
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
     dmac_wait_done(channel_num);
     free((void*)buf);
 
@@ -226,8 +227,8 @@ int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num
     return 0;
 }
 
-int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, uint32_t chip_sel,
-                        void *tx_buff, size_t tx_len, spi_transfer_width_t stw)
+int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
+                        void *tx_buff, size_t tx_len, spi_transfer_width_t spi_transfer_width)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_TRANS);
@@ -236,7 +237,7 @@ int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t
     int i;
     for(i = 0; i < tx_len; i++)
     {
-        switch(stw)
+        switch(spi_transfer_width)
         {
             case SPI_TRANS_SHORT:
                 buf[i] = ((uint16_t *)tx_buff)[i];
@@ -257,7 +258,7 @@ int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t
     sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
     dmac_set_single_mode(channel_num, buf, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                                 DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, tx_len);
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
     dmac_wait_done(channel_num);
     free((void*)buf);
 
@@ -268,7 +269,7 @@ int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t
     return 0;
 }
 
-int spi_receive_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+int spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -278,7 +279,7 @@ int spi_receive_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8
     spi_handle->ssienr = 0x01;
     while (cmd_len--)
         spi_handle->dr[0] = *cmd_buff++;
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
     while (rx_len)
     {
         fifo_len = spi_handle->rxflr;
@@ -293,7 +294,7 @@ int spi_receive_data_standard(spi_device_num_t spi_num, uint32_t chip_sel, uint8
 }
 
 int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                            spi_device_num_t spi_num, uint32_t chip_sel, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+                            spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_EEROM);
@@ -306,7 +307,7 @@ int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dm
     spi_handle->ctrlr1 = rx_len - 1;
     spi_handle->dmacr = 0x3;
     spi_handle->ssienr = 0x01;
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
 
     sysctl_dma_select(dma_send_channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_num * 2);
@@ -330,7 +331,7 @@ int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dm
     return 0;
 }
 
-int spi_receive_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+int spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -340,7 +341,7 @@ int spi_receive_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint3
     spi_handle->ssienr = 0x01;
     while (cmd_len--)
         spi_handle->dr[0] = *cmd_buff++;
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
     while (rx_len)
     {
         fifo_len = spi_handle->rxflr;
@@ -355,7 +356,7 @@ int spi_receive_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint3
 }
 
 int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                                    spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+                                    spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_RECV);
@@ -368,7 +369,7 @@ int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dm
     spi_handle->ctrlr1 = rx_len - 1;
     spi_handle->dmacr = 0x3;
     spi_handle->ssienr = 0x01;
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
 
     sysctl_dma_select(dma_send_channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_num * 2);
@@ -392,7 +393,7 @@ int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dm
     return 0;
 }
 
-int spi_send_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+int spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -406,7 +407,7 @@ int spi_send_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint32_t
     for (index = 0; index < fifo_len; index++)
         spi_handle->dr[0] = *tx_buff++;
     tx_len -= fifo_len;
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
     while (tx_len)
     {
         fifo_len = 32 - spi_handle->txflr;
@@ -422,7 +423,7 @@ int spi_send_data_multiple(spi_device_num_t spi_num, uint32_t chip_sel, uint32_t
     return 0;
 }
 
-int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, uint32_t chip_sel,
+int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, spi_chip_select_t chip_select,
                                 uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -445,7 +446,7 @@ int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_
     sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
     dmac_set_single_mode(channel_num, buf, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                                 DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, cmd_len + tx_len);
-    spi_handle->ser = 1 << chip_sel;
+    spi_handle->ser = 1 << chip_select;
     dmac_wait_done(channel_num);
     free((void*)buf);
 
@@ -456,7 +457,7 @@ int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_
     return 0;
 }
 
-int spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, uint32_t chip_sel, uint32_t *cmd_buff, size_t cmd_len)
+int spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_TRANS);
@@ -465,9 +466,9 @@ int spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_nu
     spi_handle->ssienr = 0x01;
 
     sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
-    dmac_set_single_mode(channel_num, cmd_buff, (void *)(&spi_handle->dr[0]), DMAC_ADDR_NOCHANGE, DMAC_ADDR_NOCHANGE,
-                                DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, cmd_len);
-    spi_handle->ser = 1 << chip_sel;
+    dmac_set_single_mode(channel_num, tx_buff, (void *)(&spi_handle->dr[0]), DMAC_ADDR_NOCHANGE, DMAC_ADDR_NOCHANGE,
+                                DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, tx_len);
+    spi_handle->ser = 1 << chip_select;
     dmac_wait_done(channel_num);
 
     while ((spi_handle->sr & 0x05) != 0x04)

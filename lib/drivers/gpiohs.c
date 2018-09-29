@@ -29,15 +29,6 @@ typedef struct _gpiohs_pin_context
 
 gpiohs_pin_context pin_context[32];
 
-int gpiohs_init(void)
-{
-    gpiohs->rise_ie.u32[0] = 0;
-    gpiohs->rise_ip.u32[0] = 0xFFFFFFFF;
-    gpiohs->fall_ie.u32[0] = 0;
-    gpiohs->fall_ip.u32[0] = 0xFFFFFFFF;
-    return 0;
-}
-
 void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
@@ -49,19 +40,19 @@ void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 
     switch (mode)
     {
-    case GPIO_DM_Input:
+    case GPIO_DM_INPUT:
         pull = FPIOA_PULL_NONE;
         dir = 0;
         break;
-    case GPIO_DM_InputPullDown:
+    case GPIO_DM_INPUT_PULL_DOWN:
         pull = FPIOA_PULL_DOWN;
         dir = 0;
         break;
-    case GPIO_DM_InputPullUp:
+    case GPIO_DM_INPUT_PULL_UP:
         pull = FPIOA_PULL_UP;
         dir = 0;
         break;
-    case GPIO_DM_Output:
+    case GPIO_DM_OUTPUT:
         pull = FPIOA_PULL_DOWN;
         dir = 1;
         break;
@@ -93,18 +84,18 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
     uint32_t rise, fall, irq;
     switch (edge)
     {
-    case GPIO_PE_None:
+    case GPIO_PE_NONE:
         rise = fall = irq = 0;
         break;
-    case GPIO_PE_Falling:
+    case GPIO_PE_FALLING:
         rise = 0;
         fall = irq = 1;
         break;
-    case GPIO_PE_Rising:
+    case GPIO_PE_RISING:
         fall = 0;
         rise = irq = 1;
         break;
-    case GPIO_PE_Both:
+    case GPIO_PE_BOTH:
         rise = fall = irq = 1;
         break;
     default:
@@ -124,18 +115,18 @@ int gpiohs_pin_onchange_isr(void* userdata)
     uint32_t rise, fall;
     switch (ctx->edge)
     {
-    case GPIO_PE_None:
+    case GPIO_PE_NONE:
         rise = fall = 0;
         break;
-    case GPIO_PE_Falling:
+    case GPIO_PE_FALLING:
         rise = 0;
         fall = 1;
         break;
-    case GPIO_PE_Rising:
+    case GPIO_PE_RISING:
         fall = 0;
         rise = 1;
         break;
-    case GPIO_PE_Both:
+    case GPIO_PE_BOTH:
         rise = fall = 1;
         break;
     default:

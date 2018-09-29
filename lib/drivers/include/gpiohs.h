@@ -199,15 +199,6 @@ typedef struct _gpiohs
 extern volatile gpiohs_t *const gpiohs;
 
 /**
- * @brief       Gpiohs initialize
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int gpiohs_init(void);
-
-/**
  * @brief       Set Gpiohs drive mode
  *
  * @param[in]   pin         Gpiohs pin

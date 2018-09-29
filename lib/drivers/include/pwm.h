@@ -21,12 +21,29 @@
 extern "C" {
 #endif
 
+typedef enum _pwm_device_number
+{
+    PWM_DEVICE_0,
+    PWM_DEVICE_1,
+    PWM_DEVICE_2,
+    PWM_DEVICE_MAX,
+} pwm_device_number_t;
+
+typedef enum _pwm_channel_number
+{
+    PWM_CHANNEL_0,
+    PWM_CHANNEL_1,
+    PWM_CHANNEL_2,
+    PWM_CHANNEL_3,
+    PWM_CHANNEL_MAX,
+} pwm_channel_number_t;
+
 /**
  * @brief       Init pwm timer
  *
  * @param[in]   timer       timer
  */
-void pwm_init(uint32_t tim);
+void pwm_init(pwm_device_number_t pwm_number);
 
 /**
  * @brief       Enable timer
@@ -36,7 +53,7 @@ void pwm_init(uint32_t tim);
  * @param[in]   enable      Enable or disable
  *
  */
-void pwm_set_enable(uint32_t timer, uint32_t channel, int enable);
+void pwm_set_enable(pwm_device_number_t pwm_number, pwm_channel_number_t channel, int enable);
 
 /**
  * @brief       Set pwm duty
@@ -47,7 +64,7 @@ void pwm_set_enable(uint32_t timer, uint32_t channel, int enable);
  * @param[in]   duty            duty
  *
  */
-double pwm_set_frequency(uint32_t timer, uint32_t channel, double frequency, double duty);
+double pwm_set_frequency(pwm_device_number_t pwm_number, pwm_channel_number_t channel, double frequency, double duty);
 
 
 #ifdef __cplusplus
