@@ -361,7 +361,7 @@ void i2c_config(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t ad
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_send_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len);
+int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len);
 
 /**
  * @brief       I2c send data by dma
@@ -375,7 +375,7 @@ int i2c_send_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_bu
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len);
+int i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len);
 
 /**
  * @brief       I2c receive data
@@ -390,7 +390,7 @@ int i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t
  *     - 0      Success
  *     - Other  Fail
 */
-int i2c_receive_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len);
+int i2c_receive_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len);
 
 /**
  * @brief       I2c receive data by dma
@@ -408,7 +408,7 @@ int i2c_receive_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send
  *     - Other  Fail
 */
 int i2c_receive_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-    i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len);
+    i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len);
 
 #ifdef __cplusplus
 }

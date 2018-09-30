@@ -160,7 +160,7 @@ uint32_t spi_set_clk_rate(spi_device_num_t spi_num, uint32_t spi_clk)
     return sysctl_clock_get_freq(SYSCTL_CLOCK_SPI0 + spi_num) / spi_baudr;
 }
 
-int spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+int spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -194,7 +194,7 @@ int spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_sele
 }
 
 int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
-                        uint8_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+                        const uint8_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_TRANS);
@@ -228,7 +228,7 @@ int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num
 }
 
 int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
-                        void *tx_buff, size_t tx_len, spi_transfer_width_t spi_transfer_width)
+                        const void *tx_buff, size_t tx_len, spi_transfer_width_t spi_transfer_width)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_TRANS);
@@ -269,7 +269,7 @@ int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t
     return 0;
 }
 
-int spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+int spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -294,7 +294,7 @@ int spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_s
 }
 
 int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                            spi_device_num_t spi_num, spi_chip_select_t chip_select, uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+                            spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_EEROM);
@@ -331,7 +331,7 @@ int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dm
     return 0;
 }
 
-int spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+int spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -356,7 +356,7 @@ int spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_s
 }
 
 int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                                    spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
+                                    spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_RECV);
@@ -393,7 +393,7 @@ int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dm
     return 0;
 }
 
-int spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+int spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len)
 {
     uint32_t index, fifo_len;
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -424,7 +424,7 @@ int spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_sele
 }
 
 int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, spi_chip_select_t chip_select,
-                                uint32_t *cmd_buff, size_t cmd_len, uint8_t *tx_buff, size_t tx_len)
+                                const uint32_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_TRANS);
@@ -457,7 +457,7 @@ int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_
     return 0;
 }
 
-int spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select, uint32_t *tx_buff, size_t tx_len)
+int spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *tx_buff, size_t tx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     spi_set_tmod(spi_num, SPI_TMOD_TRANS);

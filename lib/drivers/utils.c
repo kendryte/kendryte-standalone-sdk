@@ -42,14 +42,3 @@ uint32_t get_gpio_bit(volatile uint32_t* bits, size_t offset)
     return get_bit(bits, 1, offset);
 }
 
-void machine_irq_enable(void)
-{
-    set_csr(mie, MIP_MEIP);
-    set_csr(mstatus, MSTATUS_MIE);
-}
-
-void machine_irq_disable(void)
-{
-    clear_csr(mie, MIP_MEIP);
-    clear_csr(mstatus, MSTATUS_MIE);
-}

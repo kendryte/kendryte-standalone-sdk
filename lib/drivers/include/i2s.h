@@ -661,7 +661,7 @@ int i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf, size_t b
  * @param[in]   channel_num     dmac channel
  *
  */
-void i2s_send_data_dma(i2s_device_number_t device_num, void *buf, size_t buf_len, dmac_channel_number_t channel_num);
+void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t buf_len, dmac_channel_number_t channel_num);
 
 /**
  * @brief       I2S receive channel configure

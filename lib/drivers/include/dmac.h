@@ -1418,7 +1418,7 @@ void dmac_init(void);
  *
  */
 void dmac_set_single_mode(dmac_channel_number_t channel_num,
-    void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
+    const void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
     dmac_burst_trans_length_t dmac_burst_size,
     dmac_transfer_width_t dmac_trans_width,
     uint32_t blockSize);

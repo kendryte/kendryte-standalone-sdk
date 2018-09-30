@@ -64,7 +64,7 @@ void i2c_config(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t ad
     i2c_adapter->enable = I2C_ENABLE_ENABLE;
 }
 
-int i2c_send_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len)
+int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len)
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
@@ -85,7 +85,7 @@ int i2c_send_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_bu
     return 0;
 }
 
-int i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len)
+int i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len)
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
@@ -112,7 +112,7 @@ int i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t
     return 0;
 }
 
-int i2c_receive_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len)
+int i2c_receive_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len)
 {
     uint8_t fifo_len, index;
     uint8_t rx_len = receive_buf_len;
@@ -149,7 +149,7 @@ int i2c_receive_data(i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send
 }
 
 int i2c_receive_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-    i2c_device_number_t i2c_num, uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len)
+    i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf, size_t receive_buf_len)
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
