@@ -138,7 +138,7 @@ int plic_irq_complete(uint32_t source)
     return 0;
 }
 
-int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
+void plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
 {
     /* Read core id */
     unsigned long core_id = current_coreid();
@@ -146,13 +146,12 @@ int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
     plic_instance[core_id][irq].callback = callback;
     /* Assign user context */
     plic_instance[core_id][irq].ctx = ctx;
-    return 0;
 }
 
-int plic_irq_deregister(plic_irq_t irq)
+void plic_irq_deregister(plic_irq_t irq)
 {
     /* Just assign NULL to user callback function and context */
-    return plic_irq_register(irq, NULL, NULL);
+    plic_irq_register(irq, NULL, NULL);
 }
 
 /*Entry Point for PLIC Interrupt Handler*/
