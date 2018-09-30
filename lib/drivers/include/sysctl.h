@@ -1052,6 +1052,16 @@ uint32_t sysctl_set_cpu_frequency(uint32_t frequency);
  */
 void sysctl_set_pll_frequency(uint64_t pll0, uint64_t pll1, uint64_t pll2);
 
+/**
+ * @brief       Enable interrupt
+ */
+void sysctl_enable_irq(void);
+
+/**
+ * @brief       Disable interrupt
+ */
+void sysctl_disable_irq(void);
+
 #ifdef __cplusplus
 }
 #endif

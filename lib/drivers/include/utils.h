@@ -340,16 +340,6 @@ uint32_t get_bit(volatile uint32_t* bits, uint32_t mask, size_t offset);
  */
 uint32_t get_gpio_bit(volatile uint32_t* bits, size_t offset);
 
-/**
- * @brief       Enable interrupt
- */
-void machine_irq_enable();
-
-/**
- * @brief       Disable interrupt
- */
-void machine_irq_disable();
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

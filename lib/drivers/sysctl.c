@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "sysctl.h"
 #include "string.h"
+#include "encoding.h"
 
 #define SYSCTRL_CLOCK_FREQ_IN0 (26000000UL)
 
@@ -1789,5 +1790,17 @@ uint32_t sysctl_set_cpu_frequency(uint32_t frequency)
     sysctl->pll0.pll_out_en0 = 1;
     sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_PLL0);
     return result;
+}
+
+void sysctl_enable_irq(void)
+{
+    set_csr(mie, MIP_MEIP);
+    set_csr(mstatus, MSTATUS_MIE);
+}
+
+void sysctl_disable_irq(void)
+{
+    clear_csr(mie, MIP_MEIP);
+    clear_csr(mstatus, MSTATUS_MIE);
 }
 
