@@ -31,15 +31,18 @@
 #define _SPI(x, y)          __SPI(x, y)
 #define SPI(x)              _SPI(SPI_CHANNEL, x)
 
+#define TEST2_0
+
 void  init_dcx(void)
 {
     fpioa_set_function(DCX_IO, FUNC_GPIOHS0 + DCX_GPIONUM);/*dcx*/
     gpiohs_set_drive_mode(DCX_GPIONUM, GPIO_DM_OUTPUT);
     gpiohs_set_pin(DCX_GPIONUM, GPIO_PV_High);
-
+#ifndef TEST2_0
     fpioa_set_function(RESET_IO, FUNC_GPIOHS0 + RESET_GPIONUM);/*reset*/
     gpiohs_set_drive_mode(RESET_GPIONUM, GPIO_DM_OUTPUT);
     gpiohs_set_pin(RESET_GPIONUM, GPIO_PV_High);
+#endif
 }
 
 void set_dcx_control(void)
@@ -54,8 +57,13 @@ void set_dcx_data(void)
 
 void pin_mux_init(void)
 {
+#ifndef TEST2_0
     fpioa_set_function(31, SPI_SS);
     fpioa_set_function(32, SPI(SCLK));
+#else
+    fpioa_set_function(6, SPI_SS);
+    fpioa_set_function(7, SPI(SCLK));
+#endif
     sysctl_spi0_dvp_data_set(1);
 }
 
