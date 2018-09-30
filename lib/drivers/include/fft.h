@@ -196,7 +196,7 @@ typedef struct _fft
 
 
 void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                            fft_direction_t direction, const uint64_t* input, size_t point_num, uint64_t* output);
+                            fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output);
 
 #ifdef __cplusplus
 }

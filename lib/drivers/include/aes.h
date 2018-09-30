@@ -26,7 +26,7 @@ typedef enum _aes_cipher_mode
     AES_ECB = 0,
     AES_CBC = 1,
     AES_GCM = 2,
-    CIPHER_MAX,
+    AES_CIPHER_MAX,
 } aes_cipher_mode_t;
 
 typedef enum _aes_kmode
