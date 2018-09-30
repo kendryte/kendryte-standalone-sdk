@@ -14,14 +14,33 @@
  */
 #ifndef _DRIVER_AES_H
 #define _DRIVER_AES_H
-
+#include <stdlib.h>
 #include <stdint.h>
-#include "encoding.h"
-#include "platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum _aes_cipher_mode
+{
+    AES_ECB = 0,
+    AES_CBC = 1,
+    AES_GCM = 2,
+    CIPHER_MAX,
+} aes_cipher_mode_t;
+
+typedef enum _aes_kmode
+{
+    AES_128 = 16,
+    AES_192 = 24,
+    AES_256 = 32,
+} aes_kmode_t;
+
+typedef enum _aes_encrypt_sel
+{
+    AES_HARD_ENCRYPTION = 0,
+    AES_HARD_DECRYPTION = 1,
+} aes_encrypt_sel_t;
 
 typedef struct _aes_mode_ctl
 {
@@ -85,170 +104,23 @@ typedef struct _aes
     uint32_t aes_key_ext[4];
 } __attribute__((packed, aligned(4))) aes_t;
 
-typedef enum _aes_cipher_mod
+typedef struct _aes_param
 {
-    AES_ECB = 0,
-    AES_CBC = 1,
-    AES_GCM = 2,
-} aes_cipher_mod_t;
+    uint8_t *input_data;
+    size_t input_data_len;
+    uint8_t *input_key;
+    size_t input_key_len;
+    uint8_t *iv;
+    uint8_t iv_len;
+    uint8_t* gcm_add;
+    size_t gcm_add_len;
+    aes_cipher_mode_t cipher_mode;
+    uint8_t *output_data;
+    uint8_t *gcm_tag;
+} aes_param_t;
 
-typedef enum _aes_kmode
-{
-    AES_128 = 0,
-    AES_192 = 1,
-    AES_256 = 2,
-} aes_kmode_t;
-
-typedef enum _aes_encrypt_sel
-{
-    AES_ENCRYPTION = 0,
-    AES_DECRYPTION = 1,
-} aes_encrypt_sel_t;
-
-/**
- * @brief       Aes initialize
- *
- * @param[in]   key_addr        Key address
- * @param[in]   key_length      Key length
- * @param[in]   aes_iv          Aes iv
- * @param[in]   iv_length       Iv length
- * @param[in]   aes_aad         Aes aad
- * @param[in]   cipher_mod      Aes cipher mode
- * @param[in]   encrypt_sel      Aes encrypt select
- * @param[in]   add_size        Aad size
- * @param[in]   data_size       Data size
- *
- * @return      result
- *     - 1      Success
- *     - Other  Fail
- */
-int aes_init(uint8_t* key_addr, uint8_t key_length, uint8_t* aes_iv,
-    uint8_t iv_length, uint8_t* aes_aad, aes_cipher_mod_t cipher_mod,
-    aes_encrypt_sel_t encrypt_sel, uint32_t add_size, uint32_t data_size);
-
-/**
- * @brief       Aes write aad data
- *
- * @param[in]   aad_data        Aes aad data
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int aes_write_aad(uint32_t aad_data);
-
-/**
- * @brief       Aes write text data
- *
- * @param[in]   text_data       Aes aad data
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int aes_write_text(uint32_t text_data);
-
-/**
- * @brief       Aes write tag
- *
- * @param[in]   text_data       Aes tag point
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int aes_write_tag(uint32_t* tag);
-
-/**
- * @brief       Aes get data in flag
- *
- * @return      Data in flag
- */
-int aes_get_data_in_flag(void);
-
-/**
- * @brief       Aes get data out flag
- *
- * @return      Data out flag
- */
-int aes_get_data_out_flag(void);
-
-/**
- * @brief       Aes get tag in flag
- *
- * @return      Tag in flag
- */
-int aes_get_tag_in_flag(void);
-
-/**
- * @brief       Aes read out data
- *
- * @return      Out data
- */
-uint32_t aes_read_out_data(void);
-
-/**
- * @brief       Aes check tag
- *
- * @return      Tag check result
- *     - 0      Check not finish
- *     - 1      Check fail
- *     - 2      Check success
- */
-int aes_check_tag(void);
-
-/**
- * @brief       Aes get gcm out tag
- *
- * @param[out]   l_tag      gcm out tag
- *
- * @return      Tag check result
- *     - 1      Success
- *     - Other  Fail
- */
-int aes_get_tag(uint8_t* l_tag);
-
-/**
- * @brief       Aes clear check tag
- *
- * @return      Tag check result
- *     - 0      Success
- *     - Other  Fail
- */
-int aes_clear_chk_tag(void);
-
-/**
- * @brief       Aes process
- *
- * @param[in]   aes_in_data         Aes in data
- * @param[in]   aes_out_data        Aes out data
- * @param[in]   data_size           Aes data size
- * @param[in]   cipher_mod          Aes cipher mode
- *
- * @return      Tag check result
- *     - 1      Success
- *     - Other  Fail
- */
-int aes_process(uint8_t* aes_in_data,
-    uint8_t* aes_out_data,
-    uint32_t data_size,
-    aes_cipher_mod_t cipher_mod);
-
-/**
- * @brief       Aes check gcm tag
- *
- * @param[in]   aes_gcm_tag     Aes gcm tag
- *
- * @return      Tag check result
- *     - 1      Success
- *     - Other  Fail
- */
-int aes_check_gcm_tag(uint32_t* aes_gcm_tag);
-
-/**
- * @brief      Aes clock initialize
- */
-void aes_clkinit();
+void aes_hard_decrypt(aes_param_t *param);
+void aes_hard_encrypt(aes_param_t *param);
 
 #ifdef __cplusplus
 }

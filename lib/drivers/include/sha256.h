@@ -14,81 +14,46 @@
  */
 #ifndef _SHA256_H
 #define _SHA256_H
-
 #include <stdint.h>
-#include "encoding.h"
-#include "platform.h"
 
-#define DISABLE_SHA_DMA 0
-#define ENABLE_SHA_DMA  1
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/**
- * @brief       AES
- *
- */
+#define ENABLE_SHA          1
+#define SHA256_BIG_ENDIAN   (0x1 << 16)
+
+#define SHA256_HASH_LEN    32
+#define SHA256_HASH_WORDS   8
+#define SHA256_BLOCK_LEN   64L
+
 typedef struct _sha256
 {
     uint32_t sha_result[8];
     uint32_t sha_data_in1;
     uint32_t sha_data_in2;
-    uint32_t sha_data_num; /*1 unit represents 64 bytes*/
+    uint32_t sha_data_num;
     uint32_t sha_status;
     uint32_t reserved0;
     uint32_t sha_input_ctrl;
 } __attribute__((packed, aligned(4))) sha256_t;
 
-#define SHA256_HASH_SIZE 32
-
-/* Hash size in 32-bit words */
-#define SHA256_HASH_WORDS 8
-
-struct _SHA256Context
+typedef struct _sha256_context
 {
-    uint64_t totalLength;
-    uint32_t hash[SHA256_HASH_WORDS];
-    uint32_t bufferLength;
+    size_t total_length;
+    size_t buffer_length;
     union
     {
         uint32_t words[16];
         uint8_t bytes[64];
     } buffer;
-#ifdef RUNTIME_ENDIAN
-    int littleEndian;
-#endif /* RUNTIME_ENDIAN */
-};
+} sha256_context_t;
 
-typedef struct _SHA256Context SHA256Context_t;
+void sha256_hard_calculate(const uint8_t *data, size_t data_len, uint8_t *output);
 
-/**
- * @brief       Sha256 initialize
- *
- * @param[in]   dma_en          Dma enable flag
- * @param[in]   input_size      Input size
- * @param[in]   sc              Sha256 Context point
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context_t *sc);
-
-/**
- * @brief       Sha256 update
- *
- * @param[in]   sc          Sha256 Context point
- * @param[in]   data        Input data point
- * @param[in]   len         Input data size
- *
- */
-void sha256_update(SHA256Context_t *sc, const void *data, uint32_t len);
-
-/**
- * @brief       Sha256 final
- *
- * @param[in]   sc          Sha256 Context point
- * @param[out]  hash        Sha256 result
- *
- */
-void sha256_final(SHA256Context_t *sc, uint8_t hash[SHA256_HASH_SIZE]);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
+
