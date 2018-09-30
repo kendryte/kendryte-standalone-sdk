@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef _DRIVER_HARD_FFT_H
-#define _DRIVER_HARD_FFT_H
+#ifndef _DRIVER_FFT_H
+#define _DRIVER_FFT_H
 
 #include <stdint.h>
 #include "platform.h"
@@ -38,18 +38,17 @@ typedef struct _fft_data
 
 typedef enum _fft_point
 {
-    FFT_N512,
-    FFT_N256,
-    FFT_N128,
-    FFT_N64,
+    FFT_512,
+    FFT_256,
+    FFT_128,
+    FFT_64,
 } fft_point_t;
 
-typedef enum _fft_mode
+typedef enum _fft_direction
 {
-    IFFT_MODE,
-    FFT_MODE,
-} fft_mode_t;
-
+    FFT_DIR_BACKWARD,
+    FFT_DIR_FORWARD
+} fft_direction_t;
 
 /**
  * @brief      FFT algorithm accelerator register
@@ -195,73 +194,9 @@ typedef struct _fft
     fft_fft_output_fifo_t fft_output_fifo;
 } __attribute__((packed, aligned(8))) fft_t;
 
-/**
- * @brief       Fft initialize
- *
- * @param[in]   point           fft point, 0:512, 1:256, 2:128, 3:64
- * @param[in]   mode            fft or ifft, 1: fft, 0: ifft
- * @param[in]   shift           fft shift
- * @param[in]   is_dma          dma send flag
- * @param[in]   input_mode      fft input mode
- * @param[in]   data_mode       fft data mode
- *
- * @return     Result
- *       0     Success
- *       Other Fail
- */
-int fft_init(uint8_t point, uint8_t mode, uint16_t shift, uint8_t is_dma, uint8_t input_mode, uint8_t data_mode);
 
-/**
- * @brief      Fft reset
- *
- */
-void fft_reset(void);
-
-/**
- * @brief      Enable fft done interrupt
- *
- */
-void fft_enable_int(void);
-
-/**
- * @brief       Fft input data(complex numbers)
- *
- * @param[in]   x           complex numbers real part
- * @param[in]   y           complex numbers imaginary part
- * @param[in]   point       fft point
- */
-void fft_input_data(float *x, float *y, uint8_t point);
-
-/**
- * @brief       Fft input data(integer)
- *
- * @param[in]   data        integer
- * @param[in]   point       fft point
- */
-void fft_input_intdata(int16_t *data, uint8_t point);
-
-/**
- * @brief       Get fft finish flag
- *
- * @return      Result
- *       1      Fft finish
- *       Other  Not complete
- */
-uint8_t fft_get_finish_flag(void);
-
-/**
- * @brief       Get fft result
- *
- * @param[out]  x           complex numbers real part
- * @param[out]  y           complex numbers imaginary part
- * @param[in]   point        fft point
- */
-void fft_get_result(float *x, float *y, uint8_t point);
-
-/**
- * @brief      Fast Fourier transform (FFT) algorithm accelerator object
- */
-extern volatile fft_t *const fft;
+void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
+                            fft_direction_t direction, const uint64_t* input, size_t point_num, uint64_t* output);
 
 #ifdef __cplusplus
 }

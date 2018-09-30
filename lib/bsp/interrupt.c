@@ -57,7 +57,7 @@ handle_irq(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[3
         [IRQ_M_TIMER] = handle_irq_m_timer,
         [IRQ_M_EXT]   = handle_irq_m_ext,
     };
-	/* clang-format on */
+    /* clang-format on */
 #if defined(__GNUC__)
 #pragma GCC diagnostic warning "-Woverride-init"
 #endif
