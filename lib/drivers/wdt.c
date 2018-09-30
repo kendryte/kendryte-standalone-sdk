@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "sysctl.h"
 #include "plic.h"
+#include "math.h"
 
 volatile wdt_t *const wdt[2] =
 {
@@ -53,25 +54,12 @@ static uint64_t wdt_get_pclk(wdt_device_number_t id)
     return id ? sysctl_clock_get_freq(SYSCTL_CLOCK_WDT1) : sysctl_clock_get_freq(SYSCTL_CLOCK_WDT0);
 }
 
-static uint64_t wdt_log_2(uint64_t x)
-{
-    int64_t i = 0;
-    for (i = sizeof(uint64_t) * 8; i >= 0; i--)
-    {
-        if ((x >> i) & 0x1)
-        {
-            break;
-        }
-    }
-    return i;
-}
-
 static uint8_t wdt_get_top(wdt_device_number_t id, uint64_t timeout_ms)
 {
     uint64_t wdt_clk = wdt_get_pclk(id);
     uint64_t ret = (timeout_ms * wdt_clk / 1000) >> 16;
     if (ret)
-        ret = wdt_log_2(ret);
+        ret = (uint32_t)log2(ret);
     if (ret > 0xf)
         ret = 0xf;
     return (uint8_t)ret;

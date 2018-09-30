@@ -77,7 +77,7 @@ int uarths_puts(const char *s)
     return 0;
 }
 
-int uarths_init(void)
+void uarths_init(void)
 {
     uint32_t freq = sysctl_clock_get_freq(SYSCTL_CLOCK_CPU);
     uint16_t div = freq / 115200 - 1;
@@ -92,6 +92,4 @@ int uarths_init(void)
     uarths->ip.rxwm = 1;
     uarths->ie.txwm = 0;
     uarths->ie.rxwm = 1;
-
-    return 0;
 }

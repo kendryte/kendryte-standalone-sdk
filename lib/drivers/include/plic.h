@@ -367,7 +367,7 @@ typedef int (*plic_irq_callback_t)(void *ctx);
  *     - 0      Success
  *     - Other  Fail
  */
-int plic_init(void);
+void plic_init(void);
 
 /**
  * @brief       Enable PLIC external interrupt

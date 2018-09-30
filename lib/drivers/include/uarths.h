@@ -179,7 +179,7 @@ extern volatile uarths_t *const uarths;
  *     - 0      Success
  *     - Other  Fail
  */
-int uarths_init(void);
+void uarths_init(void);
 
 /**
  * @brief       Put a char to UART

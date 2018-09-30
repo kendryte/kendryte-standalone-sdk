@@ -29,7 +29,7 @@ typedef struct _plic_instance_t
 
 static plic_instance_t plic_instance[PLIC_NUM_CORES][IRQN_MAX];
 
-int plic_init(void)
+void plic_init(void)
 {
     int i = 0;
 
@@ -72,7 +72,6 @@ int plic_init(void)
 
     /* Enable machine external interrupts. */
     set_csr(mie, MIP_MEIP);
-    return 0;
 }
 
 int plic_irq_enable(plic_irq_t irq_number)

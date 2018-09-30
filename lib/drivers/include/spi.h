@@ -172,7 +172,7 @@ extern volatile spi_t *const spi[4];
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format, size_t data_bit_length);
+void spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format, size_t data_bit_length);
 
 /**
  * @brief       Set multiline configuration
