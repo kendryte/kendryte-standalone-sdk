@@ -15,6 +15,7 @@
 #ifndef _SHA256_H
 #define _SHA256_H
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +50,41 @@ typedef struct _sha256_context
     } buffer;
 } sha256_context_t;
 
+/**
+ * @brief       Init SHA256 calculation context
+ *
+ * @param[in]   context SHA256 context object
+ *
+ */
+void sha256_init(sha256_context_t *context);
+
+/**
+ * @brief       Called repeatedly with chunks of the message to be hashed
+ *
+ * @param[in]   context SHA256 context object
+ * @param[in]   data_buf    data chunk to be hashed
+ * @param[in]   buf_len    length of data chunk
+ *
+ */
+void sha256_update(sha256_context_t *context, const void *data_buf, size_t buf_len);
+
+/**
+ * @brief       Finish SHA256 hash process, output the result.
+ *
+ * @param[in]   context SHA256 context object
+ * @param[out]  output  The buffer where SHA256 hash will be output
+ *
+ */
+void sha256_final(sha256_context_t *context, uint8_t *output);
+
+/**
+ * @brief       Simple SHA256 hash once.
+ *
+ * @param[in]   data      Data will be hashed
+ * @param[in]   data_len  Data length
+ * @param[out]  output    Output buffer
+ *
+ */
 void sha256_hard_calculate(const uint8_t *data, size_t data_len, uint8_t *output);
 
 #ifdef __cplusplus
