@@ -1414,14 +1414,15 @@ void dmac_init(void);
  * @param[in]   dest_inc                Dest address increase or not
  * @param[in]   dmac_burst_size         Dmac burst length
  * @param[in]   dmac_trans_width        Dmac transfer data width
- * @param[in]   blockSize               Dmac transfer length
+ * @param[in]   block_size               Dmac transfer length
  *
  */
 void dmac_set_single_mode(dmac_channel_number_t channel_num,
-    const void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
-    dmac_burst_trans_length_t dmac_burst_size,
-    dmac_transfer_width_t dmac_trans_width,
-    uint32_t blockSize);
+                          const void *src, void *dest, dmac_address_increment_t src_inc,
+                          dmac_address_increment_t dest_inc,
+                          dmac_burst_trans_length_t dmac_burst_size,
+                          dmac_transfer_width_t dmac_trans_width,
+                          size_t block_size);
 
 /**
  * @brief       Wait for dmac work done
