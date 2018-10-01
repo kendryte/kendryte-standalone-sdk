@@ -16,6 +16,7 @@
 #define _DRIVER_I2S_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include "platform.h"
 #include "io.h"
 #include "dmac.h"
@@ -650,7 +651,8 @@ void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t
  *     - 0      Success
  *     - Other  Fail
  */
-int i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf, size_t buf_len, dmac_channel_number_t channel_num);
+void i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf, size_t buf_len,
+                          dmac_channel_number_t channel_num);
 
 /**
  * @brief       Write pcm data to channel_num channel by dma, first wait dmac done
@@ -694,6 +696,21 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
     i2s_word_select_cycles_t word_select_size,
     i2s_fifo_threshold_t trigger_level,
     i2s_work_mode_t word_mode);
+
+
+/**
+ * @brief       Play PCM format audio
+ *
+ * @param[in]   device_num              The device number
+ * @param[in]   channel_num             The channel number
+ * @param[in]   buf                     PCM data
+ * @param[in]   buf_len                 PCM data length
+ * @param[in]   frame                   Transmit amount once
+ * @param[in]   bits_per_sample         Sample bit length
+ * @param[in]   track_num               Track amount
+ */
+void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
+              const uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num);
 
 #ifdef __cplusplus
 }

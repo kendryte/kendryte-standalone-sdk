@@ -17,6 +17,7 @@
 #include "i2s.h"
 #include "sysctl.h"
 #include "stdlib.h"
+#include "utils.h"
 
 volatile i2s_t *const i2s[3] =
 {
@@ -142,20 +143,18 @@ int i2s_set_tx_word_length(i2s_device_number_t device_num,
     return 0;
 }
 
-int i2s_master_configure(i2s_device_number_t device_num,
-    i2s_word_select_cycles_t word_select_size,
-    i2s_sclk_gating_cycles_t gating_cycles,
-    i2s_work_mode_t word_mode)
+static void i2s_master_configure(i2s_device_number_t device_num,
+                          i2s_word_select_cycles_t word_select_size,
+                          i2s_sclk_gating_cycles_t gating_cycles,
+                          i2s_work_mode_t word_mode)
 {
+    configASSERT(!(word_select_size < SCLK_CYCLES_16 ||
+                 word_select_size > SCLK_CYCLES_32));
+    configASSERT(!(gating_cycles < NO_CLOCK_GATING ||
+                  gating_cycles > CLOCK_CYCLES_24));
+
     ccr_t u_ccr;
     cer_t u_cer;
-
-    if (word_select_size < SCLK_CYCLES_16 ||
-        word_select_size > SCLK_CYCLES_32)
-        return -1;
-    if (gating_cycles < NO_CLOCK_GATING ||
-        gating_cycles > CLOCK_CYCLES_24)
-        return -1;
 
     u_ccr.reg_data = readl(&i2s[device_num]->ccr);
     u_ccr.ccr.clk_word_size = word_select_size;
@@ -168,10 +167,9 @@ int i2s_master_configure(i2s_device_number_t device_num,
     writel(u_cer.reg_data, &i2s[device_num]->cer);
     /* Clock generation enable */
 
-    return 0;
 }
 
-int i2s_set_rx_threshold(i2s_device_number_t device_num,
+static int i2s_set_rx_threshold(i2s_device_number_t device_num,
              i2s_fifo_threshold_t threshold,
              i2s_channel_num_t channel_num)
 {
@@ -301,18 +299,17 @@ int i2s_receive_data(i2s_device_number_t device_num, i2s_channel_num_t channel_n
     return 0;
 }
 
-int i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf,
-    size_t buf_len, dmac_channel_number_t channel_num)
+void i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf,
+                          size_t buf_len, dmac_channel_number_t channel_num)
 {
     static uint8_t dmac_recv_flag[6] = {0,0,0,0,0,0};
     if(dmac_recv_flag[channel_num])
         dmac_wait_done(channel_num);
     else
         dmac_recv_flag[channel_num] = 1;
-    sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
+    sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
     dmac_set_single_mode(channel_num, (void *)(&i2s[device_num]->rxdma), buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
                           DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
-    return 0;
 }
 
 int i2s_rx_to_tx(i2s_device_number_t device_src_num, i2s_device_number_t device_dest_num,
@@ -323,13 +320,14 @@ int i2s_rx_to_tx(i2s_device_number_t device_src_num, i2s_device_number_t device_
         dmac_wait_done(channel_num);
     else
         dmac_recv_flag[channel_num] = 1;
-    sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_src_num * 2);
+    sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_src_num * 2);
     dmac_set_single_mode(channel_num, (void *)(&i2s[device_src_num]->rxdma), (void *)(&i2s[device_dest_num]->txdma), DMAC_ADDR_NOCHANGE, DMAC_ADDR_NOCHANGE,
                           DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
     return 0;
 }
 
-int i2s_send_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num, uint8_t *pcm, size_t buf_len, size_t single_length)
+int i2s_send_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num, const uint8_t *pcm, size_t buf_len,
+                  size_t single_length)
 {
     isr_t u_isr;
     uint32_t left_buffer = 0;
@@ -388,13 +386,13 @@ void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t b
         dmac_wait_done(channel_num);
     else
         dmac_init_flag[channel_num] = 1;
-    sysctl_dma_select(channel_num, SYSCTL_DMA_SELECT_I2S0_TX_REQ + device_num * 2);
+    sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_I2S0_TX_REQ + device_num * 2);
     dmac_set_single_mode(channel_num, buf, (void *)(&i2s[device_num]->txdma), DMAC_ADDR_INCREMENT,
                          DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
-void i2s_parse_voice(uint32_t *buf, uint8_t *pcm, uint32_t length,  uint32_t bits_per_sample,
-    uint8_t track_num, uint32_t *send_len)
+void i2s_parse_voice(uint32_t *buf, const uint8_t *pcm, size_t length,  size_t bits_per_sample,
+    uint8_t track_num, size_t *send_len)
 {
     uint32_t i,j=0;
     *send_len = length * 2;
@@ -437,14 +435,14 @@ void i2s_parse_voice(uint32_t *buf, uint8_t *pcm, uint32_t length,  uint32_t bit
 }
 
 
-int i2s_play(i2s_device_number_t device_num,dmac_channel_number_t channel_num,
-    uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num)
+void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
+              const uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num)
 {
-    uint32_t sample_cnt = buf_len / ( bits_per_sample / 8 ) / track_num;
-    uint32_t frame_cnt = sample_cnt / frame;
-    uint32_t frame_remain = sample_cnt % frame;
+    const uint8_t *trans_buf;
     uint32_t i;
-    uint8_t *trans_buf;
+    size_t sample_cnt = buf_len / ( bits_per_sample / 8 ) / track_num;
+    size_t frame_cnt = sample_cnt / frame;
+    size_t frame_remain = sample_cnt % frame;
 
     if (bits_per_sample == 16 && track_num == 2)
     {
@@ -478,7 +476,7 @@ int i2s_play(i2s_device_number_t device_num,dmac_channel_number_t channel_num,
         buff[0] = malloc(frame * 2 * sizeof(uint32_t) * 2);
         buff[1] = buff[0] + frame * 2;
         uint8_t flag = 0;
-        uint32_t send_len = 0;
+        size_t send_len = 0;
         for (i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
@@ -494,7 +492,6 @@ int i2s_play(i2s_device_number_t device_num,dmac_channel_number_t channel_num,
         }
         free(buff[0]);
     }
-    return 0;
 }
 
 void i2s_rx_channel_config(i2s_device_number_t device_num,
