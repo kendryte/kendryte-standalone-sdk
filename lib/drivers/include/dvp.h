@@ -14,6 +14,7 @@
  */
 #ifndef _DRIVER_DVP_H
 #define _DRIVER_DVP_H
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,60 +40,60 @@ typedef struct _dvp
 } __attribute__((packed, aligned(4))) dvp_t;
 
 /* DVP Config Register */
-#define DVP_CFG_START_INT_ENABLE                0x00000001
-#define DVP_CFG_FINISH_INT_ENABLE               0x00000002
-#define DVP_CFG_AI_OUTPUT_ENABLE                0x00000004
-#define DVP_CFG_DISPLAY_OUTPUT_ENABLE           0x00000008
-#define DVP_CFG_AUTO_ENABLE                     0x00000010
-#define DVP_CFG_BURST_SIZE_4BEATS               0x00000100
-#define DVP_CFG_FORMAT_MASK                     0x00000600
-#define DVP_CFG_RGB_FORMAT                      0x00000000
-#define DVP_CFG_YUV_FORMAT                      0x00000200
-#define DVP_CFG_Y_FORMAT                        0x00000600
-#define DVP_CFG_HREF_BURST_NUM_MASK             0x000FF000
+#define DVP_CFG_START_INT_ENABLE                0x00000001U
+#define DVP_CFG_FINISH_INT_ENABLE               0x00000002U
+#define DVP_CFG_AI_OUTPUT_ENABLE                0x00000004U
+#define DVP_CFG_DISPLAY_OUTPUT_ENABLE           0x00000008U
+#define DVP_CFG_AUTO_ENABLE                     0x00000010U
+#define DVP_CFG_BURST_SIZE_4BEATS               0x00000100U
+#define DVP_CFG_FORMAT_MASK                     0x00000600U
+#define DVP_CFG_RGB_FORMAT                      0x00000000U
+#define DVP_CFG_YUV_FORMAT                      0x00000200U
+#define DVP_CFG_Y_FORMAT                        0x00000600U
+#define DVP_CFG_HREF_BURST_NUM_MASK             0x000FF000U
 #define DVP_CFG_HREF_BURST_NUM(x)               ((x) << 12)
-#define DVP_CFG_LINE_NUM_MASK                   0x3FF00000
+#define DVP_CFG_LINE_NUM_MASK                   0x3FF00000U
 #define DVP_CFG_LINE_NUM(x)                     ((x) << 20)
 
 /* DVP CMOS Config Register */
-#define DVP_CMOS_CLK_DIV_MASK                   0x000000FF
+#define DVP_CMOS_CLK_DIV_MASK                   0x000000FFU
 #define DVP_CMOS_CLK_DIV(x)                     ((x) << 0)
-#define DVP_CMOS_CLK_ENABLE                     0x00000100
-#define DVP_CMOS_RESET                          0x00010000
-#define DVP_CMOS_POWER_DOWN                     0x01000000
+#define DVP_CMOS_CLK_ENABLE                     0x00000100U
+#define DVP_CMOS_RESET                          0x00010000U
+#define DVP_CMOS_POWER_DOWN                     0x01000000U
 
 /* DVP SCCB Config Register */
-#define DVP_SCCB_BYTE_NUM_MASK                  0x00000003
-#define DVP_SCCB_BYTE_NUM_2                     0x00000001
-#define DVP_SCCB_BYTE_NUM_3                     0x00000002
-#define DVP_SCCB_BYTE_NUM_4                     0x00000003
-#define DVP_SCCB_SCL_LCNT_MASK                  0x0000FF00
+#define DVP_SCCB_BYTE_NUM_MASK                  0x00000003U
+#define DVP_SCCB_BYTE_NUM_2                     0x00000001U
+#define DVP_SCCB_BYTE_NUM_3                     0x00000002U
+#define DVP_SCCB_BYTE_NUM_4                     0x00000003U
+#define DVP_SCCB_SCL_LCNT_MASK                  0x0000FF00U
 #define DVP_SCCB_SCL_LCNT(x)                    ((x) << 8)
-#define DVP_SCCB_SCL_HCNT_MASK                  0x00FF0000
+#define DVP_SCCB_SCL_HCNT_MASK                  0x00FF0000U
 #define DVP_SCCB_SCL_HCNT(x)                    ((x) << 16)
 #define DVP_SCCB_RDATA_BYTE(x)                  ((x) >> 24)
 
 /* DVP SCCB Control Register */
-#define dvp_sccb_write_data_ENABLE                   0x00000001
+#define DVP_SCCB_WRITE_DATA_ENABLE                   0x00000001U
 #define DVP_SCCB_DEVICE_ADDRESS(x)              ((x) << 0)
 #define DVP_SCCB_REG_ADDRESS(x)                 ((x) << 8)
 #define DVP_SCCB_WDATA_BYTE0(x)                 ((x) << 16)
 #define DVP_SCCB_WDATA_BYTE1(x)                 ((x) << 24)
 
 /* DVP AXI Register */
-#define DVP_AXI_GM_MLEN_MASK                    0x000000FF
-#define DVP_AXI_GM_MLEN_1BYTE                   0x00000000
-#define DVP_AXI_GM_MLEN_4BYTE                   0x00000003
+#define DVP_AXI_GM_MLEN_MASK                    0x000000FFU
+#define DVP_AXI_GM_MLEN_1BYTE                   0x00000000U
+#define DVP_AXI_GM_MLEN_4BYTE                   0x00000003U
 
 /* DVP STS Register */
-#define DVP_STS_FRAME_START                     0x00000001
-#define DVP_STS_FRAME_START_WE                  0x00000002
-#define DVP_STS_FRAME_FINISH                    0x00000100
-#define DVP_STS_FRAME_FINISH_WE                 0x00000200
-#define DVP_STS_DVP_EN                          0x00010000
-#define DVP_STS_DVP_EN_WE                       0x00020000
-#define DVP_STS_SCCB_EN                         0x01000000
-#define DVP_STS_SCCB_EN_WE                      0x02000000
+#define DVP_STS_FRAME_START                     0x00000001U
+#define DVP_STS_FRAME_START_WE                  0x00000002U
+#define DVP_STS_FRAME_FINISH                    0x00000100U
+#define DVP_STS_FRAME_FINISH_WE                 0x00000200U
+#define DVP_STS_DVP_EN                          0x00010000U
+#define DVP_STS_DVP_EN_WE                       0x00020000U
+#define DVP_STS_SCCB_EN                         0x01000000U
+#define DVP_STS_SCCB_EN_WE                      0x02000000U
 /* clang-format on */
 
 typedef enum _dvp_output_mode
@@ -108,35 +109,23 @@ extern volatile dvp_t* const dvp;
 
 /**
  * @brief       Initialize DVP
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_init(uint8_t reg_len);
+void dvp_init(uint8_t reg_len);
 
 /**
  * @brief       Set image format
  *
  * @param[in]   format      The image format
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_set_image_format(uint32_t format);
+void dvp_set_image_format(uint32_t format);
 
 /**
  * @brief       Set image size
  *
  * @param[in]   width   The width  of image
  * @param[in]   height  The height of image
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_set_image_size(uint32_t width, uint32_t height);
+void dvp_set_image_size(uint32_t width, uint32_t height);
 
 /**
  * @brief       Set the address of RGB for AI
@@ -144,12 +133,8 @@ int dvp_set_image_size(uint32_t width, uint32_t height);
  * @param[in]   r_addr      The R address of RGB
  * @param[in]   g_addr      The G address of RGB
  * @param[in]   b_addr      The B address of RGB
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_set_ai_addr(uint32_t r_addr, uint32_t g_addr, uint32_t b_addr);
+void dvp_set_ai_addr(uint32_t r_addr, uint32_t g_addr, uint32_t b_addr);
 
 /**
  * @brief       Set the address of RGB for display
@@ -157,50 +142,30 @@ int dvp_set_ai_addr(uint32_t r_addr, uint32_t g_addr, uint32_t b_addr);
  * @param[in]   r_addr      The R address of RGB
  * @param[in]   g_addr      The G address of RGB
  * @param[in]   b_addr      The B address of RGB
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_set_display_addr(uint32_t addr);
+void dvp_set_display_addr(uint32_t addr);
 
 /**
  * @brief       The frame start transfer
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_start_frame(void);
+void dvp_start_frame(void);
 
 /**
  * @brief       The DVP convert start
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
 void dvp_start_convert(void);
 
 /**
  * @brief       The DVP convert finish
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_finish_convert(void);
+void dvp_finish_convert(void);
 
 /**
  * @brief       Get the image data
  *
  * @note        The image data stored in the address of RGB
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_get_image(void);
+void dvp_get_image(void);
 
 /**
  * @brief       Use SCCB write register
@@ -208,12 +173,8 @@ int dvp_get_image(void);
  * @param[in]   dev_addr        The device address
  * @param[in]   reg_addr        The register address
  * @param[in]   reg_data        The register data
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int dvp_sccb_send_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
+void dvp_sccb_send_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data);
 
 /**
  * @brief       Use SCCB read register
