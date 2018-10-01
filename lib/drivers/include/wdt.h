@@ -131,7 +131,7 @@ void wdt_feed(wdt_device_number_t id);
  * @param[in]   time_out_ms        Wdt trigger time
  *
  */
-int wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq);
+void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq);
 
 /**
  * @brief       Stop wdt
