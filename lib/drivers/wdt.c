@@ -75,7 +75,7 @@ void wdt_clear_interrupt(wdt_device_number_t id)
     wdt[id]->eoi = wdt[id]->eoi;
 }
 
-int wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq)
+void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq)
 {
     wdt_disable(id);
     wdt_clear_interrupt(id);
@@ -90,7 +90,6 @@ int wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t 
     uint8_t m_top = wdt_get_top(id, time_out_ms);
     wdt_set_timeout(id, m_top);
     wdt_enable(id);
-    return 0;
 }
 
 void wdt_stop(wdt_device_number_t id)
