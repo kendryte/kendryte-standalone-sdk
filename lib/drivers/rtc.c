@@ -23,7 +23,7 @@ volatile rtc_t *const rtc = (volatile rtc_t *)RTC_BASE_ADDR;
 
 struct tm rtc_date_time;
 
-int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
+void rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
 {
     rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
 
@@ -47,7 +47,6 @@ int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
             break;
     }
     rtc->register_ctrl = register_ctrl;
-    return 0;
 }
 
 rtc_timer_mode_t rtc_timer_get_mode(void)
@@ -251,12 +250,12 @@ int rtc_timer_set_alarm_tm(const struct tm *tm)
     return 0;
 }
 
-int rtc_year_is_leap(int year)
+static int rtc_year_is_leap(int year)
 {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
-int rtc_get_yday(int year, int month, int day)
+static int rtc_get_yday(int year, int month, int day)
 {
     static const int days[2][13] =
     {
@@ -268,7 +267,7 @@ int rtc_get_yday(int year, int month, int day)
     return days[leap][month] + day;
 }
 
-int rtc_get_wday(int year, int month, int day)
+static int rtc_get_wday(int year, int month, int day)
 {
     /* Magic method to get weekday */
     int weekday  = (day += month < 3 ? year-- : year - 2, 23 * month / 9 + day + 4 + year / 4 - year / 100 + year / 400) % 7;
