@@ -184,8 +184,8 @@ void spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_f
  * @param[in]   instruction_address_trans_mode          Spi transfer mode
  *
  */
-int spi_config_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
-                           uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode);
+void spi_config_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
+                             uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode);
 
 /**
  * @brief       Spi send data
@@ -201,7 +201,8 @@ int spi_config_non_standard(spi_device_num_t spi_num, uint32_t instruction_lengt
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len);
+void spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff,
+                            size_t cmd_len, const uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi receive data
@@ -217,7 +218,8 @@ int spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_sele
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
+void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff,
+                               size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi special receive data
@@ -233,7 +235,8 @@ int spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_s
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
+void spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff,
+                               size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi special send data
@@ -249,7 +252,8 @@ int spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_s
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len);
+void spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff,
+                            size_t cmd_len, const uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi send data by dma
@@ -266,8 +270,9 @@ int spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_sele
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
-                        const uint8_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len);
+void spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num,
+                                spi_chip_select_t chip_select,
+                                const uint8_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi receive data by dma
@@ -285,8 +290,10 @@ int spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_num
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                            spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
+void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
+                                   dmac_channel_number_t dma_receive_channel_num,
+                                   spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff,
+                                   size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi special send data by dma
@@ -303,7 +310,8 @@ int spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num, dm
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, spi_chip_select_t chip_select,
+void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num,
+                                spi_chip_select_t chip_select,
                                 const uint32_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len);
 
 /**
@@ -322,8 +330,10 @@ int spi_send_data_multiple_dma(dmac_channel_number_t channel_num,spi_device_num_
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                                        spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff, size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
+void spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num,
+                                   dmac_channel_number_t dma_receive_channel_num,
+                                   spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff,
+                                   size_t cmd_len, uint8_t *rx_buff, size_t rx_len);
 
 /**
  * @brief       Spi fill dma
@@ -338,7 +348,8 @@ int spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num, dm
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_fill_data_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *tx_buff, size_t tx_len);
+void spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
+                       const uint32_t *tx_buff, size_t tx_len);
 
 /**
  * @brief       Spi normal send by dma
@@ -354,8 +365,9 @@ int spi_fill_data_dma(dmac_channel_number_t channel_num,spi_device_num_t spi_num
  *     - 0      Success
  *     - Other  Fail
  */
-int spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,
-                        const void *tx_buff, size_t tx_len, spi_transfer_width_t spi_transfer_width);
+void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num,
+                              spi_chip_select_t chip_select,
+                              const void *tx_buff, size_t tx_len, spi_transfer_width_t spi_transfer_width);
 
 /**
  * @brief       Spi normal send by dma
