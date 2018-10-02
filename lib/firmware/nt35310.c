@@ -37,22 +37,22 @@ void  init_dcx(void)
 {
     fpioa_set_function(DCX_IO, FUNC_GPIOHS0 + DCX_GPIONUM);/*dcx*/
     gpiohs_set_drive_mode(DCX_GPIONUM, GPIO_DM_OUTPUT);
-    gpiohs_set_pin(DCX_GPIONUM, GPIO_PV_High);
+    gpiohs_set_pin(DCX_GPIONUM, GPIO_PV_HIGH);
 #ifndef TEST2_0
     fpioa_set_function(RESET_IO, FUNC_GPIOHS0 + RESET_GPIONUM);/*reset*/
     gpiohs_set_drive_mode(RESET_GPIONUM, GPIO_DM_OUTPUT);
-    gpiohs_set_pin(RESET_GPIONUM, GPIO_PV_High);
+    gpiohs_set_pin(RESET_GPIONUM, GPIO_PV_HIGH);
 #endif
 }
 
 void set_dcx_control(void)
 {
-    gpiohs_set_pin(DCX_GPIONUM, GPIO_PV_Low);
+    gpiohs_set_pin(DCX_GPIONUM, GPIO_PV_LOW);
 }
 
 void set_dcx_data(void)
 {
-    gpiohs_set_pin(DCX_GPIONUM, GPIO_PV_High);
+    gpiohs_set_pin(DCX_GPIONUM, GPIO_PV_HIGH);
 }
 
 void pin_mux_init(void)

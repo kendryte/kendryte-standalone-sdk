@@ -37,8 +37,8 @@ typedef enum _gpio_pin_edge
 
 typedef enum _gpio_pin_value
 {
-    GPIO_PV_Low,
-    GPIO_PV_High
+    GPIO_PV_LOW,
+    GPIO_PV_HIGH
 } gpio_pin_value_t;
 
 #ifdef __cplusplus
