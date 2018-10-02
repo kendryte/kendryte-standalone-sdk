@@ -154,9 +154,9 @@ int i2c_recv_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
     return 0;
 }
 
-void i2c_receive_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                          i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len,
-                          uint8_t *receive_buf, size_t receive_buf_len)
+void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
+                       i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len,
+                       uint8_t *receive_buf, size_t receive_buf_len)
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
 

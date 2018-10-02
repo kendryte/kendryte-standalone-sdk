@@ -57,7 +57,7 @@ static int sd3068_read_reg(uint8_t reg, uint8_t *data_buf, uint8_t length)
 
 static int sd3068_read_reg_dma(uint8_t reg, uint8_t *data_buf, uint8_t length)
 {
-    i2c_receive_data_dma(DMAC_CHANNEL0, DMAC_CHANNEL1, i2c_bus_no, &reg, 1, data_buf, length);
+    i2c_recv_data_dma(DMAC_CHANNEL0, DMAC_CHANNEL1, i2c_bus_no, &reg, 1, data_buf, length);
     return 0;
 }
 
