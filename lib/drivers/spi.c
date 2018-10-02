@@ -58,7 +58,8 @@ static void spi_set_tmod(uint8_t spi_num, uint32_t tmod)
     set_bit(&spi_handle->ctrlr0, 3 << tmod_offset, tmod << tmod_offset);
 }
 
-void spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format, size_t data_bit_length)
+void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format,
+              size_t data_bit_length)
 {
     configASSERT(data_bit_length >= 4 && data_bit_length <= 32);
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -109,8 +110,8 @@ void spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_f
     spi_adapter->spi_ctrlr0 = 0;
 }
 
-void spi_config_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
-                             uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode)
+void spi_init_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
+                           uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode)
 {
     configASSERT(wait_cycles < (1 << 5));
     configASSERT(instruction_address_trans_mode < 3);

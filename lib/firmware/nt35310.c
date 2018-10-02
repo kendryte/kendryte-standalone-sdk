@@ -71,47 +71,52 @@ void tft_hard_init(void)
 {
     init_dcx();
     pin_mux_init();
-    spi_config(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 8);
+    spi_init(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 8);
 }
 
 void tft_write_command(uint8_t cmd)
 {
     set_dcx_control();
-    spi_config(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 8);
-    spi_config_non_standard(SPI_CHANNEL, 8/*instrction length*/, 0/*address length*/, 0/*wait cycles*/, SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
+    spi_init(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 8);
+    spi_init_non_standard(SPI_CHANNEL, 8/*instrction length*/, 0/*address length*/, 0/*wait cycles*/,
+                          SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
     spi_send_data_normal_dma(DMAC_CHANNEL0, SPI_CHANNEL, SPI_SLAVE_SELECT, (uint8_t *)(&cmd), 1,SPI_TRANS_CHAR);
 }
 
 void tft_write_byte(uint8_t *data_buf, uint32_t length)
 {
     set_dcx_data();
-    spi_config(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 8);
-    spi_config_non_standard(SPI_CHANNEL, 8/*instrction length*/, 0/*address length*/, 0/*wait cycles*/, SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
+    spi_init(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 8);
+    spi_init_non_standard(SPI_CHANNEL, 8/*instrction length*/, 0/*address length*/, 0/*wait cycles*/,
+                          SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
     spi_send_data_normal_dma(DMAC_CHANNEL0, SPI_CHANNEL, SPI_SLAVE_SELECT, data_buf, length, SPI_TRANS_CHAR);
 }
 
 void tft_write_half(uint16_t *data_buf, uint32_t length)
 {
     set_dcx_data();
-    spi_config(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 16);
-    spi_config_non_standard(SPI_CHANNEL, 16/*instrction length*/, 0/*address length*/, 0/*wait cycles*/, SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
+    spi_init(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 16);
+    spi_init_non_standard(SPI_CHANNEL, 16/*instrction length*/, 0/*address length*/, 0/*wait cycles*/,
+                          SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
     spi_send_data_normal_dma(DMAC_CHANNEL0, SPI_CHANNEL, SPI_SLAVE_SELECT,data_buf, length, SPI_TRANS_SHORT);
 }
 
 void tft_write_word(uint32_t *data_buf, uint32_t length, uint32_t flag)
 {
     set_dcx_data();
-    spi_config(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 32);
+    spi_init(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 32);
 
-    spi_config_non_standard(SPI_CHANNEL, 0/*instrction length*/, 32/*address length*/, 0/*wait cycles*/, SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
+    spi_init_non_standard(SPI_CHANNEL, 0/*instrction length*/, 32/*address length*/, 0/*wait cycles*/,
+                          SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
     spi_send_data_normal_dma(DMAC_CHANNEL0, SPI_CHANNEL, SPI_SLAVE_SELECT,data_buf, length, SPI_TRANS_INT);
 }
 
 void tft_fill_data(uint32_t *data_buf, uint32_t length)
 {
     set_dcx_data();
-    spi_config(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 32);
-    spi_config_non_standard(SPI_CHANNEL, 0/*instrction length*/, 32/*address length*/, 0/*wait cycles*/, SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
+    spi_init(SPI_CHANNEL, SPI_WORK_MODE_2, SPI_FF_OCTAL, 32);
+    spi_init_non_standard(SPI_CHANNEL, 0/*instrction length*/, 32/*address length*/, 0/*wait cycles*/,
+                          SPI_AITM_AS_FRAME_FORMAT/*spi address trans mode*/);
     spi_fill_data_dma(DMAC_CHANNEL0, SPI_CHANNEL, SPI_SLAVE_SELECT,data_buf, length);
 }
 

@@ -25,7 +25,7 @@ uint32_t i2c_bus_no = 0;
 void sd3068_init(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t address_width,i2c_bus_speed_mode_t bus_speed_mode)
 {
     i2c_bus_no = i2c_num;
-    i2c_config(i2c_num, slave_address, address_width, bus_speed_mode);
+    i2c_init(i2c_num, slave_address, address_width, bus_speed_mode);
 }
 
 static int sd3068_write_reg(uint8_t reg, uint8_t *data_buf, uint8_t length)
@@ -51,7 +51,7 @@ static int sd3068_write_reg_dma(uint8_t reg, uint8_t *data_buf, uint8_t length)
 
 static int sd3068_read_reg(uint8_t reg, uint8_t *data_buf, uint8_t length)
 {
-    i2c_receive_data(i2c_bus_no, &reg, 1, data_buf, length);
+    i2c_recv_data(i2c_bus_no, &reg, 1, data_buf, length);
     return 0;
 }
 

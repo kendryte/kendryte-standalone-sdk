@@ -172,7 +172,8 @@ extern volatile spi_t *const spi[4];
  *     - 0      Success
  *     - Other  Fail
  */
-void spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format, size_t data_bit_length);
+void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format,
+              size_t data_bit_length);
 
 /**
  * @brief       Set multiline configuration
@@ -184,8 +185,8 @@ void spi_config(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_f
  * @param[in]   instruction_address_trans_mode          Spi transfer mode
  *
  */
-void spi_config_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
-                             uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode);
+void spi_init_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
+                           uint32_t wait_cycles, spi_instruction_address_trans_mode_t instruction_address_trans_mode);
 
 /**
  * @brief       Spi send data
