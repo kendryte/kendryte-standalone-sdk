@@ -42,10 +42,13 @@ static inline uint64_t byteswap64(uint64_t x)
     return ((uint64_t)BYTESWAP(b) << 32) | (uint64_t)BYTESWAP(a);
 }
 
-void sha256_init(sha256_context_t *context)
+void sha256_init(sha256_context_t *context, size_t buf_len)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_SHA);
     sysctl_reset(SYSCTL_RESET_SHA);
+
+    sha256->sha_data_num = (uint32_t)((buf_len + SHA256_BLOCK_LEN + 8) / SHA256_BLOCK_LEN);
+
     sha256->sha_input_ctrl &= (~0x1);
     sha256->sha_status |= SHA256_BIG_ENDIAN;
     sha256->sha_status |= ENABLE_SHA;
@@ -55,14 +58,10 @@ void sha256_init(sha256_context_t *context)
 
 void sha256_update(sha256_context_t *context, const void *data_buf, size_t buf_len)
 {
-    configASSERT(buf_len <= UINT32_MAX);
-
     const uint8_t* data = data_buf;
     size_t buffer_bytes_left;
     size_t bytes_to_copy;
     uint32_t i;
-
-    sha256->sha_data_num = (uint32_t)((buf_len + SHA256_BLOCK_LEN + 8) / SHA256_BLOCK_LEN);
 
     while (buf_len)
     {
@@ -115,7 +114,7 @@ void sha256_final(sha256_context_t *context, uint8_t *output)
 void sha256_hard_calculate(const uint8_t *data, size_t data_len, uint8_t *output)
 {
     sha256_context_t sha;
-    sha256_init(&sha);
+    sha256_init(&sha, data_len);
     sha256_update(&sha, data, data_len);
     sha256_final(&sha, output);
 }

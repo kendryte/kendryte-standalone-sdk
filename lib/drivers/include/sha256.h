@@ -56,7 +56,7 @@ typedef struct _sha256_context
  * @param[in]   context SHA256 context object
  *
  */
-void sha256_init(sha256_context_t *context);
+void sha256_init(sha256_context_t *context, size_t buf_len);
 
 /**
  * @brief       Called repeatedly with chunks of the message to be hashed
