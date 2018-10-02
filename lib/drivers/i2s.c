@@ -169,7 +169,7 @@ static void i2s_master_configure(i2s_device_number_t device_num,
 
 }
 
-static static int i2s_set_rx_threshold(i2s_device_number_t device_num,
+static int i2s_set_rx_threshold(i2s_device_number_t device_num,
              i2s_fifo_threshold_t threshold,
              i2s_channel_num_t channel_num)
 {
@@ -379,7 +379,7 @@ int i2s_send_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num,
     return 0;
 }
 
-static void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t buf_len, dmac_channel_number_t channel_num)
+void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t buf_len, dmac_channel_number_t channel_num)
 {
     static uint8_t dmac_init_flag[6] = {0,0,0,0,0,0};
     if(dmac_init_flag[channel_num])
