@@ -23,32 +23,9 @@ volatile uarths_t *const uarths = (volatile uarths_t *)UARTHS_BASE_ADDR;
 
 static inline int uarths_putc(char c)
 {
-    /* Read core id */
-    unsigned long core_id = current_coreid();
-    /* Set print data reg */
-    volatile uint32_t *reg = (volatile uint32_t *)0x50440080UL;
-    /* Push data out */
-    if (core_id == 0)
-    {
-        /* Select core 0 data reg */
-        *reg = (0UL << 30) | c;
-    }
-    else
-    {
-        /* Select core 1 data reg */
-        *reg = (1UL << 30) | c;
-    }
-
-    /* Convert to DOS style (CRLF terminated) */
-    if (c == '\n')
-    {
-        while (uarths->txdata.full)
-            continue;
-        uarths->txdata.data = '\r';
-    }
     while (uarths->txdata.full)
         continue;
-    uarths->txdata.data = c;
+    uarths->txdata.data = (uint8_t)c;
 
     return 0;
 }
