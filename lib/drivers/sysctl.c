@@ -1769,26 +1769,37 @@ void sysctl_set_pll_frequency(uint64_t pll0, uint64_t pll1, uint64_t pll2)
 
 uint32_t sysctl_set_cpu_frequency(uint32_t frequency)
 {
+    /* 1. Change CPU CLK to XTAL */
     sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_IN0);
-    sysctl->pll0.pll_reset0 = 1;
 
+    /* 2. Disable PLL0 output */
+    sysctl->pll0.pll_out_en0 = 0;
+
+    /* 3. Turn off PLL0 */
+    sysctl->pll0.pll_pwrd0 = 0;
+
+    /* 4. Set PLL0 new value */
     uint32_t result = sysctl_pll_set_freq(SYSCTL_PLL0, SYSCTL_SOURCE_IN0, frequency * 2);
-    sysctl->pll0.pll_reset0 = 0;
-    while (1)
-    {
-        uint32_t lock = sysctl->pll_lock.pll_lock0 & 0x3;
-        if (lock == 0x3)
-        {
-            break;
-        }
-        else
-        {
-            sysctl->pll_lock.pll_slip_clear0 = 1;
-        }
-    }
 
+    /* 5. Power on PLL0 */
+    sysctl->pll0.pll_pwrd0 = 1;
+
+    /* 6. Reset PLL0 */
+    /* 6. Release Reset */
+    sysctl->pll0.pll_reset0 = 0;
+    sysctl->pll0.pll_reset0 = 1;
+    sysctl->pll0.pll_reset0 = 0;
+
+    /* 7. Get lock status, wait PLL0 stable */
+    while (sysctl_pll_is_lock(SYSCTL_PLL0) == 0)
+        sysctl_pll_clear_slip(SYSCTL_PLL0);
+
+    /* 8. Enable PLL0 output */
     sysctl->pll0.pll_out_en0 = 1;
+
+    /* 9. Change CPU CLK to PLL0 */
     sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_PLL0);
+
     return result;
 }
 
