@@ -221,7 +221,7 @@ void spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_nu
                                 DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, cmd_len + tx_len);
     spi_handle->ser = 1U << chip_select;
     dmac_wait_done(channel_num);
-    free((void*)buf);
+    free((void *)buf);
 
     while ((spi_handle->sr & 0x05) != 0x04)
         ;
@@ -263,7 +263,7 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
                                 DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, tx_len);
     spi_handle->ser = 1U << chip_select;
     dmac_wait_done(channel_num);
-    free((void*)buf);
+    free((void *)buf);
 
     while ((spi_handle->sr & 0x05) != 0x04)
         ;
@@ -459,7 +459,7 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
                                 DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, cmd_len + tx_len);
     spi_handle->ser = 1U << chip_select;
     dmac_wait_done(channel_num);
-    free((void*)buf);
+    free((void *)buf);
 
     while ((spi_handle->sr & 0x05) != 0x04)
         ;

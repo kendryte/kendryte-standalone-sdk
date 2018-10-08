@@ -58,7 +58,7 @@ void sha256_init(sha256_context_t *context, size_t buf_len)
 
 void sha256_update(sha256_context_t *context, const void *data_buf, size_t buf_len)
 {
-    const uint8_t* data = data_buf;
+    const uint8_t *data = data_buf;
     size_t buffer_bytes_left;
     size_t bytes_to_copy;
     uint32_t i;

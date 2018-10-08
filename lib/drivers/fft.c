@@ -59,9 +59,9 @@ void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_cha
     fft_init(point, direction, shift, 1, 0, 0);
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_FFT_RX_REQ);
     sysctl_dma_select(dma_send_channel_num, SYSCTL_DMA_SELECT_FFT_TX_REQ);
-    dmac_set_single_mode(dma_receive_channel_num, (void*)(&fft->fft_output_fifo), output, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(dma_receive_channel_num, (void *)(&fft->fft_output_fifo), output, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num>>1);
-    dmac_set_single_mode(dma_send_channel_num, input, (void*)(&fft->fft_input_fifo), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
+    dmac_set_single_mode(dma_send_channel_num, input, (void *)(&fft->fft_input_fifo), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
         DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num>>1);
     dmac_wait_done(dma_receive_channel_num);
 }

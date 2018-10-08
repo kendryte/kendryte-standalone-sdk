@@ -130,7 +130,7 @@ int clint_timer_set_single_shot(int single_shot)
     return 0;
 }
 
-int clint_timer_register(clint_timer_callback_t callback, void* ctx)
+int clint_timer_register(clint_timer_callback_t callback, void *ctx)
 {
     /* Read core id */
     unsigned long core_id = current_coreid();
@@ -200,7 +200,7 @@ int clint_ipi_clear(size_t core_id)
     return 0;
 }
 
-int clint_ipi_register(clint_ipi_callback_t callback, void* ctx)
+int clint_ipi_register(clint_ipi_callback_t callback, void *ctx)
 {
     /* Read core id */
     unsigned long core_id = current_coreid();

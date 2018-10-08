@@ -33,7 +33,7 @@ static void aes_write_text(uint32_t text_data)
     aes->aes_text_data = text_data;
 }
 
-static void gcm_write_tag(uint32_t* tag)
+static void gcm_write_tag(uint32_t *tag)
 {
     aes->gcm_in_tag[0] = tag[3];
     aes->gcm_in_tag[1] = tag[2];

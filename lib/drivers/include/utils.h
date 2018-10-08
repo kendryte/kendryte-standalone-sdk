@@ -297,7 +297,7 @@ extern "C" {
  * @param[in]   mask        mask value
  * @param[in]   value       The value to set
  */
-void set_bit(volatile uint32_t* bits, uint32_t mask, uint32_t value);
+void set_bit(volatile uint32_t *bits, uint32_t mask, uint32_t value);
 
 /**
  * @brief       Set value by mask
@@ -307,7 +307,7 @@ void set_bit(volatile uint32_t* bits, uint32_t mask, uint32_t value);
  * @param[in]   offset      Mask's offset
  * @param[in]   value       The value to set
  */
-void set_bit_offset(volatile uint32_t* bits, uint32_t mask, size_t offset, uint32_t value);
+void set_bit_offset(volatile uint32_t *bits, uint32_t mask, size_t offset, uint32_t value);
 
 /**
  * @brief       Set bit for gpio, only set one bit
@@ -316,7 +316,7 @@ void set_bit_offset(volatile uint32_t* bits, uint32_t mask, size_t offset, uint3
  * @param[in]   idx         Offset value
  * @param[in]   value       The value to set
  */
-void set_gpio_bit(volatile uint32_t* bits, size_t idx, uint32_t value);
+void set_gpio_bit(volatile uint32_t *bits, size_t idx, uint32_t value);
 
 /**
  * @brief      Get bits value of mask
@@ -327,7 +327,7 @@ void set_gpio_bit(volatile uint32_t* bits, size_t idx, uint32_t value);
  *
  * @return      The bits value of mask
  */
-uint32_t get_bit(volatile uint32_t* bits, uint32_t mask, size_t offset);
+uint32_t get_bit(volatile uint32_t *bits, uint32_t mask, size_t offset);
 
 /**
  * @brief       Get a bit value by offset
@@ -338,7 +338,7 @@ uint32_t get_bit(volatile uint32_t* bits, uint32_t mask, size_t offset);
  *
  * @return      The bit value
  */
-uint32_t get_gpio_bit(volatile uint32_t* bits, size_t offset);
+uint32_t get_gpio_bit(volatile uint32_t *bits, size_t offset);
 
 #ifdef __cplusplus
 }

@@ -64,7 +64,7 @@ gpio_pin_value_t gpio_get_pin(uint8_t pin)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     uint32_t dir = get_gpio_bit(gpio->direction.u32, pin);
-    volatile uint32_t* reg = dir ? gpio->data_output.u32 : gpio->data_input.u32;
+    volatile uint32_t *reg = dir ? gpio->data_output.u32 : gpio->data_input.u32;
     return get_gpio_bit(reg, pin);
 }
 
@@ -72,7 +72,7 @@ void gpio_set_pin(uint8_t pin, gpio_pin_value_t value)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
     uint32_t dir = get_gpio_bit(gpio->direction.u32, pin);
-    volatile uint32_t* reg = dir ? gpio->data_output.u32 : gpio->data_input.u32;
+    volatile uint32_t *reg = dir ? gpio->data_output.u32 : gpio->data_input.u32;
     configASSERT(dir == 1);
     set_gpio_bit(reg, pin, value);
 }

@@ -134,12 +134,12 @@ extern volatile clint_t* const clint;
 /**
  * @brief       Definitions for the timer callbacks
  */
-typedef int (*clint_timer_callback_t)(void* ctx);
+typedef int (*clint_timer_callback_t)(void *ctx);
 
 /**
  * @brief       Definitions for local interprocessor interrupt callbacks
  */
-typedef int (*clint_ipi_callback_t)(void* ctx);
+typedef int (*clint_ipi_callback_t)(void *ctx);
 
 typedef struct _clint_timer_instance
 {
@@ -147,13 +147,13 @@ typedef struct _clint_timer_instance
     uint64_t cycles;
     uint64_t single_shot;
     clint_timer_callback_t callback;
-    void* ctx;
+    void *ctx;
 } clint_timer_instance_t;
 
 typedef struct _clint_ipi_instance
 {
     clint_ipi_callback_t callback;
-    void* ctx;
+    void *ctx;
 } clint_ipi_instance_t;
 
 /**
@@ -248,7 +248,7 @@ int clint_timer_set_single_shot(int single_shot);
  *     - 0      Success
  *     - Other  Fail
  */
-int clint_timer_register(clint_timer_callback_t callback, void* ctx);
+int clint_timer_register(clint_timer_callback_t callback, void *ctx);
 
 /**
  * @brief       Deregister user callback function
@@ -319,7 +319,7 @@ int clint_ipi_clear(size_t core_id);
  *     - 0      Success
  *     - Other  Fail
  */
-int clint_ipi_register(clint_ipi_callback_t callback, void* ctx);
+int clint_ipi_register(clint_ipi_callback_t callback, void *ctx);
 
 /**
  * @brief       Deregister user callback function

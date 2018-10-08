@@ -198,7 +198,7 @@ static ssize_t sys_write(int file, const void *ptr, size_t len)
     /**
      * Write to a file.
      *
-     * ssize_t write(int file, const void* ptr, size_t len)
+     * ssize_t write(int file, const void *ptr, size_t len)
      *
      * IN : regs[10] = file, regs[11] = ptr, regs[12] = len
      * OUT: regs[10] = len
@@ -286,7 +286,7 @@ static int sys_gettimeofday(struct timeval *tp, void *tzp)
     /**
      * Get the current time.  Only relatively correct.
      *
-     * int gettimeofday(struct timeval* tp, void* tzp)
+     * int gettimeofday(struct timeval *tp, void *tzp)
      *
      * IN : regs[10] = tp
      * OUT: regs[10] = Upon successful completion, 0 shall be

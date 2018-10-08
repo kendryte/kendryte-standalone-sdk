@@ -112,7 +112,7 @@ typedef struct _aes_param
     size_t input_key_len;
     uint8_t *iv;
     uint8_t iv_len;
-    uint8_t* gcm_add;
+    uint8_t *gcm_add;
     size_t gcm_add_len;
     aes_cipher_mode_t cipher_mode;
     uint8_t *output_data;
