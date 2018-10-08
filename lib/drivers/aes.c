@@ -12,18 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <sysctl.h>
-#include <aes.h>
+#include <stdlib.h>
+#include "sysctl.h"
+#include "aes.h"
+#include "utils.h"
 
-volatile aes_t* const aes = (volatile aes_t*)AES_BASE_ADDR;
+volatile aes_t *const aes = (volatile aes_t *)AES_BASE_ADDR;
 
-void aes_clk_init()
+static void aes_clk_init()
 {
     sysctl_clock_enable(SYSCTL_CLOCK_AES);
     sysctl_reset(SYSCTL_RESET_AES);
 }
 
-static void aes_write_add(uint32_t aad_data)
+static void aes_write_aad(uint32_t aad_data)
 {
     aes->aes_aad_data = aad_data;
 }
@@ -121,9 +123,15 @@ static uint32_t gcm_check_tag(uint32_t *gcm_tag)
 }
 
 static void aes_init(uint8_t *input_key, size_t input_key_len, uint8_t *iv,
-    size_t iv_len, uint8_t *gcm_add, aes_cipher_mode_t cipher_mode,
-    aes_encrypt_sel_t encrypt_sel, size_t gcm_add_len, size_t input_data_len)
+    size_t iv_len, uint8_t *gcm_aad, aes_cipher_mode_t cipher_mode,
+    aes_encrypt_sel_t encrypt_sel, size_t gcm_aad_len, size_t input_data_len)
 {
+    configASSERT(input_key_len == AES_128 || input_key_len == AES_192 || input_key_len == AES_256);
+    if (cipher_mode == AES_CBC)
+        configASSERT(iv_len == 16);
+    if (cipher_mode == AES_GCM)
+        configASSERT(iv_len == 12);
+
     size_t remainder, uint32_num, uint8_num, i;
     uint32_t uint32_data;
     uint8_t uint8_data[4] = {0};
@@ -136,102 +144,57 @@ static void aes_init(uint8_t *input_key, size_t input_key_len, uint8_t *iv,
     for (i = 0; i < uint32_num; i++)
     {
         if (i < 4)
-            aes->aes_key[i] = *((uint32_t*)(&input_key[input_key_len - (4 * i) - 4]));
+            aes->aes_key[i] = *((uint32_t *)(&input_key[input_key_len - (4 * i) - 4]));
         else
-            aes->aes_key_ext[i - 4] = *((uint32_t*)(&input_key[input_key_len - (4 * i) - 4]));
+            aes->aes_key_ext[i - 4] = *((uint32_t *)(&input_key[input_key_len - (4 * i) - 4]));
     }
-    remainder = input_key_len % 4;
-    if (remainder)
-    {
-        switch (remainder)
-        {
-            case 1:
-                uint8_data[0] = input_key[0];
-                break;
-            case 2:
-                uint8_data[0] = input_key[0];
-                uint8_data[1] = input_key[1];
-                break;
-            case 3:
-                uint8_data[0] = input_key[0];
-                uint8_data[1] = input_key[1];
-                uint8_data[2] = input_key[2];
-                break;
-            default:
-                break;
-        }
-        if (uint32_num < 4)
-            aes->aes_key[uint32_num] = *((uint32_t*)(&uint8_data[0]));
-        else
-            aes->aes_key_ext[uint32_num - 4] = *((uint32_t*)(&uint8_data[0]));
-    }
+
     uint32_num = iv_len / 4;
     for (i = 0; i < uint32_num; i++)
-        aes->aes_iv[i] = *((uint32_t*)(&iv[iv_len - (4 * i) - 4]));
-    remainder = iv_len % 4;
-    if (remainder)
-    {
-        switch (remainder)
-        {
-            case 1:
-                uint8_data[0] = iv[0];
-                break;
-            case 2:
-                uint8_data[0] = iv[0];
-                uint8_data[1] = iv[1];
-                break;
-            case 3:
-                uint8_data[0] = iv[0];
-                uint8_data[1] = iv[1];
-                uint8_data[2] = iv[2];
-                break;
-            default:
-                break;
-        }
-        aes->aes_iv[uint32_num] = *((uint32_t*)(&uint8_data[0]));
-    }
-    aes->mode_ctl.kmode = input_key_len / 8 - 2; /* 00:AES_128 01:AES_192 10:AES_256 11:RESERVED */
+        aes->aes_iv[i] = *((uint32_t *)(&iv[iv_len - (4 * i) - 4]));
+
+    aes->mode_ctl.kmode = input_key_len / 8 - 2; /* b'00:AES_128 b'01:AES_192 b'10:AES_256 b'11:RESERVED */
     aes->mode_ctl.cipher_mode = cipher_mode;
     aes->encrypt_sel = encrypt_sel;
-    aes->gb_aad_end_adr = gcm_add_len - 1;
-    aes->gb_pc_end_adr = padding_len - 1;
+    aes->gb_aad_num = gcm_aad_len - 1;
+    aes->gb_pc_num = padding_len - 1;
     aes->gb_aes_en |= 1;
 
     if (cipher_mode == AES_GCM)
     {
-        uint32_num = gcm_add_len / 4;
+        uint32_num = gcm_aad_len / 4;
         for (i = 0; i < uint32_num; i++)
         {
-            uint32_data = *((uint32_t*)(&gcm_add[i * 4]));
+            uint32_data = *((uint32_t *)(&gcm_aad[i * 4]));
             while (!aes_get_data_in_flag())
                 ;
-            aes_write_add(uint32_data);
+            aes_write_aad(uint32_data);
         }
         uint8_num = 4 * uint32_num;
-        remainder = gcm_add_len % 4;
+        remainder = gcm_aad_len % 4;
         if (remainder)
         {
             switch (remainder)
             {
             case 1:
-                uint8_data[0] = gcm_add[uint8_num];
+                uint8_data[0] = gcm_aad[uint8_num];
                 break;
             case 2:
-                uint8_data[0] = gcm_add[uint8_num];
-                uint8_data[1] = gcm_add[uint8_num + 1];
+                uint8_data[0] = gcm_aad[uint8_num];
+                uint8_data[1] = gcm_aad[uint8_num + 1];
                 break;
             case 3:
-                uint8_data[0] = gcm_add[uint8_num];
-                uint8_data[1] = gcm_add[uint8_num + 1];
-                uint8_data[2] = gcm_add[uint8_num + 2];
+                uint8_data[0] = gcm_aad[uint8_num];
+                uint8_data[1] = gcm_aad[uint8_num + 1];
+                uint8_data[2] = gcm_aad[uint8_num + 2];
                 break;
             default:
                 break;
             }
-            uint32_data = *((uint32_t*)(&uint8_data[0]));
+            uint32_data = *((uint32_t *)(&uint8_data[0]));
             while (!aes_get_data_in_flag())
                 ;
-            aes_write_add(uint32_data);
+            aes_write_aad(uint32_data);
         }
     }
 }
@@ -246,7 +209,7 @@ static void process_less_80_bytes(uint8_t *input_data, uint8_t *output_data, siz
     uint32_num = input_data_len / 4;
     for (i = 0; i < uint32_num; i++)
     {
-        uint32_data = *((uint32_t*)(&input_data[i * 4]));
+        uint32_data = *((uint32_t *)(&input_data[i * 4]));
         while (!aes_get_data_in_flag())
             ;
         aes_write_text(uint32_data);
@@ -272,7 +235,7 @@ static void process_less_80_bytes(uint8_t *input_data, uint8_t *output_data, siz
             default:
                 break;
         }
-        uint32_data = *((uint32_t*)(&uint8_data[0]));
+        uint32_data = *((uint32_t *)(&uint8_data[0]));
         while (!aes_get_data_in_flag())
             ;
         aes_write_text(uint32_data);
@@ -292,13 +255,13 @@ static void process_less_80_bytes(uint8_t *input_data, uint8_t *output_data, siz
     {
         while (!aes_get_data_out_flag())
             ;
-        *((uint32_t*)(&output_data[i * 4])) = aes_read_out_data();
+        *((uint32_t *)(&output_data[i * 4])) = aes_read_out_data();
     }
     if ((cipher_mode == AES_GCM) && (remainder))
     {
         while (!aes_get_data_out_flag())
             ;
-        *((uint32_t*)(&uint8_data[0])) = aes_read_out_data();
+        *((uint32_t *)(&uint8_data[0])) = aes_read_out_data();
         switch (remainder)
         {
             case 1:
@@ -341,8 +304,8 @@ void aes_hard_decrypt(aes_param_t *param)
     {
         padding_len = ((padding_len + 15) / 16) * 16;
     }
-    aes_init(param->input_key, param->input_key_len, param->iv, param->iv_len, param->gcm_add,
-        param->cipher_mode, AES_HARD_DECRYPTION, param->gcm_add_len, param->input_data_len);
+    aes_init(param->input_key, param->input_key_len, param->iv, param->iv_len, param->gcm_aad,
+        param->cipher_mode, AES_HARD_DECRYPTION, param->gcm_aad_len, param->input_data_len);
     aes_process(param->input_data, param->output_data, padding_len, param->cipher_mode);
     if (param->cipher_mode == AES_GCM)
     {
@@ -353,8 +316,8 @@ void aes_hard_decrypt(aes_param_t *param)
 
 void aes_hard_encrypt(aes_param_t *param)
 {
-    aes_init(param->input_key, param->input_key_len, param->iv, param->iv_len, param->gcm_add,
-        param->cipher_mode, AES_HARD_ENCRYPTION, param->gcm_add_len, param->input_data_len);
+    aes_init(param->input_key, param->input_key_len, param->iv, param->iv_len, param->gcm_aad,
+        param->cipher_mode, AES_HARD_ENCRYPTION, param->gcm_aad_len, param->input_data_len);
     aes_process(param->input_data, param->output_data, param->input_data_len, param->cipher_mode);
     if (param->cipher_mode == AES_GCM)
     {

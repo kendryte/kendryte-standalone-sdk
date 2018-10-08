@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 #include <stddef.h>
-#include <dmac.h>
-#include <utils.h>
-#include <sysctl.h>
-#include <fft.h>
+#include "dmac.h"
+#include "utils.h"
+#include "sysctl.h"
+#include "fft.h"
 
 static volatile fft_t *const fft = (volatile fft_t *)FFT_BASE_ADDR;
 
 static void fft_init(uint8_t point, uint8_t mode, uint16_t shift, uint8_t is_dma, uint8_t input_mode, uint8_t data_mode)
 {
-    fft->fft_ctrl.fft_point = point; /* 0:512, 1:256, 2:128, 3:64 */
-    fft->fft_ctrl.fft_mode = mode;   /* 1: fft, 0: ifft */
+    fft->fft_ctrl.fft_point = point;
+    fft->fft_ctrl.fft_mode = mode;
     fft->fft_ctrl.fft_shift = shift;
     fft->fft_ctrl.dma_send = is_dma;
     fft->fft_ctrl.fft_enable = 1;

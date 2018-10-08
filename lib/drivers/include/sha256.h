@@ -21,28 +21,62 @@
 extern "C" {
 #endif
 
-#define ENABLE_SHA          1
-#define SHA256_BIG_ENDIAN   (0x1 << 16)
+#define ENABLE_SHA          (0x1)
+#define SHA256_BIG_ENDIAN   (0x1)
 
 #define SHA256_HASH_LEN    32
 #define SHA256_HASH_WORDS   8
-#define SHA256_BLOCK_LEN   64L
+#define SHA256_BLOCK_LEN   64LL
+
+typedef struct _sha_num_reg
+{
+    /* The total amount of data calculated by SHA256 is set by this register, and the smallest unit is 512bit. */
+    uint32_t sha_data_cnt : 16;
+    /* currently calculated block number. 512bit=1block*/
+    uint32_t sha_data_num : 16;
+} __attribute__((packed, aligned(4))) sha_num_reg_t;
+
+typedef struct _sha_function_reg_0
+{
+    /* write:SHA256 enable register. read:Calculation completed flag  */
+    uint32_t sha_en : 1;
+    uint32_t reserved00 : 7;
+    /* SHA256 calculation overflow flag */
+    uint32_t sha_overflow : 1;
+    uint32_t reserved01 : 7;
+    /* Endian setting; b'0:little endian b'1:big endian */
+    uint32_t sha_endian : 1;
+    uint32_t reserved02 : 15;
+} __attribute__((packed, aligned(4))) sha_function_reg_0_t;
+
+typedef struct _sha_function_reg_1
+{
+    /* Sha and DMA handshake signals enable.b'1:enable;b'0:disable */
+    uint32_t dma_en : 1;
+    uint32_t reserved10 : 7;
+    /* b'1:sha256 fifo is full; b'0:not full */
+    uint32_t fifo_in_full : 1;
+    uint32_t reserved11 : 23;
+} __attribute__((packed, aligned(4))) sha_function_reg_1_t;
 
 typedef struct _sha256
 {
+    /* Calculated sha256 return value. */
     uint32_t sha_result[8];
+    /* SHA256 input data from this register. */
     uint32_t sha_data_in1;
-    uint32_t sha_data_in2;
-    uint32_t sha_data_num;
-    uint32_t sha_status;
-    uint32_t reserved0;
-    uint32_t sha_input_ctrl;
+    uint32_t reselved0;
+    sha_num_reg_t sha_num_reg;
+    /*  */
+    sha_function_reg_0_t sha_function_reg_0;
+    uint32_t reserved1;
+    sha_function_reg_1_t sha_function_reg_1;
 } __attribute__((packed, aligned(4))) sha256_t;
 
 typedef struct _sha256_context
 {
-    size_t total_length;
-    size_t buffer_length;
+    size_t total_len;
+    size_t buffer_len;
     union
     {
         uint32_t words[16];
@@ -56,7 +90,7 @@ typedef struct _sha256_context
  * @param[in]   context SHA256 context object
  *
  */
-void sha256_init(sha256_context_t *context, size_t buf_len);
+void sha256_init(sha256_context_t *context, size_t input_len);
 
 /**
  * @brief       Called repeatedly with chunks of the message to be hashed
@@ -66,7 +100,7 @@ void sha256_init(sha256_context_t *context, size_t buf_len);
  * @param[in]   buf_len    length of data chunk
  *
  */
-void sha256_update(sha256_context_t *context, const void *data_buf, size_t buf_len);
+void sha256_update(sha256_context_t *context, const void *input, size_t input_len);
 
 /**
  * @brief       Finish SHA256 hash process, output the result.
@@ -85,7 +119,7 @@ void sha256_final(sha256_context_t *context, uint8_t *output);
  * @param[out]  output    Output buffer
  *
  */
-void sha256_hard_calculate(const uint8_t *data, size_t data_len, uint8_t *output);
+void sha256_hard_calculate(const uint8_t *input, size_t input_len, uint8_t *output);
 
 #ifdef __cplusplus
 }
