@@ -26,7 +26,7 @@ extern "C" {
 
 #define SHA256_HASH_LEN    32
 #define SHA256_HASH_WORDS   8
-#define SHA256_BLOCK_LEN   64LL
+#define SHA256_BLOCK_LEN   64L
 
 typedef struct _sha_num_reg
 {

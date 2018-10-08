@@ -51,8 +51,8 @@ void sha256_init(sha256_context_t *context, size_t input_len)
     sha256->sha_function_reg_1.dma_en = 0x0;
     sha256->sha_function_reg_0.sha_endian = SHA256_BIG_ENDIAN;
     sha256->sha_function_reg_0.sha_en = ENABLE_SHA;
-    context->total_len = 0LL;
-    context->buffer_len = 0LL;
+    context->total_len = 0L;
+    context->buffer_len = 0L;
 }
 
 void sha256_update(sha256_context_t *context, const void *input, size_t input_len)
@@ -69,7 +69,7 @@ void sha256_update(sha256_context_t *context, const void *input, size_t input_le
         if (bytes_to_copy > input_len)
             bytes_to_copy = input_len;
         memcpy(&context->buffer.bytes[context->buffer_len], data, bytes_to_copy);
-        context->total_len += bytes_to_copy * 8LL;
+        context->total_len += bytes_to_copy * 8L;
         context->buffer_len += bytes_to_copy;
         data += bytes_to_copy;
         input_len -= bytes_to_copy;
@@ -81,7 +81,7 @@ void sha256_update(sha256_context_t *context, const void *input, size_t input_le
                     ;
                 sha256->sha_data_in1 = context->buffer.words[i];
             }
-            context->buffer_len = 0LL;
+            context->buffer_len = 0L;
         }
     }
 }
@@ -92,12 +92,12 @@ void sha256_final(sha256_context_t *context, uint8_t *output)
     size_t length_pad;
     uint32_t i;
 
-    bytes_to_pad = 120LL - context->buffer_len;
-    if (bytes_to_pad > 64LL)
-        bytes_to_pad -= 64LL;
+    bytes_to_pad = 120L - context->buffer_len;
+    if (bytes_to_pad > 64L)
+        bytes_to_pad -= 64L;
     length_pad = BYTESWAP64(context->total_len);
     sha256_update(context, padding, bytes_to_pad);
-    sha256_update(context, &length_pad, 8LL);
+    sha256_update(context, &length_pad, 8L);
     while (!(sha256->sha_function_reg_0.sha_en))
         ;
     if (output)
