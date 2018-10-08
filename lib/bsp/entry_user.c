@@ -25,10 +25,6 @@
 #include "syslog.h"
 #include "uarths.h"
 
-#define PLL0_OUTPUT_FREQ 320000000UL
-#define PLL1_OUTPUT_FREQ 160000000UL
-#define PLL2_OUTPUT_FREQ 45158400UL
-
 volatile char * const ram = (volatile char*)RAM_BASE_ADDR;
 
 extern char _heap_start[];
@@ -63,20 +59,12 @@ void _init_bsp(int core_id, int number_of_cores)
 
     if (core_id == 0)
     {
-        /* Copy lma data to memory */
-        init_lma();
         /* Initialize bss data to 0 */
         init_bss();
         /* Init FPIOA */
-        fpioa_init();
-        /* PLL init */
-        sysctl_set_pll_frequency(PLL0_OUTPUT_FREQ, PLL1_OUTPUT_FREQ, PLL2_OUTPUT_FREQ);
+//        fpioa_init();
         /* Init UART */
         uarths_init();
-        /* Dmac init */
-        dmac_init();
-        /* Plic init */
-        plic_init();
         /* Register finalization function */
         atexit(__libc_fini_array);
         /* Init libc array for C++ */
