@@ -1283,6 +1283,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
          */
         case SYSCTL_CLOCK_IN0:
             source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
+            result = source;
             break;
 
         /*
