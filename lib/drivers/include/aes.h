@@ -36,6 +36,12 @@ typedef enum _aes_kmode
     AES_256 = 32,
 } aes_kmode_t;
 
+typedef enum _aes_iv_len
+{
+    IV_LEN_96 = 12,
+    IV_LEN_128 = 16,
+} aes_iv_len_t;
+
 typedef enum _aes_encrypt_sel
 {
     AES_HARD_ENCRYPTION = 0,
@@ -68,7 +74,7 @@ typedef struct _aes
     uint32_t encrypt_sel;
     /* (0x14) aes mode reg */
     aes_mode_ctl_t mode_ctl;
-    /* (0x18) Initialisation Vector */
+    /* (0x18) Initialisation Vector. GCM support 96bit. CBC support 128bit */
     uint32_t aes_iv[4];
     /* (0x28) input data endian;1:little endian; 0:big endian */
     uint32_t aes_endian;
@@ -109,23 +115,294 @@ typedef struct _aes
     uint32_t aes_key_ext[4];
 } __attribute__((packed, aligned(4))) aes_t;
 
-typedef struct _aes_param
+typedef struct _gcm_context
 {
-    uint8_t *input_data;
-    size_t input_data_len;
+    /* The buffer holding the encryption or decryption key. */
     uint8_t *input_key;
-    size_t input_key_len;
+    /* The initialization vector. must be 96 bit */
     uint8_t *iv;
-    uint8_t iv_len;
+    /* The buffer holding the Additional authenticated data. or NULL */
     uint8_t *gcm_aad;
+    /* The length of the Additional authenticated data. or 0L */
     size_t gcm_aad_len;
-    aes_cipher_mode_t cipher_mode;
-    uint8_t *output_data;
-    uint8_t *gcm_tag;
-} aes_param_t;
+} gcm_context_t;
 
-void aes_hard_decrypt(aes_param_t *param);
-void aes_hard_encrypt(aes_param_t *param);
+typedef struct _cbc_context
+{
+    /* The buffer holding the encryption or decryption key. */
+    uint8_t *input_key;
+    /* The initialization vector. must be 128 bit */
+    uint8_t *iv;
+} cbc_context_t;
+
+/**
+ * @brief       AES-ECB-128 decryption
+ *
+ * @param[in]   input_key       The decryption key. must be 16bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_ecb128_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-128 encryption
+ *
+ * @param[in]   input_key       The encryption key. must be 16bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_ecb128_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-192 decryption
+ *
+ * @param[in]   input_key       The decryption key. must be 24bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_ecb192_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-192 encryption
+ *
+ * @param[in]   input_key       The encryption key. must be 24bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_ecb192_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-256 decryption
+ *
+ * @param[in]   input_key       The decryption key. must be 32bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_ecb256_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-256 encryption
+ *
+ * @param[in]   input_key       The encryption key. must be 32bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_ecb256_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-128 decryption
+ *
+ * @param[in]   context         The cbc context to use for encryption or decryption.
+ * @param[in]   input_key       The decryption key. must be 16bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_cbc128_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-128 encryption
+ *
+ * @param[in]   context         The cbc context to use for encryption or decryption.
+ * @param[in]   input_key       The encryption key. must be 16bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_cbc128_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-192 decryption
+ *
+ * @param[in]   context         The cbc context to use for encryption or decryption.
+ * @param[in]   input_key       The decryption key. must be 24bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_cbc192_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-192 encryption
+ *
+ * @param[in]   context         The cbc context to use for encryption or decryption.
+ * @param[in]   input_key       The encryption key. must be 24bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_cbc192_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-256 decryption
+ *
+ * @param[in]   context         The cbc context to use for encryption or decryption.
+ * @param[in]   input_key       The decryption key. must be 32bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_cbc256_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-256 encryption
+ *
+ * @param[in]   context         The cbc context to use for encryption or decryption.
+ * @param[in]   input_key       The encryption key. must be 32bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ */
+void aes_cbc256_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
+
+/**
+ * @brief       AES-GCM-128 decryption
+ *
+ * @param[in]   context         The gcm context to use for encryption or decryption.
+ * @param[in]   input_key       The decryption key. must be 16bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ * @param[out]  gcm_tag         The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm128_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-128 encryption
+ *
+ * @param[in]   context         The gcm context to use for encryption or decryption.
+ * @param[in]   input_key       The encryption key. must be 16bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ * @param[out]  gcm_tag         The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm128_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-192 decryption
+ *
+ * @param[in]   context         The gcm context to use for encryption or decryption.
+ * @param[in]   input_key       The decryption key. must be 24bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ * @param[out]  gcm_tag         The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm192_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-192 encryption
+ *
+ * @param[in]   context         The gcm context to use for encryption or decryption.
+ * @param[in]   input_key       The encryption key. must be 24bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ * @param[out]  gcm_tag         The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm192_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-256 decryption
+ *
+ * @param[in]   context         The gcm context to use for encryption or decryption.
+ * @param[in]   input_key       The decryption key. must be 32bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ * @param[out]  gcm_tag         The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm256_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-256 encryption
+ *
+ * @param[in]   context         The gcm context to use for encryption or decryption.
+ * @param[in]   input_key       The encryption key. must be 32bytes.
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[in]   input_len       The length of a data unit in bytes.
+ *                              This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                              (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data     The buffer holding the output data.
+ * @param[out]  gcm_tag         The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm256_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag);
+
+/**
+ * @brief       This function initializes the AES hard module.
+ *
+ * @param[in]   input_key       The buffer holding the encryption or decryption key.
+ * @param[in]   input_key_len   The length of the input_key.must be 16bytes || 24bytes || 32bytes.
+ * @param[in]   iv              The initialization vector.
+ * @param[in]   iv_len          The length of the iv.GCM must be 12bytes. CBC must be 16bytes. ECB set 0L.
+ * @param[in]   gcm_aad         The buffer holding the Additional authenticated data. or NULL
+ * @param[in]   cipher_mode     Cipher Modes.must be AES_CBC || AES_ECB || AES_GCM.
+ *                              Other cipher modes, please look forward to the next generation of kendryte.
+ * @param[in]   encrypt_sel     The operation to perform:encryption or decryption.
+ * @param[in]   gcm_aad_len     The length of the gcm_aad.
+ * @param[in]   input_data_len  The length of the input_data.
+ */
+void aes_init(uint8_t *input_key, size_t input_key_len, uint8_t *iv,size_t iv_len, uint8_t *gcm_aad,
+                aes_cipher_mode_t cipher_mode, aes_encrypt_sel_t encrypt_sel, size_t gcm_aad_len, size_t input_data_len);
+
+/**
+ * @brief       This function feeds an input buffer into an encryption or decryption operation.
+ *
+ * @param[in]   input_data      The buffer holding the input data.
+ * @param[out]  output_data     The buffer holding the output data.
+ * @param[in]   input_data_len  The length of the input_data.
+ * @param[in]   cipher_mode     Cipher Modes.must be AES_CBC || AES_ECB || AES_GCM.
+ *                              Other cipher modes, please look forward to the next generation of kendryte.
+ */
+void aes_process(uint8_t *input_data, uint8_t *output_data, size_t input_data_len, aes_cipher_mode_t cipher_mode);
+
+/**
+ * @brief       This function get the gcm tag to verify.
+ *
+ * @param[out]  gcm_tag         The buffer holding the gcm tag.The length of the tag must be 16bytes.
+ */
+void gcm_get_tag(uint8_t *gcm_tag);
 
 #ifdef __cplusplus
 }

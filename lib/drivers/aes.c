@@ -68,7 +68,31 @@ static uint32_t gcm_get_tag_chk(void)
     return aes->tag_chk;
 }
 
-static void gcm_get_tag(uint8_t *gcm_tag)
+static void gcm_clear_chk_tag(void)
+{
+    aes->tag_clear = 0;
+}
+
+static uint32_t gcm_check_tag(uint32_t *gcm_tag)
+{
+    while (!gcm_get_tag_in_flag())
+        ;
+    gcm_write_tag(gcm_tag);
+    while (!gcm_get_tag_chk())
+        ;
+    if (gcm_get_tag_chk() == 0x2)
+    {
+        gcm_clear_chk_tag();
+        return 1;
+    }
+    else
+    {
+        gcm_clear_chk_tag();
+        return 0;
+    }
+}
+
+void gcm_get_tag(uint8_t *gcm_tag)
 {
     uint32_t uint32_tag;
     uint8_t i = 0;
@@ -96,42 +120,14 @@ static void gcm_get_tag(uint8_t *gcm_tag)
     gcm_tag[i++] = (uint8_t)((uint32_tag >> 16) & 0xff);
     gcm_tag[i++] = (uint8_t)((uint32_tag >> 8) & 0xff);
     gcm_tag[i++] = (uint8_t)((uint32_tag)&0xff);
+
+    gcm_check_tag((uint32_t *)gcm_tag);
 }
 
-static void gcm_clear_chk_tag(void)
-{
-    aes->tag_clear = 0;
-}
 
-static uint32_t gcm_check_tag(uint32_t *gcm_tag)
+void aes_init(uint8_t *input_key, size_t input_key_len, uint8_t *iv,size_t iv_len, uint8_t *gcm_aad,
+                aes_cipher_mode_t cipher_mode, aes_encrypt_sel_t encrypt_sel, size_t gcm_aad_len, size_t input_data_len)
 {
-    while (!gcm_get_tag_in_flag())
-        ;
-    gcm_write_tag(gcm_tag);
-    while (!gcm_get_tag_chk())
-        ;
-    if (gcm_get_tag_chk() == 0x2)
-    {
-        gcm_clear_chk_tag();
-        return 1;
-    }
-    else
-    {
-        gcm_clear_chk_tag();
-        return 0;
-    }
-}
-
-static void aes_init(uint8_t *input_key, size_t input_key_len, uint8_t *iv,
-    size_t iv_len, uint8_t *gcm_aad, aes_cipher_mode_t cipher_mode,
-    aes_encrypt_sel_t encrypt_sel, size_t gcm_aad_len, size_t input_data_len)
-{
-    configASSERT(input_key_len == AES_128 || input_key_len == AES_192 || input_key_len == AES_256);
-    if (cipher_mode == AES_CBC)
-        configASSERT(iv_len == 16);
-    if (cipher_mode == AES_GCM)
-        configASSERT(iv_len == 12);
-
     size_t remainder, uint32_num, uint8_num, i;
     uint32_t uint32_data;
     uint8_t uint8_data[4] = {0};
@@ -282,7 +278,7 @@ static void process_less_80_bytes(uint8_t *input_data, uint8_t *output_data, siz
     }
 }
 
-static void aes_process(uint8_t *input_data, uint8_t *output_data, size_t input_data_len, aes_cipher_mode_t cipher_mode)
+void aes_process(uint8_t *input_data, uint8_t *output_data, size_t input_data_len, aes_cipher_mode_t cipher_mode)
 {
     size_t temp_len = 0;
     uint32_t i = 0;
@@ -297,32 +293,135 @@ static void aes_process(uint8_t *input_data, uint8_t *output_data, size_t input_
         process_less_80_bytes(&input_data[i * 80], &output_data[i * 80], temp_len, cipher_mode);
 }
 
-void aes_hard_decrypt(aes_param_t *param)
+void aes_ecb128_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    size_t padding_len = param->input_data_len;
-    if (param->cipher_mode == AES_CBC || param->cipher_mode == AES_ECB)
-    {
-        padding_len = ((padding_len + 15) / 16) * 16;
-    }
-    aes_init(param->input_key, param->input_key_len, param->iv, param->iv_len, param->gcm_aad,
-        param->cipher_mode, AES_HARD_DECRYPTION, param->gcm_aad_len, param->input_data_len);
-    aes_process(param->input_data, param->output_data, padding_len, param->cipher_mode);
-    if (param->cipher_mode == AES_GCM)
-    {
-        gcm_get_tag(param->gcm_tag);
-        gcm_check_tag((uint32_t *)param->gcm_tag);
-    }
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(input_key, AES_128, NULL, 0L, NULL, AES_ECB, AES_HARD_DECRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_ECB);
 }
 
-void aes_hard_encrypt(aes_param_t *param)
+void aes_ecb128_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    aes_init(param->input_key, param->input_key_len, param->iv, param->iv_len, param->gcm_aad,
-        param->cipher_mode, AES_HARD_ENCRYPTION, param->gcm_aad_len, param->input_data_len);
-    aes_process(param->input_data, param->output_data, param->input_data_len, param->cipher_mode);
-    if (param->cipher_mode == AES_GCM)
-    {
-        gcm_get_tag(param->gcm_tag);
-        gcm_check_tag((uint32_t *)param->gcm_tag);
-    }
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(input_key, AES_128, NULL, 0L, NULL, AES_ECB, AES_HARD_ENCRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_ECB);
+}
+
+void aes_ecb192_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(input_key, AES_192, NULL, 0L, NULL, AES_ECB, AES_HARD_DECRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_ECB);
+}
+
+void aes_ecb192_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(input_key, AES_192, NULL, 0L, NULL, AES_ECB, AES_HARD_ENCRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_ECB);
+}
+
+void aes_ecb256_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(input_key, AES_256, NULL, 0L, NULL, AES_ECB, AES_HARD_DECRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_ECB);
+}
+
+void aes_ecb256_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(input_key, AES_256, NULL, 0L, NULL, AES_ECB, AES_HARD_ENCRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_ECB);
+}
+
+void aes_cbc128_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(context->input_key, AES_128, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_DECRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_CBC);
+}
+
+void aes_cbc128_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(context->input_key, AES_128, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_ENCRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_CBC);
+}
+
+void aes_cbc192_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(context->input_key, AES_192, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_DECRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_CBC);
+}
+
+void aes_cbc192_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(context->input_key, AES_192, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_ENCRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_CBC);
+}
+
+void aes_cbc256_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(context->input_key, AES_256, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_DECRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_CBC);
+}
+
+void aes_cbc256_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
+{
+    size_t padding_len = ((input_len + 15) / 16) * 16;
+    aes_init(context->input_key, AES_256, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_ENCRYPTION, 0L, input_len);
+    aes_process(input_data, output_data, padding_len, AES_CBC);
+}
+
+void aes_gcm128_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag)
+{
+    aes_init(context->input_key, AES_128, context->iv, IV_LEN_96, context->gcm_aad,
+            AES_GCM, AES_HARD_DECRYPTION, context->gcm_aad_len, input_len);
+    aes_process(input_data, output_data, input_len, AES_GCM);
+    gcm_get_tag(gcm_tag);
+}
+
+void aes_gcm128_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag)
+{
+    aes_init(context->input_key, AES_128, context->iv, IV_LEN_96, context->gcm_aad,
+            AES_GCM, AES_HARD_ENCRYPTION, context->gcm_aad_len, input_len);
+    aes_process(input_data, output_data, input_len, AES_GCM);
+    gcm_get_tag(gcm_tag);
+}
+
+void aes_gcm192_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag)
+{
+    aes_init(context->input_key, AES_192, context->iv, IV_LEN_96, context->gcm_aad,
+            AES_GCM, AES_HARD_DECRYPTION, context->gcm_aad_len, input_len);
+    aes_process(input_data, output_data, input_len, AES_GCM);
+    gcm_get_tag(gcm_tag);
+}
+
+void aes_gcm192_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag)
+{
+    aes_init(context->input_key, AES_192, context->iv, IV_LEN_96, context->gcm_aad,
+            AES_GCM, AES_HARD_ENCRYPTION, context->gcm_aad_len, input_len);
+    aes_process(input_data, output_data, input_len, AES_GCM);
+    gcm_get_tag(gcm_tag);
+}
+
+void aes_gcm256_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag)
+{
+    aes_init(context->input_key, AES_256, context->iv, IV_LEN_96, context->gcm_aad,
+            AES_GCM, AES_HARD_DECRYPTION, context->gcm_aad_len, input_len);
+    aes_process(input_data, output_data, input_len, AES_GCM);
+    gcm_get_tag(gcm_tag);
+}
+
+void aes_gcm256_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag)
+{
+    aes_init(context->input_key, AES_256, context->iv, IV_LEN_96, context->gcm_aad,
+            AES_GCM, AES_HARD_ENCRYPTION, context->gcm_aad_len, input_len);
+    aes_process(input_data, output_data, input_len, AES_GCM);
+    gcm_get_tag(gcm_tag);
 }
 
