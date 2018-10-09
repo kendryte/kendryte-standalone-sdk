@@ -103,20 +103,6 @@ uint8_t dvp_sccb_receive_data(uint8_t dev_addr, uint16_t reg_addr)
     return (uint8_t) DVP_SCCB_RDATA_BYTE(dvp->sccb_cfg);
 }
 
-static void dvp_io_init(void)
-{
-    /* Init DVP IO map and function settings */
-    fpioa_set_function(15, FUNC_CMOS_RST);
-    fpioa_set_function(17, FUNC_CMOS_PWDN);
-    fpioa_set_function(20, FUNC_CMOS_XCLK);
-    fpioa_set_function(18, FUNC_CMOS_VSYNC);
-    fpioa_set_function(19, FUNC_CMOS_HREF);
-    fpioa_set_function(21, FUNC_CMOS_PCLK);
-    fpioa_set_function(22, FUNC_SCCB_SCLK);
-    fpioa_set_function(23, FUNC_SCCB_SDA);
-    sysctl_set_spi0_dvp_data(1);
-}
-
 static void dvp_reset(void)
 {
     /* First power down */
@@ -139,7 +125,6 @@ void dvp_init(uint8_t reg_len)
     sysctl_reset(SYSCTL_RESET_DVP);
     dvp->cmos_cfg &= (~DVP_CMOS_CLK_DIV_MASK);
     dvp->cmos_cfg |= DVP_CMOS_CLK_DIV(0) | DVP_CMOS_CLK_ENABLE;
-    dvp_io_init();
     dvp_sccb_clk_init();
     dvp_reset();
 }
