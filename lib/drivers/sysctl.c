@@ -847,6 +847,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll0.pll_reset0 = 0;
             sysctl->pll0.pll_reset0 = 1;
+            asm volatile ("nop");
+            asm volatile ("nop");
             sysctl->pll0.pll_reset0 = 0;
             break;
 
@@ -866,6 +868,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll1.pll_reset1 = 0;
             sysctl->pll1.pll_reset1 = 1;
+            asm volatile ("nop");
+            asm volatile ("nop");
             sysctl->pll1.pll_reset1 = 0;
             break;
 
@@ -885,6 +889,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll2.pll_reset2 = 0;
             sysctl->pll2.pll_reset2 = 1;
+            asm volatile ("nop");
+            asm volatile ("nop");
             sysctl->pll2.pll_reset2 = 0;
             break;
 
@@ -1722,7 +1728,7 @@ uint32_t sysctl_set_spi0_dvp_data(uint8_t en)
     return 0;
 }
 
-void sysctl_set_power_mode(sysctl_power_mode_t power_bank, sysctl_io_power_mode_t io_power_mode)
+void sysctl_set_power_mode(sysctl_power_bank_t power_bank, sysctl_io_power_mode_t io_power_mode)
 {
     if(io_power_mode)
         *((uint32_t *)(&sysctl->power_sel)) |= (1 << power_bank);

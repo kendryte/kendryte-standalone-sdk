@@ -281,7 +281,7 @@ typedef enum _sysctl_power_bank
     SYSCTL_POWER_BANK6,
     SYSCTL_POWER_BANK7,
     SYSCTL_POWER_BANK_MAX,
-} sysctl_power_mode_t;
+} sysctl_power_bank_t;
 
 /**
  * @brief      System controller reset control id
@@ -1007,7 +1007,7 @@ uint32_t sysctl_set_spi0_dvp_data(uint8_t en);
  *     - 0      Success
  *     - Other  Fail
  */
-void sysctl_set_power_mode(sysctl_power_mode_t power_bank, sysctl_io_power_mode_t io_power_mode);
+void sysctl_set_power_mode(sysctl_power_bank_t power_bank, sysctl_io_power_mode_t io_power_mode);
 
 /**
  * @brief       Set frequency of CPU
