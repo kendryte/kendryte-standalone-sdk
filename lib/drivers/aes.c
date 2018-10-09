@@ -302,9 +302,8 @@ void aes_ecb128_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
 
 void aes_ecb128_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    size_t padding_len = ((input_len + 15) / 16) * 16;
     aes_init(input_key, AES_128, NULL, 0L, NULL, AES_ECB, AES_HARD_ENCRYPTION, 0L, input_len);
-    aes_process(input_data, output_data, padding_len, AES_ECB);
+    aes_process(input_data, output_data, input_len, AES_ECB);
 }
 
 void aes_ecb192_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
@@ -316,9 +315,8 @@ void aes_ecb192_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
 
 void aes_ecb192_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    size_t padding_len = ((input_len + 15) / 16) * 16;
     aes_init(input_key, AES_192, NULL, 0L, NULL, AES_ECB, AES_HARD_ENCRYPTION, 0L, input_len);
-    aes_process(input_data, output_data, padding_len, AES_ECB);
+    aes_process(input_data, output_data, input_len, AES_ECB);
 }
 
 void aes_ecb256_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
@@ -330,9 +328,8 @@ void aes_ecb256_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
 
 void aes_ecb256_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    size_t padding_len = ((input_len + 15) / 16) * 16;
     aes_init(input_key, AES_256, NULL, 0L, NULL, AES_ECB, AES_HARD_ENCRYPTION, 0L, input_len);
-    aes_process(input_data, output_data, padding_len, AES_ECB);
+    aes_process(input_data, output_data, input_len, AES_ECB);
 }
 
 void aes_cbc128_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
@@ -344,9 +341,8 @@ void aes_cbc128_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t
 
 void aes_cbc128_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    size_t padding_len = ((input_len + 15) / 16) * 16;
     aes_init(context->input_key, AES_128, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_ENCRYPTION, 0L, input_len);
-    aes_process(input_data, output_data, padding_len, AES_CBC);
+    aes_process(input_data, output_data, input_len, AES_CBC);
 }
 
 void aes_cbc192_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
@@ -358,9 +354,8 @@ void aes_cbc192_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t
 
 void aes_cbc192_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    size_t padding_len = ((input_len + 15) / 16) * 16;
     aes_init(context->input_key, AES_192, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_ENCRYPTION, 0L, input_len);
-    aes_process(input_data, output_data, padding_len, AES_CBC);
+    aes_process(input_data, output_data, input_len, AES_CBC);
 }
 
 void aes_cbc256_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
@@ -372,9 +367,8 @@ void aes_cbc256_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t
 
 void aes_cbc256_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data)
 {
-    size_t padding_len = ((input_len + 15) / 16) * 16;
     aes_init(context->input_key, AES_256, context->iv, IV_LEN_128, NULL, AES_CBC, AES_HARD_ENCRYPTION, 0L, input_len);
-    aes_process(input_data, output_data, padding_len, AES_CBC);
+    aes_process(input_data, output_data, input_len, AES_CBC);
 }
 
 void aes_gcm128_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag)
