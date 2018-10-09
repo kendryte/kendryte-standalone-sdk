@@ -626,7 +626,7 @@ int sysctl_clock_set_clock_select(sysctl_clock_select_t which, int select)
         case SYSCTL_CLOCK_SELECT_PLL1_BYPASS:
             sysctl->pll1.pll_bypass1 = select & 0x01;
             break;
-        case SYSCTL_CLOCK_SELECT_PLL3_BYPASS:
+        case SYSCTL_CLOCK_SELECT_PLL2_BYPASS:
             sysctl->pll2.pll_bypass2 = select & 0x01;
             break;
         case SYSCTL_CLOCK_SELECT_ACLK:
@@ -678,7 +678,7 @@ int sysctl_clock_get_clock_select(sysctl_clock_select_t which)
         case SYSCTL_CLOCK_SELECT_PLL1_BYPASS:
             clock_select = (int)sysctl->pll1.pll_bypass1;
             break;
-        case SYSCTL_CLOCK_SELECT_PLL3_BYPASS:
+        case SYSCTL_CLOCK_SELECT_PLL2_BYPASS:
             clock_select = (int)sysctl->pll2.pll_bypass2;
             break;
         case SYSCTL_CLOCK_SELECT_PLL2:
