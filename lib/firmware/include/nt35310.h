@@ -95,7 +95,13 @@
 #define DIGITAL_GAMMA_CTL2      0xE3
 #define INTERFACE_CTL           0xF6
 
+/*#define BOARD_KD233*/
+
+#ifdef BOARD_KD233
 #define     DCX_IO          (8)
+#else
+#define     DCX_IO          (34)
+#endif
 #define     RESET_IO        (30)
 #define     RESET_GPIONUM   (3)
 #define     DCX_GPIONUM     (2)

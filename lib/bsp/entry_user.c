@@ -61,8 +61,6 @@ void _init_bsp(int core_id, int number_of_cores)
     {
         /* Initialize bss data to 0 */
         init_bss();
-        /* Init FPIOA */
-//        fpioa_init();
         /* Init UART */
         uarths_init();
         /* Register finalization function */

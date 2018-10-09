@@ -577,7 +577,7 @@ int rtc_init(void)
     rtc_protect_set(0);
     /* Set RTC clock frequency */
     rtc_timer_set_clock_frequency(
-        sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0)
+        sysctl_clock_get_freq(SYSCTL_CLOCK_IN0)
     );
     rtc_timer_set_clock_count_value(1);
 

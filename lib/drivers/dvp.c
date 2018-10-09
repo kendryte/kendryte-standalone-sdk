@@ -114,7 +114,7 @@ static void dvp_io_init(void)
     fpioa_set_function(21, FUNC_CMOS_PCLK);
     fpioa_set_function(22, FUNC_SCCB_SCLK);
     fpioa_set_function(23, FUNC_SCCB_SDA);
-    sysctl_spi0_dvp_data_set(1);
+    sysctl_set_spi0_dvp_data(1);
 }
 
 static void dvp_reset(void)
