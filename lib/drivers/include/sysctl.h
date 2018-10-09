@@ -286,7 +286,7 @@ typedef enum _sysctl_power_bank
 /**
  * @brief      System controller reset control id
  */
-typedef enum _io_power_mode
+typedef enum _sysctl_io_power_mode
 {
     SYSCTL_POWER_V33,
     SYSCTL_POWER_V18
