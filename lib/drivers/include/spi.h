@@ -167,13 +167,14 @@ extern volatile spi_t *const spi[4];
  * @param[in]   mode                Spi mode
  * @param[in]   frame_format        Spi frame format
  * @param[in]   data_bit_length     Spi data bit length
+ * @param[in]   endian              0:little-endian 1:big-endian
  *
  * @return      Result
  *     - 0      Success
  *     - Other  Fail
  */
 void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format,
-              size_t data_bit_length);
+              size_t data_bit_length, uint32_t endian);
 
 /**
  * @brief       Set multiline configuration

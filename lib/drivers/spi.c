@@ -59,7 +59,7 @@ static void spi_set_tmod(uint8_t spi_num, uint32_t tmod)
 }
 
 void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format,
-              size_t data_bit_length)
+              size_t data_bit_length, uint32_t endian)
 {
     configASSERT(data_bit_length >= 4 && data_bit_length <= 32);
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
@@ -108,6 +108,7 @@ void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_for
     spi_adapter->ssienr = 0x00;
     spi_adapter->ctrlr0 = (work_mode << 6) | (frame_format << frf_offset) | ((data_bit_length - 1) << dfs_offset);
     spi_adapter->spi_ctrlr0 = 0;
+    spi_adapter->endian = endian;
 }
 
 void spi_init_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,
