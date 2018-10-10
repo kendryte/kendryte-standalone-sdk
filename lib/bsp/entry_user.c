@@ -75,6 +75,8 @@ void _init_bsp(int core_id, int number_of_cores)
         init_bss();
         /* Init UART */
         uarths_init();
+        /* Init FPIOA */
+        fpioa_init();
         /* Register finalization function */
         atexit(__libc_fini_array);
         /* Init libc array for C++ */

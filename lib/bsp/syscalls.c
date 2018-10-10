@@ -106,14 +106,6 @@ void __attribute__((noreturn)) sys_exit(int code)
     unsigned long core_id = current_coreid();
     /* First print some diagnostic information. */
     LOGW(TAG, "sys_exit called by core %ld with 0x%lx\n", core_id, (uint64_t)code);
-    /* Write exit register to pause netlist simulation */
-    volatile uint32_t *reg = (volatile uint32_t *)0x50440080UL;
-    /* Write stop bit and write back */
-    *reg = (1UL << 31);
-
-    /* Send 0 to uart */
-    uarths_putchar(0);
-
     while (1)
         continue;
 }
@@ -125,8 +117,6 @@ static int sys_nosys(long a0, long a1, long a2, long a3, long a4, long a5, unsig
     UNUSED(a5);
 
     LOGE(TAG, "Unsupported syscall %ld: a0=%lx, a1=%lx, a2=%lx!\n", n, a0, a1, a2);
-    /* Send 0 to uart */
-    uarths_putchar(0);
     while (1)
         continue;
     return -ENOSYS;
