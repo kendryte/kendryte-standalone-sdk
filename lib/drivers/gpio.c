@@ -28,7 +28,7 @@ int gpio_init(void)
 void gpio_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
     configASSERT(pin < GPIO_MAX_PINNO);
-    int io_number = fpioa_get_io_by_func(FUNC_GPIO0 + pin);
+    int io_number = fpioa_get_io_by_function(FUNC_GPIO0 + pin);
     configASSERT(io_number > 0);
 
     fpioa_pull_t pull;

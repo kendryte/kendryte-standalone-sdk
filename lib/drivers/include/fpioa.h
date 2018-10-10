@@ -990,7 +990,7 @@ int fpioa_get_io_driving(int number);
  *     - -1     Fail
  *     - Other  The IO number
  */
-int fpioa_get_io_by_func(fpioa_function_t function);
+int fpioa_get_io_by_function(fpioa_function_t function);
 
 
 #ifdef __cplusplus
