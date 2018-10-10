@@ -17,17 +17,10 @@
 #include "plic.h"
 #include "sysctl.h"
 #include "uart.h"
-#include "common.h"
+#include "utils.h"
 #include "atomic.h"
 
 #define __UART_BRATE_CONST  16
-
-typedef struct _uart_devinfo_t
-{
-    uart_t *uart;
-    const uart_info_t *uart_info;
-    uint32_t uart_status;
-} uart_devinfo_t;
 
 volatile uart_t* const  uart[3] =
 {
@@ -62,7 +55,7 @@ static int write_ringbuff(uint8_t channel, uint8_t rdata)
     return 0;
 }
 
-static int read_ringbuff(uint8_t channel, char *rdata, size_t len)
+static int read_ringbuff(uart_device_number_t channel, char *rdata, size_t len)
 {
     ring_buff_t *rb = ring_recv[channel];
     size_t cnt = 0;
@@ -92,7 +85,7 @@ static int on_irq_apbuart_recv(void *param)
     return 0;
 }
 
-static int uartapb_putc(uint8_t channel, char c)
+static int uartapb_putc(uart_device_number_t channel, char c)
 {
     while (!(uart[channel]->LSR & (1u << 6)))
         continue;
@@ -100,7 +93,7 @@ static int uartapb_putc(uint8_t channel, char c)
     return 0;
 }
 
-int uartapb_getc(uint8_t channel)
+int uartapb_getc(uart_device_number_t channel)
 {
     while (!(uart[channel]->LSR & 1))
         continue;
@@ -109,15 +102,15 @@ int uartapb_getc(uint8_t channel)
 }
 
 
-int uart_read(uint8_t channel, char* buffer, size_t len)
+int uart_receive_data(uart_device_number_t channel, char *buffer, size_t buf_len)
 {
-    return read_ringbuff(channel, buffer, len);
+    return read_ringbuff(channel, buffer, buf_len);
 }
 
-int uart_write(uint8_t channel, const char* buffer, size_t len)
+int uart_send_data(uart_device_number_t channel, const char *buffer, size_t buf_len)
 {
     int write = 0;
-    while (write < len)
+    while (write < buf_len)
     {
         uartapb_putc(channel, *buffer++);
         write++;
@@ -126,7 +119,7 @@ int uart_write(uint8_t channel, const char* buffer, size_t len)
     return write;
 }
 
-void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stopbit_t stopbit, uart_parity_t parity)
+void uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity)
 {
 
     configASSERT(data_width >= 5 && data_width <= 8);
@@ -143,13 +136,13 @@ void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stop
     uint32_t parity_val;
     switch (parity)
     {
-        case UART_PARITY_None:
+        case UART_PARITY_NONE:
             parity_val = 0;
             break;
-        case UART_PARITY_Odd:
+        case UART_PARITY_ODD:
             parity_val = 1;
             break;
-        case UART_PARITY_Even:
+        case UART_PARITY_EVEN:
             parity_val = 3;
             break;
         default:
@@ -179,7 +172,7 @@ void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stop
     uart[channel]->IER = 1;     /*RX INT enable*/
 }
 
-void uartapb_init(uint8_t channel)
+void uart_init(uart_device_number_t channel)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_UART1 + channel);
 

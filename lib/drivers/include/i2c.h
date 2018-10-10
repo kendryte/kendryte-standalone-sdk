@@ -325,6 +325,14 @@ typedef struct _i2c
 
 extern volatile i2c_t *const i2c[3];
 
+typedef enum _i2c_device_number
+{
+    I2C_DEVICE_0,
+    I2C_DEVICE_1,
+    I2C_DEVICE_2,
+    I2C_DEVICE_MAX,
+} i2c_device_number_t;
+
 typedef enum _i2c_bus_speed_mode
 {
     I2C_BS_STANDARD,
@@ -333,99 +341,78 @@ typedef enum _i2c_bus_speed_mode
 } i2c_bus_speed_mode_t;
 
 /**
- * @brief       I2c init
+ * @brief       Set i2c params
  *
- * @param[in]   sel             i2c bus
- * @param[in]   clk_pin         i2c clk pin
- * @param[in]   data_pin        i2c data pin
- */
-void i2c_init(uint8_t sel, int clk_pin, int data_pin);
-
-/**
- * @brief       I2c pin init
- *
- * @param[in]   sel             i2c bus
- * @param[in]   clk_pin         i2c clk pin
- * @param[in]   data_pin        i2c data pin
- */
-void i2c_pin_init(uint8_t sel, int clk_pin, int data_pin);
-
-/**
- * @brief       I2c clk init
- *
- * @param[in]   sel     i2c bus
- */
-void i2c_clk_init(uint8_t sel);
-
-/**
- * @brief       I2c set param
- *
- * @param[in]   sel                 i2c bus
- * @param[in]   slaveAddress        i2c slave address
+ * @param[in]   i2c_num             i2c number
+ * @param[in]   slave_address       i2c slave device address
  * @param[in]   address_width       address width 7bit or 10bit
- * @param[in]   bus_speed_mode      i2c rate
+ * @param[in]   i2c_clk             i2c clk rate
  */
-void i2c_config(uint8_t sel, size_t slaveAddress, size_t address_width,
-                            i2c_bus_speed_mode_t bus_speed_mode);
+void i2c_init(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t address_width,
+              uint32_t i2c_clk);
 
 /**
  * @brief       I2c send data
  *
- * @param[in]   sel             i2c bus
- * @param[in]   reg             i2c slave reg address
- * @param[in]   data_buf        send data
- * @param[in]   length          send length
+ * @param[in]   i2c_num         i2c number
+ * @param[in]   send_buf        send data
+ * @param[in]   send_buf_len    send data length
  *
  * @return      result
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_write_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
-
- /**
- * @brief      I2c receive data
- *
- * @param[in]  sel                  i2c bus
- * @param[in]  reg                  i2c slave reg address
- * @param[in]  data_buf             receive data
- * @param[in]  length               receive length
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2c_read_reg(uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len);
 
 /**
  * @brief       I2c send data by dma
  *
- * @param[in]   channel_num     dma channel
- * @param[in]   sel             i2c bus
- * @param[in]   reg             i2c slave reg address
- * @param[in]   data_buf        send data
- * @param[in]   length          send length
+ * @param[in]   dma_channel_num     dma channel
+ * @param[in]   i2c_num             i2c number
+ * @param[in]   send_buf            send data
+ * @param[in]   send_buf_len        send data length
  *
  * @return      result
  *     - 0      Success
  *     - Other  Fail
  */
-int i2c_write_reg_dma(dmac_channel_number_t channel_num, uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_t i2c_num, const uint8_t *send_buf,
+                       size_t send_buf_len);
 
 /**
  * @brief       I2c receive data
  *
- * @param[in]   channel_num     dma channel
- * @param[in]   sel             i2c bus
- * @param[in]   reg             i2c slave reg address
- * @param[in]   data_buf        receive data
- * @param[in]   length          receive length
+ * @param[in]   i2c_num             i2c number
+ * @param[in]   send_buf            send data address
+ * @param[in]   send_buf_len        length of send buf
+ * @param[in]   receive_buf         receive buf address
+ * @param[in]   receive_buf_len     length of receive buf
  *
  * @return      result
  *     - 0      Success
  *     - Other  Fail
 */
-int i2c_read_reg_dma(dmac_channel_number_t w_channel_num, dmac_channel_number_t r_channel_num,
-                        uint8_t sel, uint8_t reg, uint8_t *data_buf, uint8_t length);
+int i2c_recv_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len, uint8_t *receive_buf,
+                  size_t receive_buf_len);
+
+/**
+ * @brief       I2c receive data by dma
+ *
+ * @param[in]   dma_send_channel_num        send dma channel
+ * @param[in]   dma_receive_channel_num     receive dma channel
+ * @param[in]   i2c_num         i2c number
+ * @param[in]   send_buf            send data address
+ * @param[in]   send_buf_len        length of send buf
+ * @param[in]   receive_buf         receive buf address
+ * @param[in]   receive_buf_len     length of receive buf
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+*/
+void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
+                       i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len,
+                       uint8_t *receive_buf, size_t receive_buf_len);
 
 #ifdef __cplusplus
 }

@@ -24,12 +24,12 @@ volatile plic_t* const plic = (volatile plic_t*)PLIC_BASE_ADDR;
 typedef struct _plic_instance_t
 {
     plic_irq_callback_t callback;
-    void* ctx;
+    void *ctx;
 } plic_instance_t;
 
 static plic_instance_t plic_instance[PLIC_NUM_CORES][IRQN_MAX];
 
-int plic_init(void)
+void plic_init(void)
 {
     int i = 0;
 
@@ -72,7 +72,6 @@ int plic_init(void)
 
     /* Enable machine external interrupts. */
     set_csr(mie, MIP_MEIP);
-    return 0;
 }
 
 int plic_irq_enable(plic_irq_t irq_number)
@@ -139,7 +138,7 @@ int plic_irq_complete(uint32_t source)
     return 0;
 }
 
-int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
+void plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void *ctx)
 {
     /* Read core id */
     unsigned long core_id = current_coreid();
@@ -147,13 +146,12 @@ int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void* ctx)
     plic_instance[core_id][irq].callback = callback;
     /* Assign user context */
     plic_instance[core_id][irq].ctx = ctx;
-    return 0;
 }
 
-int plic_irq_deregister(plic_irq_t irq)
+void plic_irq_deregister(plic_irq_t irq)
 {
     /* Just assign NULL to user callback function and context */
-    return plic_irq_register(irq, NULL, NULL);
+    plic_irq_register(irq, NULL, NULL);
 }
 
 /*Entry Point for PLIC Interrupt Handler*/

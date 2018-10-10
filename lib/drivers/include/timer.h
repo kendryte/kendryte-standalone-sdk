@@ -54,6 +54,23 @@ typedef struct _kendryte_timer
     volatile uint32_t load_count2[4];
 } __attribute__((packed, aligned(4))) kendryte_timer_t;
 
+typedef enum _timer_deivce_number
+{
+    TIMER_DEVICE_0,
+    TIMER_DEVICE_1,
+    TIMER_DEVICE_2,
+    TIMER_DEVICE_MAX,
+} timer_device_number_t;
+
+typedef enum _timer_channel_number
+{
+    TIMER_CHANNEL_0,
+    TIMER_CHANNEL_1,
+    TIMER_CHANNEL_2,
+    TIMER_CHANNEL_3,
+    TIMER_CHANNEL_MAX,
+} timer_channel_number_t;
+
 /* TIMER Control Register */
 #define TIMER_CR_ENABLE             0x00000001
 #define TIMER_CR_MODE_MASK          0x00000002
@@ -65,162 +82,6 @@ typedef struct _kendryte_timer
 
 extern volatile kendryte_timer_t *const timer[3];
 
-/**
- * @brief       Set timer clock frequency
- *
- * @param[in]   timer       timer
- * @param[in]   div         clock divide value
- */
-void timer_set_clock_div(uint32_t timer, uint32_t div);
-
-/**
- * @brief       Enable timer channel
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- */
-void timer_enable(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Disable timer channel
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- */
-void timer_disable(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Enable timer channel PWM
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- */
-void timer_enable_pwm(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Disable timer channel PWM
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- */
-void timer_disable_pwm(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Enable timer channel interrupt
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- */
-void timer_enable_interrupt(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Disable timer channel interrupt
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- */
-void timer_disable_interrupt(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Set timer channel mode
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- * @param[in]   mode        mode
- */
-void timer_set_mode(uint32_t timer, uint32_t channel, uint32_t mode);
-
-/**
- * @brief       Set timer channel reload value
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- * @param[in]   count       count
- */
-void timer_set_reload(uint32_t timer, uint32_t channel, uint32_t count);
-
-/**
- * @brief       Set timer channel reload value2
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- * @param[in]   count       count
- */
-void timer_set_reload2(uint32_t timer, uint32_t channel, uint32_t count);
-
-/**
- * @brief       Get timer channel count
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- *
- * @return      current value
- */
-uint32_t timer_get_count(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Get timer channel reload value
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- *
- * @return      reload value
- */
-uint32_t timer_get_reload(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Get timer channel reload value2
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- *
- * @return      reload value2
- */
-uint32_t timer_get_reload2(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Get timer interrupt status
- *
- * @param[in]   timer       timer
- *
- * @return      interrupt status
- */
-uint32_t timer_get_interrupt_status(uint32_t timer);
-
-/**
- * @brief       Get timer raw interrupt status
- *
- * @param[in]   timer    timer
- *
- * @return      raw interrupt status
- */
-uint32_t timer_get_raw_interrupt_status(uint32_t timer);
-
-/**
- * @brief       Get timer interrupt status
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- *
- * @return      interrupt status
- */
-uint32_t timer_channel_get_interrupt_status(uint32_t timer, uint32_t channel);
-
-/**
- * @brief       Clear interrupt
- *
- * @param[in]   timer       timer
- */
-void timer_clear_interrupt(uint32_t timer);
-
-/**
- * @brief       Clear interrupt
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- */
-void timer_channel_clear_interrupt(uint32_t timer, uint32_t channel);
-
 
 /**
  * @brief       Set timer timeout
@@ -231,14 +92,14 @@ void timer_channel_clear_interrupt(uint32_t timer, uint32_t channel);
  *
  * @return      the real timeout
  */
-size_t timer_set_interval(uint32_t timer, uint32_t channel, size_t nanoseconds);
+size_t timer_set_interval(timer_device_number_t timer_number, timer_channel_number_t channel, size_t nanoseconds);
 
 /**
  * @brief       Init timer
  *
  * @param[in]   timer       timer
  */
-void timer_init(uint32_t timer);
+void timer_init(timer_device_number_t timer_number);
 
 /**
  * @brief       Set timer timeout function
@@ -249,7 +110,7 @@ void timer_init(uint32_t timer);
  * @param[in]   priority        interrupt priority
  *
  */
-void timer_set_irq(uint32_t timer, uint32_t channel, void(*func)(),  uint32_t priority);
+void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void(*func)(),  uint32_t priority);
 
 /**
  * @brief       Enable timer
@@ -259,29 +120,7 @@ void timer_set_irq(uint32_t timer, uint32_t channel, void(*func)(),  uint32_t pr
  * @param[in]   enable      Enable or disable
  *
  */
-void timer_set_enable(uint32_t timer, uint32_t channel, uint32_t enable);
-
-/**
- * @brief       Enable timer
- *
- * @param[in]   timer       timer
- * @param[in]   channel     channel
- * @param[in]   enable      Enable or disable
- *
- */
-void pwm_set_enable(uint32_t timer, uint32_t channel, int enable);
-
-/**
- * @brief       Set pwm duty
- *
- * @param[in]   timer           timer
- * @param[in]   channel         channel
- * @param[in]   frequency       pwm frequency
- * @param[in]   duty            duty
- *
- */
-double pwm_set_frequency(uint32_t timer, uint32_t channel, double frequency, double duty);
-
+void timer_set_enable(timer_device_number_t timer_number, timer_channel_number_t channel, uint32_t enable);
 
 #ifdef __cplusplus
 }

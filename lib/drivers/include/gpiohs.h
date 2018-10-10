@@ -199,29 +199,12 @@ typedef struct _gpiohs
 extern volatile gpiohs_t *const gpiohs;
 
 /**
- * @brief       Gpiohs initialize
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int gpiohs_init(void);
-
-/**
- * @brief       Gpiohs pin initialize, map Pin number to Gpio function pin
- *
- * @param[in]   pin_num         Pin number
- * @param[in]   gpio_pin        Gpiohs pin
- */
-void gpiohs_pin_init(size_t pin_num, size_t gpio_pin);
-
-/**
  * @brief       Set Gpiohs drive mode
  *
  * @param[in]   pin         Gpiohs pin
  * @param[in]   mode        Gpiohs pin drive mode
  */
-void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode_t mode);
+void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode);
 
 /**
  * @brief       Get Gpiohs pin value
@@ -232,7 +215,7 @@ void gpiohs_set_drive_mode(size_t pin, gpio_drive_mode_t mode);
  *     - GPIO_PV_Low     Gpiohs pin low
  *     - GPIO_PV_High    Gpiohs pin high
  */
-gpio_pin_value_t gpiohs_get_pin_value(size_t pin);
+gpio_pin_value_t gpiohs_get_pin(uint8_t pin);
 
 /**
  * @brief      Set Gpiohs pin value
@@ -240,7 +223,7 @@ gpio_pin_value_t gpiohs_get_pin_value(size_t pin);
  * @param[in]   pin      Gpiohs pin
  * @param[in]   value    Gpiohs pin value
  */
-void gpiohs_set_pin_value(size_t pin, gpio_pin_value_t value);
+void gpiohs_set_pin(uint8_t pin, gpio_pin_value_t value);
 
 /**
  * @brief      Set Gpiohs pin edge for interrupt
@@ -248,7 +231,7 @@ void gpiohs_set_pin_value(size_t pin, gpio_pin_value_t value);
  * @param[in]   pin         Gpiohs pin
  * @param[in]   edge        Gpiohs pin edge type
  */
-void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge_t edge);
+void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge);
 
 /**
  * @brief      Set Gpiohs pin interrupt
@@ -257,7 +240,7 @@ void gpiohs_set_pin_edge(size_t pin, gpio_pin_edge_t edge);
  * @param[in]   priority        Gpiohs pin interrupt priority
  * @param[in]   func            Gpiohs pin interrupt service routine
  */
-void gpiohs_set_irq(size_t pin, uint32_t priority, void(*func)());
+void gpiohs_set_irq(uint8_t pin, uint32_t priority, void(*func)());
 
 #ifdef __cplusplus
 }

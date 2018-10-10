@@ -16,6 +16,7 @@
 #define _DRIVER_I2S_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include "platform.h"
 #include "io.h"
 #include "dmac.h"
@@ -29,26 +30,26 @@ extern "C" {
 #define I2S0_SCLK   88
 #define I2S0_WS    89
 
-typedef enum _i2s_device_num
+typedef enum _i2s_device_number
 {
     I2S_DEVICE_0 = 0,
     I2S_DEVICE_1 = 1,
     I2S_DEVICE_2 = 2,
     I2S_DEVICE_MAX
-} i2s_device_num_t;
+} i2s_device_number_t;
 
 typedef enum _i2s_channel_num
 {
-    CHANNEL_0 = 0,
-    CHANNEL_1 = 1,
-    CHANNEL_2 = 2,
-    CHANNEL_3 = 3
+    I2S_CHANNEL_0 = 0,
+    I2S_CHANNEL_1 = 1,
+    I2S_CHANNEL_2 = 2,
+    I2S_CHANNEL_3 = 3
 } i2s_channel_num_t;
 
 typedef enum _i2s_transmit
 {
-    TRANSMITTER = 0,
-    RECEIVER = 1
+    I2S_TRANSMITTER = 0,
+    I2S_RECEIVER = 1
 } i2s_transmit_t;
 
 typedef enum _i2s_work_mode
@@ -70,7 +71,7 @@ typedef enum _sclk_gating_cycles
     CLOCK_CYCLES_20 = 0x3,
     /* Gating after 24 sclk cycles */
     CLOCK_CYCLES_24 = 0x4
-} sclk_gating_cycles_t;
+} i2s_sclk_gating_cycles_t;
 
 typedef enum _word_select_cycles
 {
@@ -80,24 +81,23 @@ typedef enum _word_select_cycles
     SCLK_CYCLES_24 = 0x1,
     /* 32 sclk cycles */
     SCLK_CYCLES_32 = 0x2
-
-} word_select_cycles_t;
+} i2s_word_select_cycles_t;
 
 typedef enum _word_length
 {
     /* Ignore the word length */
     IGNORE_WORD_LENGTH = 0x0,
-    /* 12-bit data resolution of the receiver */
+    /* 12-bit data resolution of the I2S_RECEIVER */
     RESOLUTION_12_BIT = 0x1,
-    /* 16-bit data resolution of the receiver */
+    /* 16-bit data resolution of the I2S_RECEIVER */
     RESOLUTION_16_BIT = 0x2,
-    /* 20-bit data resolution of the receiver */
+    /* 20-bit data resolution of the I2S_RECEIVER */
     RESOLUTION_20_BIT = 0x3,
-    /* 24-bit data resolution of the receiver */
+    /* 24-bit data resolution of the I2S_RECEIVER */
     RESOLUTION_24_BIT = 0x4,
-    /* 32-bit data resolution of the receiver */
+    /* 32-bit data resolution of the I2S_RECEIVER */
     RESOLUTION_32_BIT = 0x5
-} word_length_t;
+} i2s_word_length_t;
 
 typedef enum _fifo_threshold
 {
@@ -133,7 +133,7 @@ typedef enum _fifo_threshold
     TRIGGER_LEVEL_15 = 0xe,
     /* Interrupt trigger when FIFO level is 16 */
     TRIGGER_LEVEL_16 = 0xf
-} fifo_threshold_t;
+} i2s_fifo_threshold_t;
 
 
 typedef struct _i2s_ier
@@ -152,9 +152,9 @@ typedef union _ier_u
 
 typedef struct _i2s_irer
 {
-    /* Bit 0 is receiver block  enable,
-     * 0 for receiver disable
-     * 1 for receiver enable
+    /* Bit 0 is I2S_RECEIVER block  enable,
+     * 0 for I2S_RECEIVER disable
+     * 1 for I2S_RECEIVER enable
      */
     uint32_t rxen : 1;
     /* Bits [31:1] is reserved */
@@ -170,9 +170,9 @@ typedef union _irer_u
 typedef struct _i2s_iter
 {
     uint32_t txen : 1;
-    /* Bit 0 is transmitter block  enable,
-     * 0 for transmitter disable
-     * 1 for transmitter enable
+    /* Bit 0 is I2S_TRANSMITTER block  enable,
+     * 0 for I2S_TRANSMITTER disable
+     * 1 for I2S_TRANSMITTER enable
      */
     uint32_t resv : 31;
     /* Bits [31:1] is reserved */
@@ -245,7 +245,7 @@ typedef union _ccr_u
 typedef struct _i2s_rxffr
 {
     uint32_t rxffr : 1;
-    /* Bit 0 is receiver FIFO reset,
+    /* Bit 0 is I2S_RECEIVER FIFO reset,
      * 0 for does not flush RX FIFO, 1 for flush RX FIFO
      */
     uint32_t resv : 31;
@@ -322,13 +322,13 @@ typedef union _ter_u
 typedef struct _i2s_rcr_tcr
 {
     /* Bits [2:0] is used to program desired data resolution of
-     * receiver/transmitter,
+     * I2S_RECEIVER/I2S_TRANSMITTER,
      * 0x0 for ignore the word length
-     * 0x1 for 12-bit data resolution of the receiver/transmitter,
-     * 0x2 for 16-bit data resolution of the receiver/transmitter,
-     * 0x3 for 20-bit data resolution of the receiver/transmitter,
-     * 0x4 for 24-bit data resolution of the receiver/transmitter,
-     * 0x5 for 32-bit data resolution of the receiver/transmitter
+     * 0x1 for 12-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
+     * 0x2 for 16-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
+     * 0x3 for 20-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
+     * 0x4 for 24-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
+     * 0x5 for 32-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER
      */
     uint32_t wlen : 3;
     /* Bits [31:3] is reseved */
@@ -342,7 +342,7 @@ typedef union _rcr_tcr_u {
 
 typedef struct _i2s_isr
 {
-    /* Bit 0 is status of receiver data avaliable interrupt
+    /* Bit 0 is status of I2S_RECEIVER data avaliable interrupt
      * 0x0 for RX FIFO trigger level not reached
      * 0x1 for RX FIFO trigger level is reached
      */
@@ -445,7 +445,7 @@ typedef union _tor_u
 typedef struct _i2s_rfcr
 {
     /* Bits [3:0] is used program the trigger level in the RX FIFO at
-     * which the receiver data available interrupt generate,
+     * which the I2S_RECEIVER data available interrupt generate,
      * 0x0 for interrupt trigger when FIFO level is 1,
      * 0x2 for interrupt trigger when FIFO level is 2,
      * 0x3 for interrupt trigger when FIFO level is 4,
@@ -476,7 +476,7 @@ typedef union _rfcr_u
 typedef struct _i2s_tfcr
 {
     /* Bits [3:0] is used program the trigger level in the TX FIFO at
-     * which the receiver data available interrupt generate,
+     * which the I2S_RECEIVER data available interrupt generate,
      * 0x0 for interrupt trigger when FIFO level is 1,
      * 0x2 for interrupt trigger when FIFO level is 2,
      * 0x3 for interrupt trigger when FIFO level is 4,
@@ -506,7 +506,7 @@ typedef union _tfcr_u
 
 typedef struct _i2s_rff
 {
-    /* Bit  0 is receiver channel FIFO reset,
+    /* Bit  0 is I2S_RECEIVER channel FIFO reset,
      * 0x0 for does not flush an individual RX FIFO,
      * 0x1 for flush an indiviadual RX FIFO
      */
@@ -587,30 +587,30 @@ typedef struct _i2s
 {
     /* I2S Enable Register                          (0x00) */
     volatile uint32_t ier;
-    /* I2S Receiver Block Enable Register           (0x04) */
+    /* I2S I2S_RECEIVER Block Enable Register           (0x04) */
     volatile uint32_t irer;
-    /* I2S Transmitter Block Enable Register        (0x08) */
+    /* I2S I2S_TRANSMITTER Block Enable Register        (0x08) */
     volatile uint32_t iter;
     /* Clock Enable Register                        (0x0c) */
     volatile uint32_t cer;
     /* Clock Configuration Register                 (0x10) */
     volatile uint32_t ccr;
-    /* Receiver Block FIFO Reset Register           (0x04) */
+    /* I2S_RECEIVER Block FIFO Reset Register           (0x04) */
     volatile uint32_t rxffr;
-    /* Transmitter Block FIFO Reset Register        (0x18) */
+    /* I2S_TRANSMITTER Block FIFO Reset Register        (0x18) */
     volatile uint32_t txffr;
     /* reserved                                     (0x1c) */
     volatile uint32_t reserved1;
     volatile i2s_channel_t channel[4];
     /* reserved                               (0x118-0x1bc) */
     volatile uint32_t reserved2[40];
-    /*  Receiver Block DMA Register                 (0x1c0) */
+    /*  I2S_RECEIVER Block DMA Register                 (0x1c0) */
     volatile uint32_t rxdma;
-    /* Reset Receiver Block DMA Register            (0x1c4) */
+    /* Reset I2S_RECEIVER Block DMA Register            (0x1c4) */
     volatile uint32_t rrxdma;
-    /* Transmitter Block DMA Register               (0x1c8) */
+    /* I2S_TRANSMITTER Block DMA Register               (0x1c8) */
     volatile uint32_t txdma;
-    /* Reset Transmitter Block DMA Register         (0x1cc) */
+    /* Reset I2S_TRANSMITTER Block DMA Register         (0x1cc) */
     volatile uint32_t rtxdma;
     /* reserved                               (0x1d0-0x1ec) */
     volatile uint32_t reserved3[8];
@@ -630,216 +630,40 @@ typedef struct _i2s
 extern volatile i2s_t *const i2s[3];
 
 /**
- * @brief       i2s device
- *
- * @param[in]   device_num      the device of i2s
- *
- */
-void i2s_device_enable(i2s_device_num_t device_num);
-
-/**
- * @brief       Enable or disable i2s device
- *
- * @param[in]   device_num      The device of i2s
- * @param[in]   enable          Enable flag 0:disable, 1:enable
- */
-void i2s_dev_enable(i2s_device_num_t device_num, uint32_t enable);
-
-/**
- * @brief       Set I2S recive channel enable or disable
- *
- * @param[in]   device_num      which of device
- * @param[in]   channel_num     The channel number
- * @param[in]   enable          The enable or disable
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_receive_channel_enable(i2s_device_num_t device_num,
-                   i2s_channel_num_t channel_num, uint32_t enable);
-
-/**
- * @brief       Set I2S transmit channel enable or disable
- *
- * @param[in]   device_num      which of device
- * @param[in]   channel_num     The channel number
- * @param[in]   enable          The enable or disable
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_transmit_channel_enable(i2s_device_num_t device_num,
-                i2s_channel_num_t channel_num, uint32_t enable);
-
-/**
- * @brief       Read pcm data  from channel_num channel
- *
- * @param[in]   device_num      which of device
- * @param[in]   channel_num     The channel number
- * @param[in]   buf             save read data
- * @param[in]   length          the length to read form i2s
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int32_t i2s_receive_data(i2s_device_num_t device_num,
-      i2s_channel_num_t channel_num, uint64_t *buf,
-      uint32_t length);
+* @brief       I2s init
+*
+* @param[in]   device_num          The device number
+* @param[in]   rxtx_mode           I2s work mode
+* @param[in]   channel_mask        Channel mask to which channel work
+*
+*/
+void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask);
 
 /**
  * @brief       Read pcm data from dma
  *
  * @param[in]   device_num      which of device
  * @param[in]   buf             save read data
- * @param[in]   length          the length to read form i2s
+ * @param[in]   buf_len          the length to read form i2s
  * @param[in]   channel_num     The dma channel number
  *
  * @return      result
  *     - 0      Success
  *     - Other  Fail
  */
-int32_t i2s_receive_data_dma(i2s_device_num_t device_num, uint32_t *buf,
-    uint32_t length, dmac_channel_number_t channel_num);
+void i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf, size_t buf_len,
+                          dmac_channel_number_t channel_num);
 
 /**
- * @brief       Read pcm data from dma
+ * @brief       Write pcm data to channel_num channel by dma, first wait dmac done
  *
  * @param[in]   device_num      which of device
- * @param[in]   buf             save read data
- * @param[in]   length          the length to read form i2s
- * @param[in]   channel_num     The dma channel number
+ * @param[in]   pcm             Send data
+ * @param[in]   buf_len          Send data length
+ * @param[in]   channel_num     dmac channel
  *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
  */
-int32_t i2s_recv_dma(i2s_device_num_t device_num, uint32_t *buf,
-    uint32_t length, dmac_channel_number_t channel_num);
-
-/**
- * @brief       Mask or unmask interrupt
- *
- * @param[in]   channel_num         The channel number
- * @param[in]   rx_available        The receive available interrupt
- * @param[in]   rx_overrun_int      The receive overrun interrupt
- * @param[in]   tx_empty_int        The transmit empty interrupt
- * @param[in]   tx_overrun_int      The transmit overrun interrupt
- * @param[in]   device_num          which of device
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_set_mask_interrupt(i2s_device_num_t device_num,
-               i2s_channel_num_t channel_num,
-               uint32_t rx_available, uint32_t rx_overrun_int,
-               uint32_t tx_empty_int, uint32_t tx_overrun_int);
-/**
- * @brief       Set transmit threshold
- *
- * @param[in]   threshold       The threshold data
- * @param[in]   channel_num     The channel number
- * @param[in]   device_num      which of device
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_set_tx_threshold(i2s_device_num_t device_num,
-             fifo_threshold_t threshold,
-             i2s_channel_num_t channel_num);
-
-/**
- * @brief       Set receive threshold
- *
- * @param[in]   threshold       The threshold data
- * @param[in]   channel_num     The channel number
- * @param[in]   device_num      which of device
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_set_rx_threshold(i2s_device_num_t device_num,
-             fifo_threshold_t threshold,
-             i2s_channel_num_t channel_num);
-
-/**
- * @brief       Configure I2s master mode word select size and clock gating param
- *
- * @param[in]   device_num              which of device
- * @param[in]   word_select_size        clock cycle
- * @param[in]   gating_cycles           The sclk gating cycles
-
- * @param[in]   word_mode               work mode standard,left justify,
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_master_configure(i2s_device_num_t device_num,
-    word_select_cycles_t word_select_size,
-    sclk_gating_cycles_t gating_cycles,
-    i2s_work_mode_t word_mode);
-/**
- * @brief       Set rx fifo word length
- *
- * @param[in]   device_num      which of device
- * @param[in]   word_length     word length
- * @param[in]   channel_num     The channel number
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_set_rx_word_length(i2s_device_num_t device_num,
-               word_length_t word_length,
-               i2s_channel_num_t channel_num);
-
-/**
- * @brief       set tx fifo word length
- *
- * @param[in]   device_num      which of device
- * @param[in]   word_length     word length
- * @param[in]   channel_num     The channel number
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_set_tx_word_length(i2s_device_num_t device_num,
-               word_length_t word_length,
-               i2s_channel_num_t channel_num);
-
-/**
- * @brief       i2s fpioa set and clock configure
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_fpioa_sysctl(void);
-
-/**
- * @brief       i2s receive enable
- *
- * @param[in]   device_num      The device number
- * @param[in]   channel_num     The channel number
- */
-void i2s_receive_enable(i2s_device_num_t device_num,
-            i2s_channel_num_t channel_num);
-
-/**
- * @brief       i2s transimit enable
- *
- * @param[in]   device_num      The device number
- * @param[in]   channel_num     The channel number
- */
-void i2s_transimit_enable(i2s_device_num_t device_num,
-              i2s_channel_num_t channel_num);
+void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t buf_len, dmac_channel_number_t channel_num);
 
 /**
  * @brief       I2S receive channel configure
@@ -850,11 +674,11 @@ void i2s_transimit_enable(i2s_device_num_t device_num,
  * @param[in]   word_select_size        The word select size
  * @param[in]   trigger_level           The trigger level
  */
-void i2s_rx_channel_configure(i2s_device_num_t device_num,
+void i2s_rx_channel_config(i2s_device_number_t device_num,
     i2s_channel_num_t channel_num,
-    word_length_t word_length,
-    word_select_cycles_t word_select_size,
-    fifo_threshold_t trigger_level,
+    i2s_word_length_t word_length,
+    i2s_word_select_cycles_t word_select_size,
+    i2s_fifo_threshold_t trigger_level,
     i2s_work_mode_t word_mode);
 
 /**
@@ -866,143 +690,27 @@ void i2s_rx_channel_configure(i2s_device_num_t device_num,
  * @param[in]   word_select_size        The word select size
  * @param[in]   trigger_level           The trigger level
  */
-void i2s_tx_channel_configure(i2s_device_num_t device_num,
+void i2s_tx_channel_config(i2s_device_number_t device_num,
     i2s_channel_num_t channel_num,
-    word_length_t word_length,
-    word_select_cycles_t word_select_size,
-    fifo_threshold_t trigger_level,
+    i2s_word_length_t word_length,
+    i2s_word_select_cycles_t word_select_size,
+    i2s_fifo_threshold_t trigger_level,
     i2s_work_mode_t word_mode);
 
-/**
- * @brief       disable block
- *
- * @param[in]   device_num      The device number
- * @param[in]   rxtx_mode       The rxtx mode
- */
-void i2s_disable_block(i2s_device_num_t device_num,
-    i2s_transmit_t rxtx_mode);
 
 /**
- * @brief       Enable I2S transmit DMA
+ * @brief       Play PCM format audio
  *
- * @param[in]   device_num      The device number
- * @param[in]   enable          The enable
- *
- * @return     result
- *       0     Success
- *       Other Fail
+ * @param[in]   device_num              The device number
+ * @param[in]   channel_num             The channel number
+ * @param[in]   buf                     PCM data
+ * @param[in]   buf_len                 PCM data length
+ * @param[in]   frame                   Transmit amount once
+ * @param[in]   bits_per_sample         Sample bit length
+ * @param[in]   track_num               Track amount
  */
-int i2s_transmit_dma_enable(i2s_device_num_t device_num, uint32_t enable);
-
-/**
- * @brief       Enable I2S receive DMA
- *
- * @param[in]   device_num      The device number
- * @param[in]   enable          The enable
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_receive_dma_enable(i2s_device_num_t device_num, uint32_t enable);
-
-/**
- * @brief       Split I2S transmit DMA from 32bit to two 16bit left and right
- *
- * @param[in]   device_num      The device number
- * @param[in]   enable          The enable
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_transmit_dma_divide(i2s_device_num_t device_num, uint32_t enable);
-
-/**
- * @brief       Write pcm data to channel_num channel
- *
- * @param[in]   device_num      The i2s number
- * @param[in]   channel_num     The channel number
- * @param[in]   pcm             32bit (16 bits left and 16bits right)pcm data
- * @param[in]   device_num      which of device
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_transmit_data(i2s_device_num_t device_num,
-    i2s_channel_num_t channel_num, uint8_t *pcm, uint32_t length, uint8_t single_length);
-
-/**
- * @brief       I2s init
- *
- * @param[in]   device_num          The device number
- * @param[in]   rxtx_mode           I2s work mode
- * @param[in]   channel_mask        Channel mask to which channel work
- *
- */
-void i2s_init(i2s_device_num_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask);
-
-/**
- * @brief       Write pcm data to channel_num channel by dma
- *
- * @param[in]   device_num          which of device
- * @param[in]   pcm                 Send data
- * @param[in]   length              Send data length
- * @param[in]   single_length       Send data width
- * @param[in]   channel_num         dmac channel
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_transmit_data_dma(i2s_device_num_t device_num,
-    void *pcm, uint32_t length, uint8_t single_length, dmac_channel_number_t channel_num);
-
-/**
- * @brief       Write pcm data to channel_num channel by dma, first wait dmac done
- *
- * @param[in]   device_num      which of device
- * @param[in]   pcm             Send data
- * @param[in]   length          Send data length
- * @param[in]   channel_num     dmac channel
- *
- */
-void i2s_send_data_dma(i2s_device_num_t device_num,
-    void *pcm, uint32_t length, dmac_channel_number_t channel_num);
-
-/**
- * @brief       Write pcm data to channel_num channel by dma
- *
- * @param[in]   device_num          which of device
- * @param[in]   channel_num         which of device
- * @param[in]   buf                 Send data
- * @param[in]   length              Send data length
- * @param[in]   frame               I2s frame number
- * @param[in]   bits_per_sample     I2s sample bits
- * @param[in]   track_num           track num
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int i2s_play(i2s_device_num_t device_num,dmac_channel_number_t channel_num,
-    uint8_t *buf, size_t length, uint32_t frame, uint32_t bits_per_sample, uint8_t track_num);
-
-/**
- * @brief       Write pcm data by dma from i2s to i2s
- *
- * @param[in]   device_src_num      I2s receive
- * @param[in]   device_dest_num     I2s transfer
- * @param[in]   length              Data length
- * @param[in]   channel_num         Dmac channel
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int32_t i2s_special_dma(i2s_device_num_t device_src_num, i2s_device_num_t device_dest_num,
-    uint32_t length, dmac_channel_number_t channel_num);
+void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
+              const uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num);
 
 #ifdef __cplusplus
 }

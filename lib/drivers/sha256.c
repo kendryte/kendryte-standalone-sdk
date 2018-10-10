@@ -12,27 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stddef.h>
-#include <stdint.h>
-#include "encoding.h"
-#include "sha256.h"
-#include "syscalls.h"
+#include <string.h>
 #include "sysctl.h"
-
-volatile sha256_t* const sha256 = (volatile sha256_t*)SHA256_BASE_ADDR;
+#include "sha256.h"
+#include "utils.h"
 
 #define ROTL(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
 #define ROTR(x, n) (((x) >> (n)) | ((x) << (32 - (n))))
-#define _BYTESWAP(x) ((ROTR((x), 8) & 0xff00ff00L) | (ROTL((x), 8) & 0x00ff00ffL))
-#define _BYTESWAP64(x) __byteswap64(x)
+#define BYTESWAP(x) ((ROTR((x), 8) & 0xff00ff00L) | (ROTL((x), 8) & 0x00ff00ffL))
+#define BYTESWAP64(x) byteswap64(x)
 
-static inline uint64_t __byteswap64(uint64_t x)
-{
-    uint32_t a = x >> 32;
-    uint32_t b = (uint32_t)x;
-
-    return ((uint64_t)_BYTESWAP(b) << 32) | (uint64_t)_BYTESWAP(a);
-}
+volatile sha256_t* const sha256 = (volatile sha256_t*)SHA256_BASE_ADDR;
 static const uint8_t padding[64] =
 {
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -42,94 +32,89 @@ static const uint8_t padding[64] =
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00};
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
 
-int sha256_init(uint8_t dma_en, uint32_t input_size, SHA256Context_t* sc)
+static inline uint64_t byteswap64(uint64_t x)
+{
+    uint32_t a = (uint32_t)(x >> 32);
+    uint32_t b = (uint32_t)x;
+    return ((uint64_t)BYTESWAP(b) << 32) | (uint64_t)BYTESWAP(a);
+}
+
+void sha256_init(sha256_context_t *context, size_t input_len)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_SHA);
     sysctl_reset(SYSCTL_RESET_SHA);
-    input_size = (input_size + 64) / 64;
-    if (dma_en)
-        sha256->sha_input_ctrl |= 1;
-    else
-        sha256->sha_input_ctrl &= ~0x01;
 
-    sha256->sha_data_num = input_size;
-
-    sha256->sha_status |= 1 << 16; /*0 for little endian, 1 for big endian*/
-    sha256->sha_status |= 1; /*enable sha256*/
-
-    sc->totalLength = 0LL;
-    sc->hash[0] = 0x6a09e667L;
-    sc->hash[1] = 0xbb67ae85L;
-    sc->hash[2] = 0x3c6ef372L;
-    sc->hash[3] = 0xa54ff53aL;
-    sc->hash[4] = 0x510e527fL;
-    sc->hash[5] = 0x9b05688cL;
-    sc->hash[6] = 0x1f83d9abL;
-    sc->hash[7] = 0x5be0cd19L;
-    sc->bufferLength = 0L;
-    return 1;
+    sha256->sha_num_reg.sha_data_cnt = (uint32_t)((input_len + SHA256_BLOCK_LEN + 8) / SHA256_BLOCK_LEN);
+    sha256->sha_function_reg_1.dma_en = 0x0;
+    sha256->sha_function_reg_0.sha_endian = SHA256_BIG_ENDIAN;
+    sha256->sha_function_reg_0.sha_en = ENABLE_SHA;
+    context->total_len = 0L;
+    context->buffer_len = 0L;
 }
 
-void sha256_update(SHA256Context_t* sc, const void* vdata, uint32_t len)
+void sha256_update(sha256_context_t *context, const void *input, size_t input_len)
 {
-    const uint8_t* data = vdata;
-    uint32_t bufferBytesLeft;
-    uint32_t bytesToCopy;
+    const uint8_t *data = input;
+    size_t buffer_bytes_left;
+    size_t bytes_to_copy;
     uint32_t i;
 
-    while (len)
+    while (input_len)
     {
-        bufferBytesLeft = 64L - sc->bufferLength;
-
-        bytesToCopy = bufferBytesLeft;
-        if (bytesToCopy > len)
-            bytesToCopy = len;
-
-        memcpy(&sc->buffer.bytes[sc->bufferLength], data, bytesToCopy);
-
-        sc->totalLength += bytesToCopy * 8L;
-
-        sc->bufferLength += bytesToCopy;
-        data += bytesToCopy;
-        len -= bytesToCopy;
-
-        if (sc->bufferLength == 64L)
+        buffer_bytes_left = SHA256_BLOCK_LEN - context->buffer_len;
+        bytes_to_copy = buffer_bytes_left;
+        if (bytes_to_copy > input_len)
+            bytes_to_copy = input_len;
+        memcpy(&context->buffer.bytes[context->buffer_len], data, bytes_to_copy);
+        context->total_len += bytes_to_copy * 8L;
+        context->buffer_len += bytes_to_copy;
+        data += bytes_to_copy;
+        input_len -= bytes_to_copy;
+        if (context->buffer_len == SHA256_BLOCK_LEN)
         {
             for (i = 0; i < 16; i++)
             {
-                while (sha256->sha_input_ctrl & (1 << 8))
+                while (sha256->sha_function_reg_1.fifo_in_full)
                     ;
-                sha256->sha_data_in1 = sc->buffer.words[i];
+                sha256->sha_data_in1 = context->buffer.words[i];
             }
-            sc->bufferLength = 0L;
+            context->buffer_len = 0L;
         }
     }
 }
 
-void sha256_final(SHA256Context_t* sc, uint8_t hash[SHA256_HASH_SIZE])
+void sha256_final(sha256_context_t *context, uint8_t *output)
 {
-    uint32_t bytesToPad;
-    uint64_t lengthPad;
-    int i;
+    size_t bytes_to_pad;
+    size_t length_pad;
+    uint32_t i;
 
-    bytesToPad = 120L - sc->bufferLength;
-    if (bytesToPad > 64L)
-        bytesToPad -= 64L;
-    lengthPad = _BYTESWAP64(sc->totalLength);
-    sha256_update(sc, padding, bytesToPad);
-    sha256_update(sc, &lengthPad, 8L);
-
-    while (!(sha256->sha_status & 0x01))
+    bytes_to_pad = 120L - context->buffer_len;
+    if (bytes_to_pad > 64L)
+        bytes_to_pad -= 64L;
+    length_pad = BYTESWAP64(context->total_len);
+    sha256_update(context, padding, bytes_to_pad);
+    sha256_update(context, &length_pad, 8L);
+    while (!(sha256->sha_function_reg_0.sha_en))
         ;
-
-    if (hash)
+    if (output)
     {
         for (i = 0; i < SHA256_HASH_WORDS; i++)
         {
-            *((uint32_t*)hash) = sha256->sha_result[SHA256_HASH_WORDS - i - 1];
-            hash += 4;
+            *((uint32_t *)output) = sha256->sha_result[SHA256_HASH_WORDS - i - 1];
+            output += 4;
         }
     }
 }
+
+void sha256_hard_calculate(const uint8_t *input, size_t input_len, uint8_t *output)
+{
+    sha256_context_t sha;
+    sha256_init(&sha, input_len);
+    sha256_update(&sha, input, input_len);
+    sha256_final(&sha, output);
+}
+

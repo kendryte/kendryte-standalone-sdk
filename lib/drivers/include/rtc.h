@@ -29,8 +29,6 @@
 extern "C" {
 #endif
 
-typedef struct tm tm;
-
 /**
  * @brief      RTC timer mode
  *
@@ -351,94 +349,6 @@ typedef struct _rtc
  */
 extern volatile rtc_t *const rtc;
 extern volatile uint32_t *const rtc_base;
-/**
- * @brief       Set RTC timer mode
- *
- * @param[in]   timer_mode  The timer mode
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_timer_mode_set(rtc_timer_mode_t timer_mode);
-
-/**
- * @brief       Get RTC timer mode
- *
- * @return      The timer mode
- */
-rtc_timer_mode_t rtc_timer_get_mode(void);
-
-/**
- * @brief       Set date time to RTC
- *
- * @param[in]   tm      The Broken-down date time
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_timer_set_tm(const tm *tm);
-
-/**
- * @brief       Get date time from RTC
- *
- * @return      The Broken-down date time
- */
-tm *rtc_timer_get_tm(void);
-
-/**
- * @brief       Set date time to Alarm
- *
- * @param[in]   tm      The Broken-down date time
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_timer_set_alarm_tm(const tm *tm);
-
-/**
- * @brief       Get date time from Alarm
- *
- * @return      The Broken-down date time
- */
-tm *rtc_timer_get_alarm_tm(void);
-
-/**
- * @brief       Check if it is a leap year
- *
- * @param[in]   year        The year
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_year_is_leap(int year);
-
-/**
- * @brief       Get day of year from date
- *
- * @param[in]   year        The year
- * @param[in]   month       The month
- * @param[in]   day         The day
- *
- * @return      The day of year from date
- */
-int rtc_get_yday(int year, int month, int day);
-
-/**
- * @brief       Get the day of the week from date
- *
- * @param[in]   year        The year
- * @param[in]   month       The month
- * @param[in]   day         The day
- *
- * @return      The day of the week.
- *              Where Sunday = 0, Monday = 1, Tuesday = 2, Wednesday = 3,
- *              Thursday = 4, Friday = 5, Saturday = 6.
- */
-int rtc_get_wday(int year, int month, int day);
 
 /**
  * @brief       Set date time to RTC
@@ -473,113 +383,6 @@ int rtc_timer_set(int year, int month, int day, int hour, int minute, int second
 int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *second);
 
 /**
- * @brief      Set date time to Alarm
- *
- * @param[in]   year        The year
- * @param[in]   month       The month
- * @param[in]   day         The day
- * @param[in]   hour        The hour
- * @param[in]   minute      The minute
- * @param[in]   second      The second
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_timer_set_alarm(int year, int month, int day, int hour, int minute, int second);
-
-/**
- * @brief       Get date time from Alarm
- *
- * @param       year        The year
- * @param       month       The month
- * @param       day         The day
- * @param       hour        The hour
- * @param       minute      The minute
- * @param       second      The second
- *
- * @return      result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_timer_get_alarm(int *year, int *month, int *day, int *hour, int *minute, int *second);
-
-/**
- * @brief       Set rtc tick interrupt
- *
- * @param       enable       enable or disale rtc interrupt
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_tick_interrupt_set(int enable);
-
-/**
- * @brief       Get tick interrupt
- *
- *
- * @return      Result
- *     - 0      Disable
- *     - 1      Enable
- */
-int rtc_tick_interrupt_get(void);
-
-/**
- * @brief       Set tick interrupt mode
- *
- * @param       mode        The mode interrumpted
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_t mode);
-
-/**
- * @brief       Get tick interrupt mode
- *
- * @return      Tick interrupt mode
- */
-rtc_tick_interrupt_mode_t rtc_tick_interrupt_mode_get(void);
-
-/**
- * @brief       Enable alarm interrupt
- *
- * @param       enable      Enable or disable alarm interrupt
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_alarm_interrupt_set(int enable);
-
-/**
- * @brief       Get alarm interrupt status
- *
- * @return      Alarm interrupt status
- */
-int rtc_alarm_interrupt_get(void);
-
-/**
- * @brief       Set alarm interrupt mask
- *
- * @param       mask        Alarm interrupt mask
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_alarm_interrupt_mask_set(rtc_mask_t mask);
-
-/**
- * @brief       Get alarm interrupt mask
- *
- * @return      Alarm interrupt mask
- */
-rtc_mask_t rtc_alarm_interrupt_mask_get(void);
-
-/**
  * @brief       Initialize RTC
  *
  * @return      Result
@@ -587,17 +390,6 @@ rtc_mask_t rtc_alarm_interrupt_mask_get(void);
  *     - Other  Fail
  */
 int rtc_init(void);
-
-/**
- * @brief       RTC timer set mode
- *
- * @param       timer_mode      timer mode
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int rtc_timer_set_mode(rtc_timer_mode_t timer_mode);
 
 #ifdef __cplusplus
 }

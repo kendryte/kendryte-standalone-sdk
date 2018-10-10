@@ -15,11 +15,10 @@
 #include "wdt.h"
 #include "platform.h"
 #include "stddef.h"
-#include "common.h"
+#include "utils.h"
 #include "sysctl.h"
 #include "plic.h"
-
-plic_irq_callback_t wdt_irq[2];
+#include "math.h"
 
 volatile wdt_t *const wdt[2] =
 {
@@ -27,79 +26,60 @@ volatile wdt_t *const wdt[2] =
     (volatile wdt_t *)WDT1_BASE_ADDR
 };
 
-void wdt_feed(uint8_t id)
-{
-    wdt[id]->crr = WDT_CRR_MASK;
-}
-
-void wdt_enable(uint8_t id)
+static void wdt_enable(wdt_device_number_t id)
 {
     wdt[id]->crr = WDT_CRR_MASK;
     wdt[id]->cr |= WDT_CR_ENABLE;
 }
 
-void wdt_disable(uint8_t id)
+static void wdt_disable(wdt_device_number_t id)
 {
     wdt[id]->crr = WDT_CRR_MASK;
     wdt[id]->cr &= (~WDT_CR_ENABLE);
 }
 
-void wdt_timeout_set(uint8_t id, uint8_t timeout)
+static void wdt_set_timeout(wdt_device_number_t id, uint8_t timeout)
 {
     wdt[id]->torr = WDT_TORR_TOP(timeout);
 }
 
-void wdt_response_mode(uint8_t id, uint8_t mode)
+static void wdt_response_mode(wdt_device_number_t id, uint8_t mode)
 {
     wdt[id]->cr &= (~WDT_CR_RMOD_MASK);
     wdt[id]->cr |= mode;
 }
 
-void wdt_interrupt_clear(uint8_t id)
-{
-    wdt[id]->eoi = wdt[id]->eoi;
-}
-
-void wdt_set_irq(uint8_t id, plic_irq_callback_t on_irq)
-{
-    wdt_irq[id] = on_irq;
-}
-
-size_t wdt_get_pclk(uint8_t id)
+static uint64_t wdt_get_pclk(wdt_device_number_t id)
 {
     return id ? sysctl_clock_get_freq(SYSCTL_CLOCK_WDT1) : sysctl_clock_get_freq(SYSCTL_CLOCK_WDT0);
 }
 
-ssize_t log_2(size_t x)
+static uint8_t wdt_get_top(wdt_device_number_t id, uint64_t timeout_ms)
 {
-    ssize_t i = 0;
-    for (i = sizeof(size_t) * 8; i >= 0; i--)
-    {
-        if ((x >> i) & 0x1)
-        {
-            break;
-        }
-    }
-    return i;
-}
-
-uint8_t wdt_get_top(uint8_t id, size_t timeout_ms)
-{
-    size_t wdt_clk = wdt_get_pclk(id);
-    size_t ret = (timeout_ms * wdt_clk / 1000) >> 16;
+    uint64_t wdt_clk = wdt_get_pclk(id);
+    uint64_t ret = (timeout_ms * wdt_clk / 1000) >> 16;
     if (ret)
-        ret = log_2(ret);
+        ret = (uint32_t)log2(ret);
     if (ret > 0xf)
         ret = 0xf;
     return (uint8_t)ret;
 }
 
+void wdt_feed(wdt_device_number_t id)
+{
+    wdt[id]->crr = WDT_CRR_MASK;
+}
 
-int wdt_start(uint8_t id, size_t toms)
+void wdt_clear_interrupt(wdt_device_number_t id)
+{
+    wdt[id]->eoi = wdt[id]->eoi;
+}
+
+void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq)
 {
     wdt_disable(id);
-    wdt_interrupt_clear(id);
-    plic_irq_register(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT, wdt_irq[id], NULL);
+    wdt_clear_interrupt(id);
+    plic_irq_register(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT, on_irq, NULL);
     plic_set_priority(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT, 1);
     plic_irq_enable(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT);
 
@@ -107,13 +87,12 @@ int wdt_start(uint8_t id, size_t toms)
     sysctl_clock_set_threshold(id ? SYSCTL_THRESHOLD_WDT1 : SYSCTL_THRESHOLD_WDT0, 0);
     sysctl_clock_enable(id ? SYSCTL_CLOCK_WDT1 : SYSCTL_CLOCK_WDT0);
     wdt_response_mode(id, WDT_CR_RMOD_INTERRUPT);
-    uint8_t m_top = wdt_get_top(id, toms);
-    wdt_timeout_set(id, m_top);
+    uint8_t m_top = wdt_get_top(id, time_out_ms);
+    wdt_set_timeout(id, m_top);
     wdt_enable(id);
-    return 0;
 }
 
-void wdt_stop(uint8_t id)
+void wdt_stop(wdt_device_number_t id)
 {
     wdt_disable(id);
 }

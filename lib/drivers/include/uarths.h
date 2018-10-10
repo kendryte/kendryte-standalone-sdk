@@ -15,7 +15,7 @@
 
 /**
  * @file
- * @brief       Universal Asynchronous Receiver/Transmitter (UART)
+ * @brief       Universal Asynchronous I2S_RECEIVER/I2S_TRANSMITTER (UART)
  *
  *              The UART peripheral supports the following features:
  *
@@ -179,7 +179,7 @@ extern volatile uarths_t *const uarths;
  *     - 0      Success
  *     - Other  Fail
  */
-int uart_init();
+void uarths_init(void);
 
 /**
  * @brief       Put a char to UART
@@ -192,7 +192,7 @@ int uart_init();
  *     - 0      Success
  *     - Other  Fail
  */
-int uart_putchar(char c);
+int uarths_putchar(char c);
 
 /**
  * @brief       Send a string to UART
@@ -205,7 +205,7 @@ int uart_putchar(char c);
  *     - 0      Success
  *     - Other  Fail
  */
-int uart_puts(const char *s);
+int uarths_puts(const char *s);
 
 
 /**
@@ -213,7 +213,7 @@ int uart_puts(const char *s);
  *
  * @return      byte as int type from UART
  */
-int uart_getc(void);
+int uarths_getc(void);
 
 
 #ifdef __cplusplus

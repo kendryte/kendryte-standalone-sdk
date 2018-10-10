@@ -367,7 +367,7 @@ typedef int (*plic_irq_callback_t)(void *ctx);
  *     - 0      Success
  *     - Other  Fail
  */
-int plic_init(void);
+void plic_init(void);
 
 /**
  * @brief       Enable PLIC external interrupt
@@ -442,7 +442,7 @@ int plic_irq_complete(uint32_t source);
  *     - 0      Success
  *     - Other  Fail
  */
-int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void *ctx);
+void plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void *ctx);
 
 /**
  * @brief       Deegister user callback function by IRQ number
@@ -453,7 +453,7 @@ int plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void *ctx);
  *     - 0      Success
  *     - Other  Fail
  */
-int plic_irq_deregister(plic_irq_t irq);
+void plic_irq_deregister(plic_irq_t irq);
 
 /* For c++ compatibility */
 #ifdef __cplusplus

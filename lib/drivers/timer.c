@@ -15,7 +15,7 @@
 #include "timer.h"
 #include "sysctl.h"
 #include "stddef.h"
-#include "common.h"
+#include "utils.h"
 #include "plic.h"
 #include "io.h"
 
@@ -26,119 +26,120 @@ volatile kendryte_timer_t *const timer[3] =
     (volatile kendryte_timer_t *)TIMER2_BASE_ADDR
 };
 
-void timer_init(uint32_t tim)
+void timer_init(timer_device_number_t timer_number)
 {
-    sysctl_clock_enable(SYSCTL_CLOCK_TIMER0 + tim);
+    sysctl_clock_enable(SYSCTL_CLOCK_TIMER0 + timer_number);
 }
 
-void timer_set_clock_div(uint32_t tim, uint32_t div)
+void timer_set_clock_div(timer_device_number_t timer_number, uint32_t div)
 {
-    sysctl_clock_set_threshold(tim == 0 ? SYSCTL_THRESHOLD_TIMER0 :
-        tim == 1 ? SYSCTL_THRESHOLD_TIMER1 :
+    sysctl_clock_set_threshold(timer_number == 0 ? SYSCTL_THRESHOLD_TIMER0 :
+        timer_number == 1 ? SYSCTL_THRESHOLD_TIMER1 :
         SYSCTL_THRESHOLD_TIMER2, div);
 }
 
-void timer_enable(uint32_t tim, uint32_t channel)
+void timer_enable(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    timer[tim]->channel[channel].control |= TIMER_CR_ENABLE;
+    timer[timer_number]->channel[channel].control |= TIMER_CR_ENABLE;
 }
 
-void timer_disable(uint32_t tim, uint32_t channel)
+void timer_disable(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    timer[tim]->channel[channel].control &= (~TIMER_CR_ENABLE);
+    timer[timer_number]->channel[channel].control &= (~TIMER_CR_ENABLE);
 }
 
-void timer_enable_pwm(uint32_t tim, uint32_t channel)
+void timer_enable_pwm(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    timer[tim]->channel[channel].control |= TIMER_CR_PWM_ENABLE;
+    timer[timer_number]->channel[channel].control |= TIMER_CR_PWM_ENABLE;
 }
 
-void timer_disable_pwm(uint32_t tim, uint32_t channel)
+void timer_disable_pwm(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    timer[tim]->channel[channel].control &= (~TIMER_CR_PWM_ENABLE);
+    timer[timer_number]->channel[channel].control &= (~TIMER_CR_PWM_ENABLE);
 }
 
-void timer_enable_interrupt(uint32_t tim, uint32_t channel)
+void timer_enable_interrupt(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    timer[tim]->channel[channel].control &= (~TIMER_CR_INTERRUPT_MASK);
+    timer[timer_number]->channel[channel].control &= (~TIMER_CR_INTERRUPT_MASK);
 }
 
-void timer_disable_interrupt(uint32_t tim, uint32_t channel)
+void timer_disable_interrupt(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    timer[tim]->channel[channel].control |= TIMER_CR_INTERRUPT_MASK;
+    timer[timer_number]->channel[channel].control |= TIMER_CR_INTERRUPT_MASK;
 }
 
-void timer_set_mode(uint32_t tim, uint32_t channel, uint32_t mode)
+void timer_set_mode(timer_device_number_t timer_number, timer_channel_number_t channel, uint32_t mode)
 {
-    timer[tim]->channel[channel].control &= (~TIMER_CR_MODE_MASK);
-    timer[tim]->channel[channel].control |= mode;
+    timer[timer_number]->channel[channel].control &= (~TIMER_CR_MODE_MASK);
+    timer[timer_number]->channel[channel].control |= mode;
 }
 
-void timer_set_reload(uint32_t tim, uint32_t channel, uint32_t count)
+void timer_set_reload(timer_device_number_t timer_number, timer_channel_number_t channel, uint32_t count)
 {
-    timer[tim]->channel[channel].load_count = count;
+    timer[timer_number]->channel[channel].load_count = count;
 }
 
-void timer_set_reload2(uint32_t tim, uint32_t channel, uint32_t count)
+void timer_set_reload2(timer_device_number_t timer_number, timer_channel_number_t channel, uint32_t count)
 {
-    timer[tim]->load_count2[channel] = count;
+    timer[timer_number]->load_count2[channel] = count;
 }
 
-uint32_t timer_get_count(uint32_t tim, uint32_t channel)
+uint32_t timer_get_count(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    return timer[tim]->channel[channel].current_value;
+    return timer[timer_number]->channel[channel].current_value;
 }
 
-uint32_t timer_get_reload(uint32_t tim, uint32_t channel)
+uint32_t timer_get_reload(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    return timer[tim]->channel[channel].load_count;
+    return timer[timer_number]->channel[channel].load_count;
 }
 
-uint32_t timer_get_reload2(uint32_t tim, uint32_t channel)
+uint32_t timer_get_reload2(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    return timer[tim]->load_count2[channel];
+    return timer[timer_number]->load_count2[channel];
 }
 
-uint32_t timer_get_interrupt_status(uint32_t tim)
+uint32_t timer_get_interrupt_status(timer_device_number_t timer_number)
 {
-    return timer[tim]->intr_stat;
+    return timer[timer_number]->intr_stat;
 }
 
-uint32_t timer_get_raw_interrupt_status(uint32_t tim)
+uint32_t timer_get_raw_interrupt_status(timer_device_number_t timer_number)
 {
-    return timer[tim]->raw_intr_stat;
+    return timer[timer_number]->raw_intr_stat;
 }
 
-uint32_t timer_channel_get_interrupt_status(uint32_t tim, uint32_t channel)
+uint32_t timer_channel_get_interrupt_status(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    return timer[tim]->channel[channel].intr_stat;
+    return timer[timer_number]->channel[channel].intr_stat;
 }
 
-void timer_clear_interrupt(uint32_t tim)
+void timer_clear_interrupt(timer_device_number_t timer_number)
 {
-    timer[tim]->eoi = timer[tim]->eoi;
+    timer[timer_number]->eoi = timer[timer_number]->eoi;
 }
 
-void timer_channel_clear_interrupt(uint32_t tim, uint32_t channel)
+void timer_channel_clear_interrupt(timer_device_number_t timer_number, timer_channel_number_t channel)
 {
-    timer[tim]->channel[channel].eoi = timer[tim]->channel[channel].eoi;
+    timer[timer_number]->channel[channel].eoi = timer[timer_number]->channel[channel].eoi;
 }
 
-void timer_set_enable(uint32_t tim, uint32_t channel, uint32_t enable){
+void timer_set_enable(timer_device_number_t timer_number, timer_channel_number_t channel, uint32_t enable)
+{
     if (enable)
-        timer[tim]->channel[channel].control = TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
+        timer[timer_number]->channel[channel].control = TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
     else
-        timer[tim]->channel[channel].control = TIMER_CR_INTERRUPT_MASK;
+        timer[timer_number]->channel[channel].control = TIMER_CR_INTERRUPT_MASK;
 }
 
-size_t timer_set_interval(uint32_t tim, uint32_t channel, size_t nanoseconds)
+size_t timer_set_interval(timer_device_number_t timer_number, timer_channel_number_t channel, size_t nanoseconds)
 {
-    uint32_t clk_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_TIMER0 + tim);
+    uint32_t clk_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_TIMER0 + timer_number);
 
     double min_step = 1e9 / clk_freq;
     size_t value = (size_t)(nanoseconds / min_step);
     configASSERT(value > 0 && value < UINT32_MAX);
-    timer[tim]->channel[channel].load_count = (uint32_t)value;
+    timer[timer_number]->channel[channel].load_count = (uint32_t)value;
     return (size_t)(min_step * value);
 }
 
@@ -147,68 +148,45 @@ timer_ontick time_irq[3][4] = { NULL };
 
 static int timer_isr(void *parm)
 {
-    uint32_t tim;
-    for (tim = 0; tim < 3; tim++)
+    uint32_t timer_number;
+    for (timer_number = 0; timer_number < 3; timer_number++)
     {
-        if (parm == timer[tim])
+        if (parm == timer[timer_number])
             break;
     }
 
-    uint32_t channel = timer[tim]->intr_stat;
+    uint32_t channel = timer[timer_number]->intr_stat;
     size_t i = 0;
     for (i = 0; i < 4; i++)
     {
         if (channel & 1)
         {
-            if (time_irq[tim][i])
-                (time_irq[tim][i])();
+            if (time_irq[timer_number][i])
+                (time_irq[timer_number][i])();
             break;
         }
 
         channel >>= 1;
     }
 
-    readl(&timer[tim]->eoi);
+    readl(&timer[timer_number]->eoi);
     return 0;
 }
 
-void timer_set_irq(uint32_t tim, uint32_t channel, void(*func)(), uint32_t priority)
+void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void(*func)(), uint32_t priority)
 {
-    time_irq[tim][channel] = func;
+    time_irq[timer_number][channel] = func;
     if (channel < 2)
     {
-        plic_set_priority(IRQN_TIMER0A_INTERRUPT + tim * 2, priority);
-        plic_irq_register(IRQN_TIMER0A_INTERRUPT + tim * 2, timer_isr, (void *)timer[tim]);
-        plic_irq_enable(IRQN_TIMER0A_INTERRUPT + tim * 2);
+        plic_set_priority(IRQN_TIMER0A_INTERRUPT + timer_number * 2, priority);
+        plic_irq_register(IRQN_TIMER0A_INTERRUPT + timer_number * 2, timer_isr, (void *)timer[timer_number]);
+        plic_irq_enable(IRQN_TIMER0A_INTERRUPT + timer_number * 2);
     }
     else
     {
-        plic_set_priority(IRQN_TIMER0B_INTERRUPT + tim * 2, priority);
-        plic_irq_register(IRQN_TIMER0B_INTERRUPT + tim * 2, timer_isr, NULL);
-        plic_irq_enable(IRQN_TIMER0B_INTERRUPT + tim * 2);
+        plic_set_priority(IRQN_TIMER0B_INTERRUPT + timer_number * 2, priority);
+        plic_irq_register(IRQN_TIMER0B_INTERRUPT + timer_number * 2, timer_isr, NULL);
+        plic_irq_enable(IRQN_TIMER0B_INTERRUPT + timer_number * 2);
     }
-}
-
-void pwm_set_enable(uint32_t tim, uint32_t channel, int enable)
-{
-    if (enable)
-        timer[tim]->channel[channel].control = TIMER_CR_INTERRUPT_MASK | TIMER_CR_PWM_ENABLE | TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
-    else
-        timer[tim]->channel[channel].control = TIMER_CR_INTERRUPT_MASK;
-}
-
-double pwm_set_frequency(uint32_t tim, uint32_t channel, double frequency, double duty)
-{
-    uint32_t clk_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_TIMER0 + tim);
-
-    int32_t periods = (int32_t)(clk_freq / frequency);
-    configASSERT(periods > 0 && periods <= INT32_MAX);
-    frequency = clk_freq / (double)periods;
-
-    uint32_t percent = (uint32_t)(duty * periods);
-    timer[tim]->channel[channel].load_count = periods - percent;
-    timer[tim]->load_count2[channel] = percent;
-
-    return frequency;
 }
 

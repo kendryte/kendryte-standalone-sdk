@@ -15,7 +15,7 @@
 
 /**
  * @file
- * @brief       Universal Asynchronous Receiver/Transmitter (UART)
+ * @brief       Universal Asynchronous I2S_RECEIVER/I2S_TRANSMITTER (UART)
  *
  *              The UART peripheral supports the following features:
  *
@@ -110,6 +110,14 @@ typedef struct _uart
     volatile uint32_t CTR;
 } uart_t;
 
+typedef enum _uart_device_number
+{
+    UART_DEVICE_1,
+    UART_DEVICE_2,
+    UART_DEVICE_3,
+    UART_DEVICE_MAX,
+} uart_device_number_t;
+
 typedef enum _uart_bitwidth
 {
     UART_BITWIDTH_5BIT = 0,
@@ -118,28 +126,12 @@ typedef enum _uart_bitwidth
     UART_BITWIDTH_8BIT,
 } uart_bitwidth_t;
 
-typedef enum _uart_pority
-{
-    UART_PORITY_DISABLE = 0,
-    UART_PORITY_ODD     = 1,
-    UART_PORITY_EVEN    = 3
-} uart_pority_t;
-
 typedef enum _uart_stopbit
 {
     UART_STOP_1,
     UART_STOP_1_5,
     UART_STOP_2
 } uart_stopbit_t;
-
-typedef struct _uart_info
-{
-    uint32_t baudrate;
-    uart_bitwidth_t bitwidth;
-    uart_stopbit_t stopbit;
-    uart_pority_t pority;
-    uint32_t is_hw_flow_en;
-} uart_info_t;
 
 typedef enum _uart_rede_sel
 {
@@ -149,9 +141,9 @@ typedef enum _uart_rede_sel
 
 typedef enum _uart_parity
 {
-    UART_PARITY_None,
-    UART_PARITY_Odd,
-    UART_PARITY_Even
+    UART_PARITY_NONE,
+    UART_PARITY_ODD,
+    UART_PARITY_EVEN
 } uart_parity_t;
 
 /**
@@ -163,7 +155,7 @@ typedef enum _uart_parity
  *
  * @return      Transfer length
  */
-int uart_write(uint8_t channel, const char* buffer, size_t len);
+int uart_send_data(uart_device_number_t channel, const char *buffer, size_t buf_len);
 
 /**
  * @brief       Read data from uart
@@ -174,7 +166,7 @@ int uart_write(uint8_t channel, const char* buffer, size_t len);
  *
  * @return      Receive length
  */
-int uart_read(uint8_t channel, char* buffer, size_t len);
+int uart_receive_data(uart_device_number_t channel, char *buffer, size_t buf_len);
 
 /**
  * @brief       Init uart
@@ -182,7 +174,7 @@ int uart_read(uint8_t channel, char* buffer, size_t len);
  * @param[in]   channel     Uart index
  *
  */
-void uartapb_init(uint8_t channel);
+void uart_init(uart_device_number_t channel);
 
 /**
  * @brief       Set uart param
@@ -194,7 +186,7 @@ void uartapb_init(uint8_t channel);
  * @param[in]   parity          Odd Even parity
  *
  */
-void uart_config(uint8_t channel, size_t baud_rate, size_t data_width, uart_stopbit_t stopbit, uart_parity_t parity);
+void uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity);
 
 #ifdef __cplusplus
 }

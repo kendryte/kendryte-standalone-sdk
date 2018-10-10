@@ -5385,7 +5385,7 @@ int fpioa_set_tie_value(fpioa_function_t function, int value)
     return 0;
 }
 
-int fpioa_get_io_by_func(fpioa_function_t function)
+int fpioa_get_io_by_function(fpioa_function_t function)
 {
     int index = 0;
     for (index = 0; index < FPIOA_NUM_IO; index++)
