@@ -25,12 +25,14 @@
 #include "syslog.h"
 #include "uarths.h"
 
+extern volatile uint64_t g_wake_up[2];
+
+core_instance_t core1_instance;
+
 volatile char * const ram = (volatile char*)RAM_BASE_ADDR;
 
 extern char _heap_start[];
 extern char _heap_end[];
-
-extern volatile uint64_t g_wake_up[2];
 
 void thread_entry(int core_id)
 {
@@ -41,6 +43,16 @@ void core_enable(int core_id)
 {
     clint_ipi_send(core_id);
     atomic_set(&g_wake_up[core_id], 1);
+}
+
+int register_core1(core_function func, void *ctx)
+{
+    if(func == NULL)
+        return -1;
+    core1_instance.callback = func;
+    core1_instance.ctx = ctx;
+    core_enable(1);
+    return 0;
 }
 
 int __attribute__((weak)) os_entry(int core_id, int number_of_cores, int (*user_main)(int, char**))
@@ -68,19 +80,22 @@ void _init_bsp(int core_id, int number_of_cores)
         /* Init libc array for C++ */
         __libc_init_array();
     }
+
+    int ret = 0;
+    if (core_id == 0)
+    {
+        core1_instance.callback = NULL;
+        core1_instance.ctx = NULL;
+        ret = os_entry(core_id, number_of_cores, main);
+    }
     else
     {
         thread_entry(core_id);
+        if(core1_instance.callback == NULL)
+            asm volatile ("wfi");
+        else
+            ret = core1_instance.callback(core1_instance.ctx);
     }
-
-    if (core_id == 0)
-    {
-        /* Enable Core 1 to run main */
-        core_enable(1);
-    }
-
-    int ret = os_entry(core_id, number_of_cores, main);
-
     exit(ret);
 }
 

@@ -14,7 +14,7 @@
  */
 #include <stdio.h>
 #include "sleep.h"
-#include "encoding.h"
+#include "bsp.h"
 int main()
 {
     uint64_t core_id = current_coreid();
