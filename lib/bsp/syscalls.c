@@ -106,14 +106,6 @@ void __attribute__((noreturn)) sys_exit(int code)
     unsigned long core_id = current_coreid();
     /* First print some diagnostic information. */
     LOGW(TAG, "sys_exit called by core %ld with 0x%lx\n", core_id, (uint64_t)code);
-    /* Write exit register to pause netlist simulation */
-    volatile uint32_t *reg = (volatile uint32_t *)0x50440080UL;
-    /* Write stop bit and write back */
-    *reg = (1UL << 31);
-
-    /* Send 0 to uart */
-    uarths_putchar(0);
-
     while (1)
         continue;
 }
@@ -125,8 +117,6 @@ static int sys_nosys(long a0, long a1, long a2, long a3, long a4, long a5, unsig
     UNUSED(a5);
 
     LOGE(TAG, "Unsupported syscall %ld: a0=%lx, a1=%lx, a2=%lx!\n", n, a0, a1, a2);
-    /* Send 0 to uart */
-    uarths_putchar(0);
     while (1)
         continue;
     return -ENOSYS;
@@ -198,7 +188,7 @@ static ssize_t sys_write(int file, const void *ptr, size_t len)
     /**
      * Write to a file.
      *
-     * ssize_t write(int file, const void* ptr, size_t len)
+     * ssize_t write(int file, const void *ptr, size_t len)
      *
      * IN : regs[10] = file, regs[11] = ptr, regs[12] = len
      * OUT: regs[10] = len
@@ -286,7 +276,7 @@ static int sys_gettimeofday(struct timeval *tp, void *tzp)
     /**
      * Get the current time.  Only relatively correct.
      *
-     * int gettimeofday(struct timeval* tp, void* tzp)
+     * int gettimeofday(struct timeval *tp, void *tzp)
      *
      * IN : regs[10] = tp
      * OUT: regs[10] = Upon successful completion, 0 shall be

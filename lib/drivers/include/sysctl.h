@@ -176,6 +176,7 @@ typedef enum _sysctl_clock_t
     SYSCTL_CLOCK_RTC,
     SYSCTL_CLOCK_ACLK = 40,
     SYSCTL_CLOCK_HCLK,
+    SYSCTL_CLOCK_IN0,
     SYSCTL_CLOCK_MAX
 } sysctl_clock_t;
 
@@ -186,7 +187,7 @@ typedef enum _sysctl_clock_select_t
 {
     SYSCTL_CLOCK_SELECT_PLL0_BYPASS,
     SYSCTL_CLOCK_SELECT_PLL1_BYPASS,
-    SYSCTL_CLOCK_SELECT_PLL3_BYPASS,
+    SYSCTL_CLOCK_SELECT_PLL2_BYPASS,
     SYSCTL_CLOCK_SELECT_PLL2,
     SYSCTL_CLOCK_SELECT_ACLK,
     SYSCTL_CLOCK_SELECT_SPI3,
@@ -235,7 +236,7 @@ typedef enum _sysctl_threshold_t
 /**
  * @brief      System controller reset control id
  */
-typedef enum _sysctl_reset_e
+typedef enum _sysctl_reset_t
 {
     SYSCTL_RESET_SOC,
     SYSCTL_RESET_ROM,
@@ -269,10 +270,26 @@ typedef enum _sysctl_reset_e
     SYSCTL_RESET_MAX = 31
 } sysctl_reset_t;
 
-typedef enum _io_power_mode
+typedef enum _sysctl_power_bank
 {
-    POWER_V33,
-    POWER_V18
+    SYSCTL_POWER_BANK0,
+    SYSCTL_POWER_BANK1,
+    SYSCTL_POWER_BANK2,
+    SYSCTL_POWER_BANK3,
+    SYSCTL_POWER_BANK4,
+    SYSCTL_POWER_BANK5,
+    SYSCTL_POWER_BANK6,
+    SYSCTL_POWER_BANK7,
+    SYSCTL_POWER_BANK_MAX,
+} sysctl_power_bank_t;
+
+/**
+ * @brief      System controller reset control id
+ */
+typedef enum _sysctl_io_power_mode
+{
+    SYSCTL_POWER_V33,
+    SYSCTL_POWER_V18
 } sysctl_io_power_mode_t;
 
 /**
@@ -739,7 +756,6 @@ typedef struct _sysctl_power_sel
     uint32_t reserved : 24;
 } __attribute__((packed, aligned(4))) sysctl_power_sel_t;
 
-
 /**
  * @brief       System controller object
  *
@@ -820,6 +836,25 @@ typedef struct _sysctl
 } __attribute__((packed, aligned(4))) sysctl_t;
 
 /**
+ * @brief       Abstruct PLL struct
+ */
+typedef struct _sysctl_general_pll
+{
+    uint32_t clkr : 4;
+    uint32_t clkf : 6;
+    uint32_t clkod : 4;
+    uint32_t bwadj : 6;
+    uint32_t pll_reset : 1;
+    uint32_t pll_pwrd : 1;
+    uint32_t pll_intfb : 1;
+    uint32_t pll_bypass : 1;
+    uint32_t pll_test : 1;
+    uint32_t pll_out_en : 1;
+    uint32_t pll_ckin_sel : 2;
+    uint32_t reserved : 4;
+} __attribute__((packed, aligned(4))) sysctl_general_pll_t;
+
+/**
  * @brief       System controller object instanse
  */
 extern volatile sysctl_t *const sysctl;
@@ -893,15 +928,6 @@ int sysctl_clock_set_clock_select(sysctl_clock_select_t which, int select);
 int sysctl_clock_get_clock_select(sysctl_clock_select_t which);
 
 /**
- * @brief       Get clock source frequency
- *
- * @param[in]   input       The input clock source
- *
- * @return      The frequency of clock source
- */
-uint32_t sysctl_clock_source_get_freq(sysctl_clock_source_t input);
-
-/**
  * @brief       Get PLL frequency
  *
  * @param[in]   pll     The PLL id
@@ -909,17 +935,6 @@ uint32_t sysctl_clock_source_get_freq(sysctl_clock_source_t input);
  * @return      The frequency of PLL
  */
 uint32_t sysctl_pll_get_freq(sysctl_pll_t pll);
-
-/**
- * @brief       Set PLL frequency and input clock
- *
- * @param[in]   pll     The PLL id
- * @param[in]   sel     The selected PLL input clock
- * @param[in]   freq    The frequency
- *
- * @return      The frequency of PLL
- */
-uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uint32_t freq);
 
 /**
  * @brief       Get base clock frequency by clock id
@@ -936,42 +951,6 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock);
  * @param[in]   reset       The reset signal
  */
 void sysctl_reset(sysctl_reset_t reset);
-
-/**
- * @brief       Get git commit id
- *
- * @return      The 4 bytes git commit id
- */
-uint32_t sysctl_get_git_id(void);
-
-/**
- * @brief       Get base clock frequency, default is 26MHz
- *
- * @return      The base clock frequency
- */
-uint32_t sysctl_get_freq(void);
-
-/**
- * @brief       Get pll lock status
- *
- * @param[in]   pll     The pll id
- *
- * @return      The lock status
- *     - 1      Pll is lock
- *     - 0      Pll have lost lock
- */
-int sysctl_pll_is_lock(sysctl_pll_t pll);
-
-/**
- * @brief       Clear pll lock status
- *
- * @param[in]   pll     The pll id
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-int sysctl_pll_clear_slip(sysctl_pll_t pll);
 
 /**
  * @brief       Enable the PLL and power on with reset
@@ -1008,15 +987,6 @@ int sysctl_pll_disable(sysctl_pll_t pll);
 int sysctl_dma_select(sysctl_dma_channel_t channel, sysctl_dma_select_t select);
 
 /**
- * @brief       Fast set all PLL and CPU clock
- *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
- */
-uint32_t sysctl_pll_fast_enable_pll(void);
-
-/**
  * @brief       Set SPI0_D0-D7 DVP_D0-D7 as spi and dvp data pin
  *
  * @param[in]   en     Enable or not
@@ -1025,7 +995,7 @@ uint32_t sysctl_pll_fast_enable_pll(void);
  *     - 0      Success
  *     - Other  Fail
  */
-uint32_t sysctl_spi0_dvp_data_set(uint8_t en);
+uint32_t sysctl_set_spi0_dvp_data(uint8_t en);
 
 /**
  * @brief       Set io power mode
@@ -1037,20 +1007,23 @@ uint32_t sysctl_spi0_dvp_data_set(uint8_t en);
  *     - 0      Success
  *     - Other  Fail
  */
-uint32_t sysctl_power_mode_sel(uint8_t power_bank, sysctl_io_power_mode_t io_power_mode);
+void sysctl_set_power_mode(sysctl_power_bank_t power_bank, sysctl_io_power_mode_t io_power_mode);
 
 /**
  * @brief       Set frequency of CPU
- * @param[in]   frequency       The desired frequency in Hz
+ * @param[in]   freq       The desired frequency in Hz
  *
  * @return      The actual frequency of CPU after set
  */
-uint32_t sysctl_set_cpu_frequency(uint32_t frequency);
+uint32_t sysctl_cpu_set_freq(uint32_t freq);
 
 /**
  * @brief       Init PLL freqency
+ * @param[in]   pll            The PLL id
+ * @param[in]   pll_freq       The desired frequency in Hz
+
  */
-void sysctl_set_pll_frequency(uint64_t pll0, uint64_t pll1, uint64_t pll2);
+uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, uint32_t pll_freq);
 
 /**
  * @brief       Enable interrupt

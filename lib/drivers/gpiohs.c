@@ -32,7 +32,7 @@ gpiohs_pin_context pin_context[32];
 void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
     configASSERT(pin < GPIOHS_MAX_PINNO);
-    int io_number = fpioa_get_io_by_func(FUNC_GPIOHS0 + pin);
+    int io_number = fpioa_get_io_by_function(FUNC_GPIOHS0 + pin);
     configASSERT(io_number > 0);
 
     fpioa_pull_t pull;
@@ -61,8 +61,8 @@ void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
     }
 
     fpioa_set_io_pull(io_number, pull);
-    volatile uint32_t* reg = dir ? gpiohs->output_en.u32 : gpiohs->input_en.u32;
-    volatile uint32_t* reg_d = !dir ? gpiohs->output_en.u32 : gpiohs->input_en.u32;
+    volatile uint32_t *reg = dir ? gpiohs->output_en.u32 : gpiohs->input_en.u32;
+    volatile uint32_t *reg_d = !dir ? gpiohs->output_en.u32 : gpiohs->input_en.u32;
     set_gpio_bit(reg_d, pin, 0);
     set_gpio_bit(reg, pin, 1);
 }
@@ -108,9 +108,9 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
     pin_context[pin].edge = edge;
 }
 
-int gpiohs_pin_onchange_isr(void* userdata)
+int gpiohs_pin_onchange_isr(void *userdata)
 {
-    gpiohs_pin_context* ctx = (gpiohs_pin_context*)userdata;
+    gpiohs_pin_context *ctx = (gpiohs_pin_context *)userdata;
     size_t pin = ctx->pin;
     uint32_t rise, fall;
     switch (ctx->edge)

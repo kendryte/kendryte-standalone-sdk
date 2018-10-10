@@ -60,7 +60,7 @@ int clint_timer_stop(void)
 uint64_t clint_timer_get_freq(void)
 {
     /* The clock is divided by CLINT_CLOCK_DIV */
-    return sysctl_get_freq() / CLINT_CLOCK_DIV;
+    return sysctl_clock_get_freq(SYSCTL_CLOCK_CPU) / CLINT_CLOCK_DIV;
 }
 
 int clint_timer_start(uint64_t interval, int single_shot)
@@ -130,7 +130,7 @@ int clint_timer_set_single_shot(int single_shot)
     return 0;
 }
 
-int clint_timer_register(clint_timer_callback_t callback, void* ctx)
+int clint_timer_register(clint_timer_callback_t callback, void *ctx)
 {
     /* Read core id */
     unsigned long core_id = current_coreid();
@@ -200,7 +200,7 @@ int clint_ipi_clear(size_t core_id)
     return 0;
 }
 
-int clint_ipi_register(clint_ipi_callback_t callback, void* ctx)
+int clint_ipi_register(clint_ipi_callback_t callback, void *ctx)
 {
     /* Read core id */
     unsigned long core_id = current_coreid();

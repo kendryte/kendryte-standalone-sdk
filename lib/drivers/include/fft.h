@@ -68,16 +68,15 @@ typedef enum _fft_direction
  *
  */
 
-
 /**
- * @brief      input data fifo
+ * @brief      The calculation data is input through this register
  *
  *             No. 0 Register (0x00)
  */
-typedef struct _fft_fft_input_fifo
+typedef struct _fft_input_fifo
 {
     uint64_t fft_input_fifo : 64;
-} __attribute__((packed, aligned(8))) fft_fft_input_fifo_t;
+} __attribute__((packed, aligned(8))) fft_input_fifo_t;
 
 /**
  * @brief      fft ctrl reg
@@ -86,12 +85,25 @@ typedef struct _fft_fft_input_fifo
  */
 typedef struct _fft_fft_ctrl
 {
+    /**
+     *FFT calculation data length:
+     *b'000:512 point; b'001:256 point; b'010:128 point; b'011:64 point;
+     */
     uint64_t fft_point : 3;
+    /* FFT mode: b'0:FFT b'1:IFFT */
     uint64_t fft_mode : 1;
+    /* Corresponding to the nine layer butterfly shift operation, 0x0: does not shift; 0x1: shift 1st layer. ...*/
     uint64_t fft_shift : 9;
+    /* FFT enable: b'0:disable b'1:enable */
     uint64_t fft_enable : 1;
+    /* FFT DMA enable: b'0:disable b'1:enable */
     uint64_t dma_send : 1;
+    /**
+     *Input data arrangement: b'00:RIRI; b'01:only real part exist, RRRR;
+     *b'10:First input the real part and then input the imaginary part.
+     */
     uint64_t fft_input_mode : 2;
+    /* Effective width of input data. b'0:64bit effective; b'1:32bit effective  */
     uint64_t fft_data_mode : 1;
     uint64_t reserved : 46;
 } __attribute__((packed, aligned(8))) fft_fft_ctrl_t;
@@ -103,8 +115,11 @@ typedef struct _fft_fft_ctrl
  */
 typedef struct _fft_fifo_ctrl
 {
+    /* Response memory initialization flag.b'1:initialization */
     uint64_t resp_fifo_flush_n : 1;
+    /* Command memory initialization flag.b'1:initialization */
     uint64_t cmd_fifo_flush_n : 1;
+    /* Output interface memory initialization flag.b'1:initialization */
     uint64_t gs_fifo_flush_n : 1;
     uint64_t reserved : 61;
 } __attribute__((packed, aligned(8))) fft_fifo_ctrl_t;
@@ -116,6 +131,11 @@ typedef struct _fft_fifo_ctrl
  */
 typedef struct _fft_intr_mask
 {
+    /**
+     *FFT return status set.
+     *b'0:FFT returns to the state after completion.
+     *b'1:FFT does not return to the state after completion
+     */
     uint64_t fft_done_mask : 1;
     uint64_t reserved : 63;
 } __attribute__((packed, aligned(8))) fft_intr_mask_t;
@@ -127,6 +147,7 @@ typedef struct _fft_intr_mask
  */
 typedef struct _fft_intr_clear
 {
+    /* The interrupt state clears. b'1:clear current interrupt request */
     uint64_t fft_done_clear : 1;
     uint64_t reserved1 : 63;
 } __attribute__((packed, aligned(8))) fft_intr_clear_t;
@@ -136,32 +157,36 @@ typedef struct _fft_intr_clear
  *
  *             No. 5 Register (0x28)
  */
-typedef struct _fft_fft_status
+typedef struct _fft_status
 {
+    /* FFT calculation state.b'0:not completed; b'1:completed */
     uint64_t fft_done_status : 1;
     uint64_t reserved1 : 63;
-} __attribute__((packed, aligned(8))) fft_fft_status_t;
+} __attribute__((packed, aligned(8))) fft_status_t;
 
 /**
- * @brief      fft_status_raw
+ * @brief      fft status raw
  *
  *             No. 6 Register (0x30)
  */
-typedef struct _fft_fft_status_raw
+typedef struct _fft_status_raw
 {
+    /* FFT calculation state. b'1:done */
     uint64_t fft_done_status_raw : 1;
-    uint64_t reserved : 63;
-} __attribute__((packed, aligned(8))) fft_fft_status_raw_t;
+    /* FFT calculation state. b'1:working */
+    uint64_t fft_work_status_raw : 1;
+    uint64_t reserved : 62;
+} __attribute__((packed, aligned(8))) fft_status_raw_t;
 
 /**
- * @brief      fft_output_fifo
+ * @brief      Output of FFT calculation data through this register
  *
  *             No. 7 Register (0x38)
  */
-typedef struct _fft_fft_output_fifo
+typedef struct _fft_output_fifo
 {
     uint64_t fft_output_fifo : 64;
-} __attribute__((packed, aligned(8))) fft_fft_output_fifo_t;
+} __attribute__((packed, aligned(8))) fft_output_fifo_t;
 
 /**
  * @brief      Fast Fourier transform (FFT) algorithm accelerator object
@@ -177,7 +202,7 @@ typedef struct _fft_fft_output_fifo
 typedef struct _fft
 {
     /* No. 0 (0x00): input data fifo */
-    fft_fft_input_fifo_t fft_input_fifo;
+    fft_input_fifo_t fft_input_fifo;
     /* No. 1 (0x08): fft ctrl reg */
     fft_fft_ctrl_t fft_ctrl;
     /* No. 2 (0x10): fifo ctrl */
@@ -187,11 +212,11 @@ typedef struct _fft
     /* No. 4 (0x20): interrupt clear */
     fft_intr_clear_t intr_clear;
     /* No. 5 (0x28): fft status reg */
-    fft_fft_status_t fft_status;
+    fft_status_t fft_status;
     /* No. 6 (0x30): fft_status_raw */
-    fft_fft_status_raw_t fft_status_raw;
+    fft_status_raw_t fft_status_raw;
     /* No. 7 (0x38): fft_output_fifo */
-    fft_fft_output_fifo_t fft_output_fifo;
+    fft_output_fifo_t fft_output_fifo;
 } __attribute__((packed, aligned(8))) fft_t;
 
 

@@ -141,6 +141,14 @@ void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t
  */
 void wdt_stop(wdt_device_number_t id);
 
+/**
+ * @brief       Clear wdt interrupt
+ *
+ * @param[in]   id      Wdt id 0 or 1
+ *
+ */
+void wdt_clear_interrupt(wdt_device_number_t id);
+
 #ifdef __cplusplus
 }
 #endif

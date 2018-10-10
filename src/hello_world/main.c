@@ -13,21 +13,20 @@
  * limitations under the License.
  */
 #include <stdio.h>
-#include "sleep.h"
-#include "encoding.h"
+#include "bsp.h"
+
+int core1_function(void *ctx)
+{
+    uint64_t core = current_coreid();
+    printf("Core %ld Hello world\n", core);
+    while(1);
+}
+
+
 int main()
 {
-    uint64_t core_id = current_coreid();
-    if (core_id == 0)
-    {
-        printf("Core 0 Hello, world!\n");
-    }
-    else
-    {
-        msleep(100);
-        printf("Core 1 Hello, world!\n");
-    }
-    while (1)
-        ;
-    return 0;
+    uint64_t core = current_coreid();
+    printf("Core %ld Hello world\n", core);
+    register_core1(core1_function, NULL);
+    while(1);
 }

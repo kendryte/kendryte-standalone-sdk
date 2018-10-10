@@ -346,10 +346,10 @@ typedef enum _i2c_bus_speed_mode
  * @param[in]   i2c_num             i2c number
  * @param[in]   slave_address       i2c slave device address
  * @param[in]   address_width       address width 7bit or 10bit
- * @param[in]   bus_speed_mode      i2c rate
+ * @param[in]   i2c_clk             i2c clk rate
  */
 void i2c_init(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t address_width,
-              i2c_bus_speed_mode_t bus_speed_mode);
+              uint32_t i2c_clk);
 
 /**
  * @brief       I2c send data

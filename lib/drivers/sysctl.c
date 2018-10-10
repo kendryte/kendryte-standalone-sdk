@@ -403,8 +403,16 @@ int sysctl_clock_disable(sysctl_clock_t clock)
 
 int sysctl_clock_set_threshold(sysctl_threshold_t which, int threshold)
 {
+    int result = 0;
     switch (which)
     {
+        /*
+         * These threshold is 2 bit width
+         */
+        case SYSCTL_THRESHOLD_ACLK:
+            sysctl->clk_sel0.aclk_divider_sel = (uint8_t)threshold & 0x03;
+            break;
+
         /*
          * These threshold is 3 bit width
          */
@@ -500,10 +508,10 @@ int sysctl_clock_set_threshold(sysctl_threshold_t which, int threshold)
             break;
 
         default:
+            result = -1;
             break;
     }
-
-    return 0;
+    return result;
 }
 
 int sysctl_clock_get_threshold(sysctl_threshold_t which)
@@ -606,6 +614,7 @@ int sysctl_clock_get_threshold(sysctl_threshold_t which)
 
 int sysctl_clock_set_clock_select(sysctl_clock_select_t which, int select)
 {
+    int result = 0;
     switch (which)
     {
         /*
@@ -617,7 +626,7 @@ int sysctl_clock_set_clock_select(sysctl_clock_select_t which, int select)
         case SYSCTL_CLOCK_SELECT_PLL1_BYPASS:
             sysctl->pll1.pll_bypass1 = select & 0x01;
             break;
-        case SYSCTL_CLOCK_SELECT_PLL3_BYPASS:
+        case SYSCTL_CLOCK_SELECT_PLL2_BYPASS:
             sysctl->pll2.pll_bypass2 = select & 0x01;
             break;
         case SYSCTL_CLOCK_SELECT_ACLK:
@@ -647,10 +656,11 @@ int sysctl_clock_set_clock_select(sysctl_clock_select_t which, int select)
             break;
 
         default:
+            result = -1;
             break;
     }
 
-    return 0;
+    return result;
 }
 
 int sysctl_clock_get_clock_select(sysctl_clock_select_t which)
@@ -668,7 +678,7 @@ int sysctl_clock_get_clock_select(sysctl_clock_select_t which)
         case SYSCTL_CLOCK_SELECT_PLL1_BYPASS:
             clock_select = (int)sysctl->pll1.pll_bypass1;
             break;
-        case SYSCTL_CLOCK_SELECT_PLL3_BYPASS:
+        case SYSCTL_CLOCK_SELECT_PLL2_BYPASS:
             clock_select = (int)sysctl->pll2.pll_bypass2;
             break;
         case SYSCTL_CLOCK_SELECT_PLL2:
@@ -721,7 +731,6 @@ uint32_t sysctl_clock_source_get_freq(sysctl_clock_source_t input)
         case SYSCTL_SOURCE_ACLK:
             result = sysctl_clock_get_freq(SYSCTL_CLOCK_ACLK);
             break;
-
         default:
             result = 0;
             break;
@@ -729,7 +738,7 @@ uint32_t sysctl_clock_source_get_freq(sysctl_clock_source_t input)
     return result;
 }
 
-int sysctl_pll_is_lock(sysctl_pll_t pll)
+static int sysctl_pll_is_lock(sysctl_pll_t pll)
 {
     /*
      * All bit enable means PLL lock
@@ -772,7 +781,7 @@ int sysctl_pll_is_lock(sysctl_pll_t pll)
     return 0;
 }
 
-int sysctl_pll_clear_slip(sysctl_pll_t pll)
+static int sysctl_pll_clear_slip(sysctl_pll_t pll)
 {
     if (pll >= SYSCTL_PLL_MAX)
         return -1;
@@ -838,6 +847,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll0.pll_reset0 = 0;
             sysctl->pll0.pll_reset0 = 1;
+            asm volatile ("nop");
+            asm volatile ("nop");
             sysctl->pll0.pll_reset0 = 0;
             break;
 
@@ -857,6 +868,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll1.pll_reset1 = 0;
             sysctl->pll1.pll_reset1 = 1;
+            asm volatile ("nop");
+            asm volatile ("nop");
             sysctl->pll1.pll_reset1 = 0;
             break;
 
@@ -876,6 +889,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll2.pll_reset2 = 0;
             sysctl->pll2.pll_reset2 = 1;
+            asm volatile ("nop");
+            asm volatile ("nop");
             sysctl->pll2.pll_reset2 = 0;
             break;
 
@@ -960,7 +975,7 @@ uint32_t sysctl_pll_get_freq(sysctl_pll_t pll)
 
         case SYSCTL_PLL2:
             /*
-             * Get input frequency accroding select register
+             * Get input freq accroding select register
              */
             select = sysctl->pll2.pll_ckin_sel2;
             if (select < sizeof(get_source_pll2))
@@ -978,14 +993,14 @@ uint32_t sysctl_pll_get_freq(sysctl_pll_t pll)
     }
 
     /*
-     * Get final PLL output frequency
+     * Get final PLL output freq
      * FOUT = FIN / NR * NF / OD
      */
     freq_out = (double)freq_in / (double)nr * (double)nf / (double)od;
     return freq_out;
 }
 
-uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uint32_t freq)
+static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uint32_t freq)
 {
     uint32_t freq_in = 0;
 
@@ -1006,7 +1021,7 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uin
                 return 0;
             freq_in = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
             /*
-             * Check input clock frequency
+             * Check input clock freq
              */
             if (freq_in == 0)
                 return 0;
@@ -1019,7 +1034,7 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uin
             if (source < sizeof(get_select_pll2))
                 freq_in = sysctl_clock_source_get_freq(source);
             /*
-             * Check input clock frequency
+             * Check input clock freq
              */
             if (freq_in == 0)
                 return 0;
@@ -1076,12 +1091,7 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uin
     val   = fout / fin;
     terr  = 0.5 / ((double)(nf_max / 2));
     first = firstx = 1;
-    if (terr == -1)
-    {
-        printf("NR\tNF\tOD\tNB\tFvco\t\terror\n");
-        printf("------------------------------------------------------\n");
-    }
-    else if (terr != -2)
+    if (terr != -2)
     {
         first = 0;
         if (terr == 0)
@@ -1183,16 +1193,14 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uin
             x_nb   = nb;
             x_fvco = fvco;
             x_err  = err;
-            first = firstx = 0;
-            merr       = fabs(err);
+            first  = firstx = 0;
+            merr   = fabs(err);
             if (terr != -1)
                 continue;
-            printf("%d\t%lld\t%d\t%d\t%e\t%#+g\n", nrx, nfx, no, nb, fvco, err);
         }
     }
     if (!found)
     {
-        printf("Error:  No workable settings found.\n");
         return 0;
     }
 
@@ -1204,28 +1212,8 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, sysctl_clock_source_t source, uin
     err  = x_err;
     if ((terr != -2) && (fabs(err) >= terr * (1 - 1e-6)))
     {
-        printf("Error:  No appropriate ratio found.\n");
         return 0;
     }
-
-#ifdef CONFIG_PLL_DEBUG_ENABLE
-    printf("NR = %d\n", nrx);
-    printf("NF = %lld\n", nfx);
-    printf("OD = %d\n", no);
-    printf("NB = %d\n", nb);
-
-    printf("\n");
-    printf("Fin  = %g\n", fin);
-    printf("Fvco = %g\n", fvco);
-    printf("Fout = %g\n", fvco / no);
-    printf("error = %+g\n", err);
-
-    printf("\n");
-    printf("CLKR[3:0] = %02x\n", nrx - 1);
-    printf("CLKF[5:0] = %02x\n", (unsigned int)nfx - 1);
-    printf("CLKOD[3:0] = %02x\n", no - 1);
-    printf("BWADJ[5:0] = %02x\n", nb - 1);
-#endif /* CONFIG_PLL_DEBUG_ENABLE */
 
     /*
      * Begin write PLL registers' value,
@@ -1290,6 +1278,14 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
 
     switch (clock)
     {
+        /*
+         * The clock IN0
+         */
+        case SYSCTL_CLOCK_IN0:
+            source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
+            result = source;
+            break;
+
         /*
          * These clock directly under PLL clock domain
          * They are using gated divider.
@@ -1604,7 +1600,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source;
             break;
         case SYSCTL_CLOCK_RTC:
-            source = sysctl_clock_get_freq(SYSCTL_CLOCK_APB1);
+            source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
             result = source;
             break;
 
@@ -1727,69 +1723,90 @@ uint32_t sysctl_pll_fast_enable_pll(void)
     return 0;
 }
 
-uint32_t sysctl_spi0_dvp_data_set(uint8_t en)
+uint32_t sysctl_set_spi0_dvp_data(uint8_t en)
 {
     sysctl->misc.spi_dvp_data_enable = en;
     return 0;
 }
 
-uint32_t sysctl_power_mode_sel(uint8_t power_bank, sysctl_io_power_mode_t io_power_mode)
+void sysctl_set_power_mode(sysctl_power_bank_t power_bank, sysctl_io_power_mode_t io_power_mode)
 {
     if(io_power_mode)
         *((uint32_t *)(&sysctl->power_sel)) |= (1 << power_bank);
     else
         *((uint32_t *)(&sysctl->power_sel)) &= ~(1 << power_bank);
-    return 0;
 }
 
-void sysctl_set_pll_frequency(uint64_t pll0, uint64_t pll1, uint64_t pll2)
+uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, uint32_t pll_freq)
 {
-    sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_IN0);
+    if(pll_freq == 0)
+        return 0;
 
-    sysctl_pll_enable(SYSCTL_PLL0);
-    sysctl_pll_set_freq(SYSCTL_PLL0, SYSCTL_SOURCE_IN0, pll0);
-    while (sysctl_pll_is_lock(SYSCTL_PLL0) == 0)
-        sysctl_pll_clear_slip(SYSCTL_PLL0);
-    sysctl_clock_enable(SYSCTL_CLOCK_PLL0);
-    sysctl->clk_sel0.aclk_divider_sel = 0;
-    sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_PLL0);
-
-    sysctl_pll_enable(SYSCTL_PLL1);
-    sysctl_pll_set_freq(SYSCTL_PLL1, SYSCTL_SOURCE_IN0, pll1);
-    while (sysctl_pll_is_lock(SYSCTL_PLL1) == 0)
-        sysctl_pll_clear_slip(SYSCTL_PLL1);
-    sysctl_clock_enable(SYSCTL_CLOCK_PLL1);
-
-    sysctl_pll_enable(SYSCTL_PLL2);
-    sysctl_pll_set_freq(SYSCTL_PLL2, SYSCTL_SOURCE_IN0, pll2);
-    while (sysctl_pll_is_lock(SYSCTL_PLL2) == 0)
-        sysctl_pll_clear_slip(SYSCTL_PLL2);
-    sysctl_clock_enable(SYSCTL_CLOCK_PLL2);
-}
-
-uint32_t sysctl_set_cpu_frequency(uint32_t frequency)
-{
-    sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_IN0);
-    sysctl->pll0.pll_reset0 = 1;
-
-    uint32_t result = sysctl_pll_set_freq(SYSCTL_PLL0, SYSCTL_SOURCE_IN0, frequency * 2);
-    sysctl->pll0.pll_reset0 = 0;
-    while (1)
+    volatile sysctl_general_pll_t *v_pll_t;
+    switch(pll)
     {
-        uint32_t lock = sysctl->pll_lock.pll_lock0 & 0x3;
-        if (lock == 0x3)
-        {
+        case SYSCTL_PLL0:
+            v_pll_t = (sysctl_general_pll_t *)(&sysctl->pll0);
             break;
-        }
-        else
-        {
-            sysctl->pll_lock.pll_slip_clear0 = 1;
-        }
+        case SYSCTL_PLL1:
+            v_pll_t = (sysctl_general_pll_t *)(&sysctl->pll1);
+            break;
+        case SYSCTL_PLL2:
+            v_pll_t = (sysctl_general_pll_t *)(&sysctl->pll2);
+            break;
+        default:
+            return 0;
+            break;
     }
 
-    sysctl->pll0.pll_out_en0 = 1;
-    sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_PLL0);
+    /* 1. Change CPU CLK to XTAL */
+    if(pll == SYSCTL_PLL0)
+        sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_IN0);
+
+    /* 2. Disable PLL output */
+    v_pll_t->pll_out_en = 0;
+
+    /* 3. Turn off PLL */
+    v_pll_t->pll_pwrd = 0;
+
+    /* 4. Set PLL new value */
+    uint32_t result;
+    if(pll == SYSCTL_PLL2)
+        result = sysctl_pll_source_set_freq(pll, v_pll_t->pll_ckin_sel, pll_freq);
+    else
+        result = sysctl_pll_source_set_freq(pll, SYSCTL_SOURCE_IN0, pll_freq);
+
+    /* 5. Power on PLL */
+    v_pll_t->pll_pwrd = 1;
+
+    /* 6. Reset PLL then Release Reset*/
+    v_pll_t->pll_reset = 0;
+    v_pll_t->pll_reset = 1;
+    /* wait 100ns */
+    asm volatile ("nop");
+    asm volatile ("nop");
+    v_pll_t->pll_reset = 0;
+
+    /* 7. Get lock status, wait PLL stable */
+    while (sysctl_pll_is_lock(pll) == 0)
+        sysctl_pll_clear_slip(pll);
+
+    /* 8. Enable PLL output */
+    v_pll_t->pll_out_en = 1;
+
+    /* 9. Change CPU CLK to PLL */
+    if(pll == SYSCTL_PLL0)
+        sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_PLL0);
+
     return result;
+}
+
+uint32_t sysctl_cpu_set_freq(uint32_t freq)
+{
+    if(freq == 0)
+        return 0;
+
+    return sysctl_pll_set_freq(SYSCTL_PLL0, (sysctl->clk_sel0.aclk_divider_sel + 1) * 2 * freq);
 }
 
 void sysctl_enable_irq(void)
