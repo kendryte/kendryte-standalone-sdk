@@ -317,8 +317,7 @@ extern "C" {
  */
 
 /* clang-format off */
-typedef enum 
-_fpioa_function
+typedef enum _fpioa_function
 {
     FUNC_JTAG_TCLK        = 0,  /*!< JTAG Test Clock */
     FUNC_JTAG_TDI         = 1,  /*!< JTAG Test Data In */
