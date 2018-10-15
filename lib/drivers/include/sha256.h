@@ -67,7 +67,6 @@ typedef struct _sha256
     uint32_t sha_data_in1;
     uint32_t reselved0;
     sha_num_reg_t sha_num_reg;
-    /*  */
     sha_function_reg_0_t sha_function_reg_0;
     uint32_t reserved1;
     sha_function_reg_1_t sha_function_reg_1;
