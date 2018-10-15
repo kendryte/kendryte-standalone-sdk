@@ -32,9 +32,8 @@ static void fft_init(uint8_t point, uint8_t mode, uint16_t shift, uint8_t is_dma
 }
 
 void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                            fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output)
+                        uint16_t shift, fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output)
 {
-    uint16_t shift = (direction==FFT_DIR_FORWARD) ? 0x1ff : 0x0;
     fft_point_t point = FFT_512;
     switch(point_num)
     {

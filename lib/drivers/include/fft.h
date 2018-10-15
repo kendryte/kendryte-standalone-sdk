@@ -22,11 +22,11 @@
 extern "C" {
 #endif
 
-typedef struct _complex
+typedef struct _complex_hard
 {
-    float real;
-    float imag;
-} complex_t;
+    int16_t real;
+    int16_t imag;
+} complex_hard_t;
 
 typedef struct _fft_data
 {
@@ -47,7 +47,8 @@ typedef enum _fft_point
 typedef enum _fft_direction
 {
     FFT_DIR_BACKWARD,
-    FFT_DIR_FORWARD
+    FFT_DIR_FORWARD,
+    FFT_DIR_MAX,
 } fft_direction_t;
 
 /**
@@ -221,7 +222,7 @@ typedef struct _fft
 
 
 void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                            fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output);
+                        uint16_t shift, fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output);
 
 #ifdef __cplusplus
 }
