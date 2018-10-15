@@ -469,7 +469,7 @@ static const fpioa_assign_t function_config[FUNC_MAX] =
         .pad_di  = 0
     },
     {
-        .ch_sel  = FUNC_CLK_IN1,
+        .ch_sel  = FUNC_RESV6,
         .ds      = 0x0,
         .oe_en   = 0,
         .oe_inv  = 0,
@@ -489,7 +489,7 @@ static const fpioa_assign_t function_config[FUNC_MAX] =
         .pad_di  = 0
     },
     {
-        .ch_sel  = FUNC_CLK_IN2,
+        .ch_sel  = FUNC_RESV7,
         .ds      = 0x0,
         .oe_en   = 0,
         .oe_inv  = 0,
