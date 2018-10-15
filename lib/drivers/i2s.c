@@ -60,7 +60,7 @@ static void i2s_receive_enable(i2s_device_number_t device_num, i2s_channel_num_t
     u_irer.reg_data = readl(&i2s[device_num]->irer);
     u_irer.irer.rxen = 1;
     writel(u_irer.reg_data, &i2s[device_num]->irer);
-    /* I2S_RECEIVER block enable */
+    /* Receiver block enable */
 
     i2s_recv_channel_enable(device_num, channel_num, 1);
     /* Receive channel enable */
@@ -73,7 +73,7 @@ static void i2s_transimit_enable(i2s_device_number_t device_num, i2s_channel_num
     u_iter.reg_data = readl(&i2s[device_num]->iter);
     u_iter.iter.txen = 1;
     writel(u_iter.reg_data, &i2s[device_num]->iter);
-    /* I2S_TRANSMITTER block enable */
+    /* Transmitter block enable */
 
     i2s_transmit_channel_enable(device_num, channel_num, 1);
     /* Transmit channel enable */
@@ -98,14 +98,14 @@ static void i2s_disable_block(i2s_device_number_t device_num, i2s_transmit_t rxt
         u_irer.reg_data = readl(&i2s[device_num]->irer);
         u_irer.irer.rxen = 0;
         writel(u_irer.reg_data, &i2s[device_num]->irer);
-        /* I2S_RECEIVER block disable */
+        /* Receiver block disable */
     }
     else
     {
         u_iter.reg_data = readl(&i2s[device_num]->iter);
         u_iter.iter.txen = 0;
         writel(u_iter.reg_data, &i2s[device_num]->iter);
-        /* I2S_TRANSMITTER block disable */
+        /* Transmitter block disable */
     }
 }
 

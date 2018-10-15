@@ -15,7 +15,7 @@
 
 /**
  * @file
- * @brief       Universal Asynchronous I2S_RECEIVER/I2S_TRANSMITTER (UART)
+ * @brief       Universal Asynchronous Receiver/Transmitter (UART)
  *
  *              The UART peripheral supports the following features:
  *

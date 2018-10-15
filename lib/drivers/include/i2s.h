@@ -87,15 +87,15 @@ typedef enum _word_length
 {
     /* Ignore the word length */
     IGNORE_WORD_LENGTH = 0x0,
-    /* 12-bit data resolution of the I2S_RECEIVER */
+    /* 12-bit data resolution of the receiver */
     RESOLUTION_12_BIT = 0x1,
-    /* 16-bit data resolution of the I2S_RECEIVER */
+    /* 16-bit data resolution of the receiver */
     RESOLUTION_16_BIT = 0x2,
-    /* 20-bit data resolution of the I2S_RECEIVER */
+    /* 20-bit data resolution of the receiver */
     RESOLUTION_20_BIT = 0x3,
-    /* 24-bit data resolution of the I2S_RECEIVER */
+    /* 24-bit data resolution of the receiver */
     RESOLUTION_24_BIT = 0x4,
-    /* 32-bit data resolution of the I2S_RECEIVER */
+    /* 32-bit data resolution of the receiver */
     RESOLUTION_32_BIT = 0x5
 } i2s_word_length_t;
 
@@ -152,9 +152,9 @@ typedef union _ier_u
 
 typedef struct _i2s_irer
 {
-    /* Bit 0 is I2S_RECEIVER block  enable,
-     * 0 for I2S_RECEIVER disable
-     * 1 for I2S_RECEIVER enable
+    /* Bit 0 is receiver block  enable,
+     * 0 for receiver disable
+     * 1 for receiver enable
      */
     uint32_t rxen : 1;
     /* Bits [31:1] is reserved */
@@ -170,9 +170,9 @@ typedef union _irer_u
 typedef struct _i2s_iter
 {
     uint32_t txen : 1;
-    /* Bit 0 is I2S_TRANSMITTER block  enable,
-     * 0 for I2S_TRANSMITTER disable
-     * 1 for I2S_TRANSMITTER enable
+    /* Bit 0 is transmitter block  enable,
+     * 0 for transmitter disable
+     * 1 for transmitter enable
      */
     uint32_t resv : 31;
     /* Bits [31:1] is reserved */
@@ -245,7 +245,7 @@ typedef union _ccr_u
 typedef struct _i2s_rxffr
 {
     uint32_t rxffr : 1;
-    /* Bit 0 is I2S_RECEIVER FIFO reset,
+    /* Bit 0 is receiver FIFO reset,
      * 0 for does not flush RX FIFO, 1 for flush RX FIFO
      */
     uint32_t resv : 31;
@@ -322,13 +322,13 @@ typedef union _ter_u
 typedef struct _i2s_rcr_tcr
 {
     /* Bits [2:0] is used to program desired data resolution of
-     * I2S_RECEIVER/I2S_TRANSMITTER,
+     * receiver/transmitter,
      * 0x0 for ignore the word length
-     * 0x1 for 12-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
-     * 0x2 for 16-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
-     * 0x3 for 20-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
-     * 0x4 for 24-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER,
-     * 0x5 for 32-bit data resolution of the I2S_RECEIVER/I2S_TRANSMITTER
+     * 0x1 for 12-bit data resolution of the receiver/transmitter,
+     * 0x2 for 16-bit data resolution of the receiver/transmitter,
+     * 0x3 for 20-bit data resolution of the receiver/transmitter,
+     * 0x4 for 24-bit data resolution of the receiver/transmitter,
+     * 0x5 for 32-bit data resolution of the receiver/transmitter
      */
     uint32_t wlen : 3;
     /* Bits [31:3] is reseved */
@@ -342,7 +342,7 @@ typedef union _rcr_tcr_u {
 
 typedef struct _i2s_isr
 {
-    /* Bit 0 is status of I2S_RECEIVER data avaliable interrupt
+    /* Bit 0 is status of receiver data avaliable interrupt
      * 0x0 for RX FIFO trigger level not reached
      * 0x1 for RX FIFO trigger level is reached
      */
@@ -445,7 +445,7 @@ typedef union _tor_u
 typedef struct _i2s_rfcr
 {
     /* Bits [3:0] is used program the trigger level in the RX FIFO at
-     * which the I2S_RECEIVER data available interrupt generate,
+     * which the receiver data available interrupt generate,
      * 0x0 for interrupt trigger when FIFO level is 1,
      * 0x2 for interrupt trigger when FIFO level is 2,
      * 0x3 for interrupt trigger when FIFO level is 4,
@@ -476,7 +476,7 @@ typedef union _rfcr_u
 typedef struct _i2s_tfcr
 {
     /* Bits [3:0] is used program the trigger level in the TX FIFO at
-     * which the I2S_RECEIVER data available interrupt generate,
+     * which the receiver data available interrupt generate,
      * 0x0 for interrupt trigger when FIFO level is 1,
      * 0x2 for interrupt trigger when FIFO level is 2,
      * 0x3 for interrupt trigger when FIFO level is 4,
@@ -506,7 +506,7 @@ typedef union _tfcr_u
 
 typedef struct _i2s_rff
 {
-    /* Bit  0 is I2S_RECEIVER channel FIFO reset,
+    /* Bit  0 is receiver channel FIFO reset,
      * 0x0 for does not flush an individual RX FIFO,
      * 0x1 for flush an indiviadual RX FIFO
      */
@@ -587,30 +587,30 @@ typedef struct _i2s
 {
     /* I2S Enable Register                          (0x00) */
     volatile uint32_t ier;
-    /* I2S I2S_RECEIVER Block Enable Register           (0x04) */
+    /* I2S Receiver Block Enable Register           (0x04) */
     volatile uint32_t irer;
-    /* I2S I2S_TRANSMITTER Block Enable Register        (0x08) */
+    /* I2S Transmitter Block Enable Register        (0x08) */
     volatile uint32_t iter;
     /* Clock Enable Register                        (0x0c) */
     volatile uint32_t cer;
     /* Clock Configuration Register                 (0x10) */
     volatile uint32_t ccr;
-    /* I2S_RECEIVER Block FIFO Reset Register           (0x04) */
+    /* Receiver Block FIFO Reset Register           (0x04) */
     volatile uint32_t rxffr;
-    /* I2S_TRANSMITTER Block FIFO Reset Register        (0x18) */
+    /* Transmitter Block FIFO Reset Register        (0x18) */
     volatile uint32_t txffr;
     /* reserved                                     (0x1c) */
     volatile uint32_t reserved1;
     volatile i2s_channel_t channel[4];
     /* reserved                               (0x118-0x1bc) */
     volatile uint32_t reserved2[40];
-    /*  I2S_RECEIVER Block DMA Register                 (0x1c0) */
+    /*  Receiver Block DMA Register                 (0x1c0) */
     volatile uint32_t rxdma;
-    /* Reset I2S_RECEIVER Block DMA Register            (0x1c4) */
+    /* Reset Receiver Block DMA Register            (0x1c4) */
     volatile uint32_t rrxdma;
-    /* I2S_TRANSMITTER Block DMA Register               (0x1c8) */
+    /* Transmitter Block DMA Register               (0x1c8) */
     volatile uint32_t txdma;
-    /* Reset I2S_TRANSMITTER Block DMA Register         (0x1cc) */
+    /* Reset Transmitter Block DMA Register         (0x1cc) */
     volatile uint32_t rtxdma;
     /* reserved                               (0x1d0-0x1ec) */
     volatile uint32_t reserved3[8];

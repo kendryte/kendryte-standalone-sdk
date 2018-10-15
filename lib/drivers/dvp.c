@@ -96,7 +96,7 @@ uint8_t dvp_sccb_receive_data(uint8_t dev_addr, uint16_t reg_addr)
     }
     dvp_sccb_start_transfer();
 
-    dvp->sccb_ctl = DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr);
+    dvp->sccb_ctl = DVP_SCCB_DEVICE_ADDRESS(dev_addr);
 
     dvp_sccb_start_transfer();
 

@@ -143,9 +143,9 @@ typedef enum _spi_transfer_mode
 
 typedef enum _spi_transfer_width
 {
-    SPI_TRANS_CHAR  = 0x0,
-    SPI_TRANS_SHORT = 0x1,
-    SPI_TRANS_INT   = 0x2,
+    SPI_TRANS_CHAR  = 0x1,
+    SPI_TRANS_SHORT = 0x2,
+    SPI_TRANS_INT   = 0x4,
 } spi_transfer_width_t;
 
 typedef enum _spi_chip_select
