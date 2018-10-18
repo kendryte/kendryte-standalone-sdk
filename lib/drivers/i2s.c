@@ -14,6 +14,7 @@
  */
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 #include "i2s.h"
 #include "sysctl.h"
 #include "stdlib.h"
@@ -620,7 +621,7 @@ uint32_t i2s_set_sample_rate(i2s_device_number_t device_num, uint32_t sample_rat
     u_ccr.reg_data = readl(&i2s[device_num]->ccr);
     /* 0x0 for 16sclk cycles, 0x1 for 24 sclk cycles 0x2 for 32 sclk */
     uint32_t v_clk_word_size = (u_ccr.ccr.clk_word_size + 2) * 8;
-    uint32_t threshold = pll2_clock / (sample_rate * 2 * v_clk_word_size * 2) - 1;
+    uint32_t threshold = round(pll2_clock / (sample_rate * 2.0 * v_clk_word_size * 2.0) - 1);
     sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2S0 + device_num, threshold);
     return sysctl_clock_get_freq(SYSCTL_CLOCK_I2S0 + device_num);
 }
