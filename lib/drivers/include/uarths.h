@@ -258,7 +258,7 @@ size_t uarths_receive_data(uint8_t *buf, size_t buf_len);
  *
  * @return      Number of sended data
  */
-size_t uarths_send_data(const uint8_t *buf, size_t buf_len)
+size_t uarths_send_data(const uint8_t *buf, size_t buf_len);
 
 /**
  * @brief       Get interrupt mode
