@@ -611,3 +611,16 @@ void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t
     }
 }
 
+uint32_t i2s_set_sample_rate(i2s_device_number_t device_num, uint32_t sample_rate)
+{
+    ccr_t u_ccr;
+    uint32_t pll2_clock = 0;
+    pll2_clock = sysctl_pll_get_freq(SYSCTL_PLL2);
+
+    u_ccr.reg_data = readl(&i2s[device_num]->ccr);
+    /* 0x0 for 16sclk cycles, 0x1 for 24 sclk cycles 0x2 for 32 sclk */
+    uint32_t v_clk_word_size = (u_ccr.ccr.clk_word_size + 2) * 8;
+    uint32_t threshold = pll2_clock / (sample_rate * 2 * v_clk_word_size * 2) - 1;
+    sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2S0 + device_num, threshold);
+    return sysctl_clock_get_freq(SYSCTL_CLOCK_I2S0 + device_num);
+}
