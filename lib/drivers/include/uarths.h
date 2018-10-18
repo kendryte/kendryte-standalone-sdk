@@ -50,6 +50,7 @@
 
 #include <stdint.h>
 #include "platform.h"
+#include "plic.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -170,6 +171,19 @@ typedef struct _uarths
     uarths_div_t div;
 } __attribute__((packed, aligned(4))) uarths_t;
 
+typedef enum _uarths_interrupt_mode
+{
+    UARTHS_SEND = 1,
+    UARTHS_RECEIVE = 2,
+    UARTHS_SEND_RECEIVE = 3,
+} uarths_interrupt_mode_t;
+
+typedef enum _uarths_stopbit
+{
+    UART_STOP_1,
+    UART_STOP_2
+} uarths_stopbit_t;
+
 extern volatile uarths_t *const uarths;
 
 /**
@@ -215,6 +229,61 @@ int uarths_puts(const char *s);
  */
 int uarths_getc(void);
 
+/**
+ * @brief       Set uarths interrupt callback
+ *
+ * @param[in]    interrupt_mode       Interrupt mode recevice or send
+ * @param[in]    uarths_callback      Interrupt callback
+ * @param[in]    ctx                  Param of callback
+ * @param[in]    priority             Interrupt priority
+ *
+ */
+void uarths_set_irq(uarths_interrupt_mode_t interrupt_mode, plic_irq_callback_t uarths_callback, void *ctx, uint32_t priority);
+
+/**
+ * @brief       Uarths receive data
+ *
+ * @param[in]    buf          The data received
+ * @param[in]    buf_len      The length of data
+ *
+ * @return      Number of received data
+ */
+size_t uarths_receive_data(uint8_t *buf, size_t buf_len);
+
+/**
+ * @brief       Uarths receive data
+ *
+ * @param[in]    buf          The data sended
+ * @param[in]    buf_len      The length of data
+ *
+ * @return      Number of sended data
+ */
+size_t uarths_send_data(const uint8_t *buf, size_t buf_len)
+
+/**
+ * @brief       Get interrupt mode
+ *
+ * @return      Mode of interrupt
+ */
+uarths_interrupt_mode_t uarths_get_interrupt_mode(void);
+
+/**
+ * @brief       Set uarths baud rate and stopbit
+ *
+ * @param[in]    baud_rate        The baud rate
+ * @param[in]    stopbit          The stopbit of data
+ *
+ */
+void uarths_config(uint32_t baud_rate, uarths_stopbit_t stopbit);
+
+/**
+ * @brief       Set uart interrupt condition
+ *
+ * @param[in]    interrupt_mode         The interrupt mode
+ * @param[in]    cnt                    The count of tigger
+ *
+ */
+void uarths_set_interrupt_cnt(uarths_interrupt_mode_t interrupt_mode, uint8_t cnt);
 
 #ifdef __cplusplus
 }
