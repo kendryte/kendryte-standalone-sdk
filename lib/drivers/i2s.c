@@ -265,7 +265,7 @@ static int i2s_receive_dma_enable(i2s_device_number_t device_num, uint32_t enabl
     return 0;
 }
 
-static int i2s_transmit_dma_divide(i2s_device_number_t device_num, uint32_t enable)
+int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable)
 {
     ccr_t u_ccr;
 
@@ -277,6 +277,15 @@ static int i2s_transmit_dma_divide(i2s_device_number_t device_num, uint32_t enab
     writel(u_ccr.reg_data, &i2s[device_num]->ccr);
 
     return 0;
+}
+
+int i2s_get_dma_divide_16(i2s_device_number_t device_num)
+{
+    if (device_num >= I2S_DEVICE_MAX)
+        return -1;
+    ccr_t u_ccr;
+    u_ccr.reg_data = readl(&i2s[device_num]->ccr);
+    return u_ccr.ccr.dma_divide_16;
 }
 
 int i2s_receive_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num, uint64_t *buf, size_t buf_len)
@@ -442,11 +451,11 @@ void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
     size_t sample_cnt = buf_len / ( bits_per_sample / 8 ) / track_num;
     size_t frame_cnt = sample_cnt / frame;
     size_t frame_remain = sample_cnt % frame;
-    i2s_transmit_dma_divide(device_num, 0);
+    i2s_set_dma_divide_16(device_num, 0);
 
     if (bits_per_sample == 16 && track_num == 2)
     {
-        i2s_transmit_dma_divide(device_num, 1);
+        i2s_set_dma_divide_16(device_num, 1);
         for (i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
@@ -556,10 +565,6 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
     writel(1, &i2s[device_num]->channel[channel_num].tff);
     /* flush individual fifo */
 
-    if (word_length == RESOLUTION_16_BIT)
-    {
-        i2s_transmit_dma_divide(I2S_DEVICE_0, 1);
-    }
     i2s_set_tx_word_length(device_num, word_length, channel_num);
     /* Word buf_len is RESOLUTION_16_BIT */
 

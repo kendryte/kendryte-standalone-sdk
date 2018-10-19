@@ -722,6 +722,30 @@ void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
  */
 uint32_t i2s_set_sample_rate(i2s_device_number_t device_num, uint32_t sample_rate);
 
+/**
+ * @brief       Set dma_divide_16 split 32bit data to two 16 bit data and filled in left
+*               and right channel. Used with dma_tx_en or dma_rx_en
+ *
+ * @param[in]   device_num              The device number
+ * @param[in]   enable                  The value of dma_divide_16 0:disable 1:enable
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable);
+
+/**
+ * @brief       Get dma_divide_16.
+ *
+ * @param[in]   device_num              The device number
+ *
+ * @return      result
+ *     - <0     Fail
+ *     - other  value of dma_divide_16
+ */
+int i2s_get_dma_divide_16(i2s_device_number_t device_num);
+
 #ifdef __cplusplus
 }
 #endif
