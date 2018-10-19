@@ -16,6 +16,8 @@
 #define _DRIVER_AES_H
 #include <stdlib.h>
 #include <stdint.h>
+#include "platform.h"
+#include "dmac.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -144,6 +146,7 @@ typedef struct _cbc_context
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb128_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -156,6 +159,7 @@ void aes_ecb128_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb128_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -168,6 +172,7 @@ void aes_ecb128_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb192_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -180,6 +185,7 @@ void aes_ecb192_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb192_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -192,6 +198,7 @@ void aes_ecb192_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb256_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -204,6 +211,7 @@ void aes_ecb256_hard_decrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb256_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -217,6 +225,7 @@ void aes_ecb256_hard_encrypt(uint8_t *input_key, uint8_t *input_data, size_t inp
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc128_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -230,6 +239,7 @@ void aes_cbc128_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc128_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -243,6 +253,7 @@ void aes_cbc128_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc192_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -256,6 +267,7 @@ void aes_cbc192_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc192_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -269,6 +281,7 @@ void aes_cbc192_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc256_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -282,6 +295,7 @@ void aes_cbc256_hard_decrypt(cbc_context_t *context, uint8_t *input_data, size_t
  *                              This can be any length between 16 bytes and 2^31 bytes inclusive
  *                              (between 1 and 2^27 block cipher blocks).
  * @param[out]  output_data     The buffer holding the output data.
+ *                              The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc256_hard_encrypt(cbc_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data);
 
@@ -368,6 +382,348 @@ void aes_gcm256_hard_decrypt(gcm_context_t *context, uint8_t *input_data, size_t
  * @param[out]  gcm_tag         The buffer for holding the tag.The length of the tag must be 4 bytes.
  */
 void aes_gcm256_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t input_len, uint8_t *output_data, uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-ECB-128 decryption by dma
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   input_key                   The decryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_ecb128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    uint8_t *input_key,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-128 encryption by dma
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   input_key                   The encryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_ecb128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    uint8_t *input_key,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-192 decryption by dma
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   input_key                   The decryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_ecb192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    uint8_t *input_key,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-192 encryption by dma
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   input_key                   The encryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_ecb192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    uint8_t *input_key,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-256 decryption by dma
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   input_key                   The decryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_ecb256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    uint8_t *input_key,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-ECB-256 encryption by dma
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   input_key                   The encryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_ecb256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    uint8_t *input_key,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-128 decryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The cbc context to use for encryption or decryption.
+ * @param[in]   input_key                   The encryption key. must be 24bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_cbc128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    cbc_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-128 encryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The cbc context to use for encryption or decryption.
+ * @param[in]   input_key                   The encryption key. must be 24bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_cbc128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    cbc_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-192 decryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The cbc context to use for encryption or decryption.
+ * @param[in]   input_key                   The decryption key. must be 24bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_cbc192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    cbc_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-192 encryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The cbc context to use for encryption or decryption.
+ * @param[in]   input_key                   The encryption key. must be 24bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_cbc192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    cbc_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-256 decryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The cbc context to use for encryption or decryption.
+ * @param[in]   input_key                   The decryption key. must be 24bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_cbc256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    cbc_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-CBC-256 encryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The cbc context to use for encryption or decryption.
+ * @param[in]   input_key                   The encryption key. must be 24bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
+ */
+void aes_cbc256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    cbc_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data);
+
+/**
+ * @brief       AES-GCM-128 decryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The gcm context to use for encryption or decryption.
+ * @param[in]   input_key                   The decryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes. Must be 4 byte multiples.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    gcm_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data,
+    uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-128 encryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The gcm context to use for encryption or decryption.
+ * @param[in]   input_key                   The encryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes. Must be 4 byte multiples.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    gcm_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data,
+    uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-192 decryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The gcm context to use for encryption or decryption.
+ * @param[in]   input_key                   The decryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes. Must be 4 byte multiples.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    gcm_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data,
+    uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-192 encryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The gcm context to use for encryption or decryption.
+ * @param[in]   input_key                   The encryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes. Must be 4 byte multiples.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    gcm_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data,
+    uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-256 decryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The gcm context to use for encryption or decryption.
+ * @param[in]   input_key                   The decryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes. Must be 4 byte multiples.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    gcm_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data,
+    uint8_t *gcm_tag);
+
+/**
+ * @brief       AES-GCM-256 encryption
+ *
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   context                     The gcm context to use for encryption or decryption.
+ * @param[in]   input_key                   The encryption key. must be 16bytes.
+ * @param[in]   input_data                  The buffer holding the input data.
+ * @param[in]   input_len                   The length of a data unit in bytes. Must be 4 byte multiples.
+ *                                          This can be any length between 16 bytes and 2^31 bytes inclusive
+ *                                          (between 1 and 2^27 block cipher blocks).
+ * @param[out]  output_data                 The buffer holding the output data.
+ * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
+ */
+void aes_gcm256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
+    gcm_context_t *context,
+    uint8_t *input_data,
+    size_t input_len,
+    uint8_t *output_data,
+    uint8_t *gcm_tag);
 
 /**
  * @brief       This function initializes the AES hard module.

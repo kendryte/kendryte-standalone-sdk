@@ -19,6 +19,7 @@
 #include "sysctl.h"
 #include "string.h"
 #include "encoding.h"
+#include "bsp.h"
 
 #define SYSCTRL_CLOCK_FREQ_IN0 (26000000UL)
 
@@ -1778,13 +1779,14 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, uint32_t pll_freq)
 
     /* 5. Power on PLL */
     v_pll_t->pll_pwrd = 1;
+    /* wait >100ns */
+    usleep(1);
 
     /* 6. Reset PLL then Release Reset*/
     v_pll_t->pll_reset = 0;
     v_pll_t->pll_reset = 1;
-    /* wait 100ns */
-    asm volatile ("nop");
-    asm volatile ("nop");
+    /* wait >100ns */
+    usleep(1);
     v_pll_t->pll_reset = 0;
 
     /* 7. Get lock status, wait PLL stable */

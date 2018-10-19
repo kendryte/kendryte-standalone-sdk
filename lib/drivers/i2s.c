@@ -14,6 +14,7 @@
  */
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 #include "i2s.h"
 #include "sysctl.h"
 #include "stdlib.h"
@@ -264,7 +265,7 @@ static int i2s_receive_dma_enable(i2s_device_number_t device_num, uint32_t enabl
     return 0;
 }
 
-static int i2s_transmit_dma_divide(i2s_device_number_t device_num, uint32_t enable)
+int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable)
 {
     ccr_t u_ccr;
 
@@ -276,6 +277,15 @@ static int i2s_transmit_dma_divide(i2s_device_number_t device_num, uint32_t enab
     writel(u_ccr.reg_data, &i2s[device_num]->ccr);
 
     return 0;
+}
+
+int i2s_get_dma_divide_16(i2s_device_number_t device_num)
+{
+    if (device_num >= I2S_DEVICE_MAX)
+        return -1;
+    ccr_t u_ccr;
+    u_ccr.reg_data = readl(&i2s[device_num]->ccr);
+    return u_ccr.ccr.dma_divide_16;
 }
 
 int i2s_receive_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num, uint64_t *buf, size_t buf_len)
@@ -391,7 +401,7 @@ void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t b
                          DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
-static void i2s_parse_voice(uint32_t *buf, const uint8_t *pcm, size_t length,  size_t bits_per_sample,
+static void i2s_parse_voice(i2s_device_number_t device_num, uint32_t *buf, const uint8_t *pcm, size_t length,  size_t bits_per_sample,
     uint8_t track_num, size_t *send_len)
 {
     uint32_t i,j=0;
@@ -399,12 +409,11 @@ static void i2s_parse_voice(uint32_t *buf, const uint8_t *pcm, size_t length,  s
     switch(bits_per_sample)
     {
         case 16:
-            i2s_transmit_dma_divide(I2S_DEVICE_0, 1);
             for(i = 0; i < length; i++)
             {
-                buf[i] = ((uint16_t *)pcm)[i];
+                buf[2*i] = ((uint16_t *)pcm)[i];
+                buf[2*i+1] = 0;
             }
-            *send_len = length;
             break;
         case 24:
             for(i = 0; i < length; i++)
@@ -423,13 +432,12 @@ static void i2s_parse_voice(uint32_t *buf, const uint8_t *pcm, size_t length,  s
             }
             break;
         case 32:
+        default:
             for(i = 0; i < length; i++)
             {
                 buf[2*i] = ((uint32_t *)pcm)[i];
                 buf[2*i+1] = 0;
             }
-            break;
-        default:
             break;
     }
 }
@@ -443,9 +451,11 @@ void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
     size_t sample_cnt = buf_len / ( bits_per_sample / 8 ) / track_num;
     size_t frame_cnt = sample_cnt / frame;
     size_t frame_remain = sample_cnt % frame;
+    i2s_set_dma_divide_16(device_num, 0);
 
     if (bits_per_sample == 16 && track_num == 2)
     {
+        i2s_set_dma_divide_16(device_num, 1);
         for (i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
@@ -480,18 +490,26 @@ void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
         for (i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
-            i2s_parse_voice(buff[flag], trans_buf, frame, bits_per_sample, track_num, &send_len);
+            i2s_parse_voice(device_num, buff[flag], trans_buf, frame, bits_per_sample, track_num, &send_len);
             i2s_send_data_dma(device_num,buff[flag], send_len, channel_num);
             flag = !flag;
         }
         if (frame_remain)
         {
             trans_buf = buf + frame_cnt * frame * (bits_per_sample / 8) * track_num;
-            i2s_parse_voice(buff[flag], trans_buf, frame_remain, bits_per_sample, track_num, &send_len);
+            i2s_parse_voice(device_num, buff[flag], trans_buf, frame_remain, bits_per_sample, track_num, &send_len);
             i2s_send_data_dma(device_num, trans_buf, send_len, channel_num);
         }
         free(buff[0]);
     }
+}
+
+static inline void i2s_set_sign_expand_en(i2s_device_number_t device_num, uint32_t enable)
+{
+    ccr_t u_ccr;
+    u_ccr.reg_data = readl(&i2s[device_num]->ccr);
+    u_ccr.ccr.sign_expand_en = enable;
+    writel(u_ccr.reg_data, &i2s[device_num]->ccr);
 }
 
 void i2s_rx_channel_config(i2s_device_number_t device_num,
@@ -547,10 +565,6 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
     writel(1, &i2s[device_num]->channel[channel_num].tff);
     /* flush individual fifo */
 
-    if (word_length == RESOLUTION_16_BIT)
-    {
-        i2s_transmit_dma_divide(I2S_DEVICE_0, 1);
-    }
     i2s_set_tx_word_length(device_num, word_length, channel_num);
     /* Word buf_len is RESOLUTION_16_BIT */
 
@@ -607,7 +621,23 @@ void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t
             }
             channel_mask >>= 2;
         }
+        /* Set expand_en when receive */
+        i2s_set_sign_expand_en(device_num, 1);
         i2s_receive_dma_enable(device_num, 1);
     }
+}
+
+uint32_t i2s_set_sample_rate(i2s_device_number_t device_num, uint32_t sample_rate)
+{
+    ccr_t u_ccr;
+    uint32_t pll2_clock = 0;
+    pll2_clock = sysctl_pll_get_freq(SYSCTL_PLL2);
+
+    u_ccr.reg_data = readl(&i2s[device_num]->ccr);
+    /* 0x0 for 16sclk cycles, 0x1 for 24 sclk cycles 0x2 for 32 sclk */
+    uint32_t v_clk_word_size = (u_ccr.ccr.clk_word_size + 2) * 8;
+    uint32_t threshold = round(pll2_clock / (sample_rate * 2.0 * v_clk_word_size * 2.0) - 1);
+    sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2S0 + device_num, threshold);
+    return sysctl_clock_get_freq(SYSCTL_CLOCK_I2S0 + device_num);
 }
 

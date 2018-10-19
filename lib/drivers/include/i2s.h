@@ -697,7 +697,6 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
     i2s_fifo_threshold_t trigger_level,
     i2s_work_mode_t word_mode);
 
-
 /**
  * @brief       Play PCM format audio
  *
@@ -711,6 +710,41 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
  */
 void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
               const uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num);
+
+/**
+ * @brief       Play PCM format audio
+ *
+ * @param[in]   device_num              The device number
+ * @param[in]   sample_rate             The Sample rate
+ *
+ *
+ * @return      The real sample rate
+ */
+uint32_t i2s_set_sample_rate(i2s_device_number_t device_num, uint32_t sample_rate);
+
+/**
+ * @brief       Set dma_divide_16 split 32bit data to two 16 bit data and filled in left
+*               and right channel. Used with dma_tx_en or dma_rx_en
+ *
+ * @param[in]   device_num              The device number
+ * @param[in]   enable                  The value of dma_divide_16 0:disable 1:enable
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable);
+
+/**
+ * @brief       Get dma_divide_16.
+ *
+ * @param[in]   device_num              The device number
+ *
+ * @return      result
+ *     - <0     Fail
+ *     - other  value of dma_divide_16
+ */
+int i2s_get_dma_divide_16(i2s_device_number_t device_num);
 
 #ifdef __cplusplus
 }
