@@ -711,7 +711,6 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
 void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
               const uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num);
 
-
 /**
  * @brief       Play PCM format audio
  *

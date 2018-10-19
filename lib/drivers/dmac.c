@@ -255,7 +255,7 @@ void dmac_enable_common_interrupt_signal(void)
 
 static void dmac_enable_channel_interrupt_status(dmac_channel_number_t channel_num)
 {
-    writeq(0xFFFFFFE2, &dmac->channel[channel_num].intstatus_en);
+    writeq(0x2, &dmac->channel[channel_num].intstatus_en);
     writeq(0xffffffff, &dmac->channel[channel_num].intclear);
 }
 
@@ -584,6 +584,7 @@ void dmac_init(void)
     tmp &= ~0xf;
     writeq(tmp, &dmac->chen);
     /* disable all channel before configure */
+    dmac_enable();
 }
 
 static void list_add(struct list_head_t *new, struct list_head_t *prev,
@@ -709,7 +710,6 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
     dmac_set_channel_param(channel_num, src, dest, src_inc, dest_inc,
                            dmac_burst_size, dmac_trans_width, block_size);
     dmac_enable();
-    dmac_chanel_interrupt_clear(channel_num); /* clear interrupt */
     dmac_enable_channel_interrupt_status(channel_num);
     dmac_channel_enable(channel_num);
 }
