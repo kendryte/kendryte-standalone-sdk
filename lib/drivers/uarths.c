@@ -48,10 +48,20 @@ int uarths_irq_callback(void *ctx)
 
 void uarths_set_interrupt_cnt(uarths_interrupt_mode_t interrupt_mode, uint8_t cnt)
 {
-    if(interrupt_mode == UARTHS_SEND)
-        uarths->txctrl.txcnt = cnt;
-    else
-        uarths->rxctrl.rxcnt = cnt;
+    switch(interrupt_mode)
+    {
+        case UARTHS_SEND:
+            uarths->txctrl.txcnt = cnt;
+            break;
+        case UARTHS_RECEIVE:
+            uarths->rxctrl.rxcnt = cnt;
+            break;
+        case UARTHS_SEND_RECEIVE:
+        default:
+            uarths->txctrl.txcnt = cnt;
+            uarths->rxctrl.rxcnt = cnt;
+            break;
+    }
 }
 
 void uarths_set_irq(uarths_interrupt_mode_t interrupt_mode, plic_irq_callback_t uarths_callback, void *ctx, uint32_t priority)
