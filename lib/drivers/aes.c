@@ -688,15 +688,13 @@ void aes_gcm128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
     uint8_t *output_data,
     uint8_t *gcm_tag)
 {
-    configASSERT(input_len % 4 == 0);
-
     aes_init(context->input_key, AES_128, context->iv, IV_LEN_96, context->gcm_aad,
             AES_GCM, AES_HARD_DECRYPTION, context->gcm_aad_len, input_len);
 
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_AES_REQ);
     aes->dma_sel = 1;
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&aes->aes_out_data), output_data, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, input_len >> 2);
+                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, (input_len + 3) >> 2);
     aes_input_bytes(input_data, input_len, AES_GCM);
     dmac_wait_done(dma_receive_channel_num);
 
@@ -710,15 +708,13 @@ void aes_gcm128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
     uint8_t *output_data,
     uint8_t *gcm_tag)
 {
-    configASSERT(input_len % 4 == 0);
-
     aes_init(context->input_key, AES_128, context->iv, IV_LEN_96, context->gcm_aad,
             AES_GCM, AES_HARD_ENCRYPTION, context->gcm_aad_len, input_len);
 
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_AES_REQ);
     aes->dma_sel = 1;
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&aes->aes_out_data), output_data, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, input_len >> 2);
+                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, (input_len + 3) >> 2);
     aes_input_bytes(input_data, input_len, AES_GCM);
     dmac_wait_done(dma_receive_channel_num);
 
@@ -732,15 +728,13 @@ void aes_gcm192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
     uint8_t *output_data,
     uint8_t *gcm_tag)
 {
-    configASSERT(input_len % 4 == 0);
-
     aes_init(context->input_key, AES_192, context->iv, IV_LEN_96, context->gcm_aad,
             AES_GCM, AES_HARD_DECRYPTION, context->gcm_aad_len, input_len);
 
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_AES_REQ);
     aes->dma_sel = 1;
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&aes->aes_out_data), output_data, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, input_len >> 2);
+                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, (input_len + 3) >> 2);
     aes_input_bytes(input_data, input_len, AES_GCM);
     dmac_wait_done(dma_receive_channel_num);
 
@@ -754,15 +748,13 @@ void aes_gcm192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
     uint8_t *output_data,
     uint8_t *gcm_tag)
 {
-    configASSERT(input_len % 4 == 0);
-
     aes_init(context->input_key, AES_192, context->iv, IV_LEN_96, context->gcm_aad,
             AES_GCM, AES_HARD_ENCRYPTION, context->gcm_aad_len, input_len);
 
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_AES_REQ);
     aes->dma_sel = 1;
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&aes->aes_out_data), output_data, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, input_len >> 2);
+                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, (input_len + 3) >> 2);
     aes_input_bytes(input_data, input_len, AES_GCM);
     dmac_wait_done(dma_receive_channel_num);
 
@@ -776,15 +768,13 @@ void aes_gcm256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
     uint8_t *output_data,
     uint8_t *gcm_tag)
 {
-    configASSERT(input_len % 4 == 0);
-
     aes_init(context->input_key, AES_256, context->iv, IV_LEN_96, context->gcm_aad,
             AES_GCM, AES_HARD_DECRYPTION, context->gcm_aad_len, input_len);
 
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_AES_REQ);
     aes->dma_sel = 1;
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&aes->aes_out_data), output_data, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, input_len >> 2);
+                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, (input_len + 3) >> 2);
     aes_input_bytes(input_data, input_len, AES_GCM);
     dmac_wait_done(dma_receive_channel_num);
 
@@ -798,15 +788,13 @@ void aes_gcm256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
     uint8_t *output_data,
     uint8_t *gcm_tag)
 {
-    configASSERT(input_len % 4 == 0);
-
     aes_init(context->input_key, AES_256, context->iv, IV_LEN_96, context->gcm_aad,
             AES_GCM, AES_HARD_ENCRYPTION, context->gcm_aad_len, input_len);
 
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_AES_REQ);
     aes->dma_sel = 1;
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&aes->aes_out_data), output_data, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, input_len >> 2);
+                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, (input_len + 3) >> 2);
     aes_input_bytes(input_data, input_len, AES_GCM);
     dmac_wait_done(dma_receive_channel_num);
 
