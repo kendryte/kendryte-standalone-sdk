@@ -220,9 +220,24 @@ typedef struct _fft
     fft_output_fifo_t fft_output_fifo;
 } __attribute__((packed, aligned(8))) fft_t;
 
-
-void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                        uint16_t shift, fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output);
+/**
+ * @brief       Do 16bit quantized complex FFT by DMA
+ *
+ * @param[in]   dma_send_channel_num        Dmac send channel number.
+ * @param[in]   dma_receive_channel_num     Dmac receive channel number.
+ * @param[in]   shift                       The shifts selection in 9 stage
+ * @param[in]   direction                   The direction
+ * @param[in]   input                       The input data
+ * @param[in]   point                       The FFT points count
+ * @param[out]  output                      The output data
+ */
+void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num,
+    dmac_channel_number_t dma_receive_channel_num,
+    uint16_t shift,
+    fft_direction_t direction,
+    const uint64_t *input,
+    size_t point_num,
+    uint64_t *output);
 
 #ifdef __cplusplus
 }
