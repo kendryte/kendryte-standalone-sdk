@@ -36,6 +36,13 @@ global_set(CMAKE_EXE_LINKER_FLAGS "")
 global_set(CMAKE_SHARED_LINKER_FLAGS "")
 global_set(CMAKE_MODULE_LINKER_FLAGS "")
 
+function(removeDuplicateSubstring stringIn stringOut)
+    separate_arguments(stringIn)
+    list(REMOVE_DUPLICATES stringIn)
+    string(REPLACE ";" " " stringIn "${stringIn}")
+    set(${stringOut} "${stringIn}" PARENT_SCOPE)
+endfunction()
+
 macro(add_compile_flags WHERE)
     JOIN("${ARGN}" " " STRING_ARGS)
     if (${WHERE} STREQUAL C)
