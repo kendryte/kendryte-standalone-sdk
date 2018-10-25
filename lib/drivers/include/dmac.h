@@ -1458,6 +1458,12 @@ void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_c
  */
 void dmac_set_src_dest_length(dmac_channel_number_t channel_num, const void *src, void *dest, size_t len);
 
+/**
+ * @brief       Disable dmac channel interrupt
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+*/
 void dmac_disable_channel_interrupt(dmac_channel_number_t channel_num);
 
 #ifdef __cplusplus
