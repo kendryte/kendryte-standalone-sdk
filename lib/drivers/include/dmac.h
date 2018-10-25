@@ -20,6 +20,7 @@
 #include "platform.h"
 #include "stdbool.h"
 #include "plic.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -1433,6 +1434,10 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
  */
 void dmac_wait_done(dmac_channel_number_t channel_num);
 
+int dmac_is_idle(dmac_channel_number_t channel_num);
+
+void dmac_wait_idle(dmac_channel_number_t channel_num);
+
 /**
  * @brief       Set interrupt param
  *
@@ -1452,6 +1457,8 @@ void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_c
  * @param[in]   len                     The length of dmac transfer
  */
 void dmac_set_src_dest_length(dmac_channel_number_t channel_num, const void *src, void *dest, size_t len);
+
+void dmac_disable_channel_interrupt(dmac_channel_number_t channel_num);
 
 #ifdef __cplusplus
 }
