@@ -1427,6 +1427,17 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
                           size_t block_size);
 
 /**
+ * @brief       Determine the transfer is complete or not
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+ * @return      result
+ *     - 0      uncompleted
+ *     - 1  completed
+*/
+int dmac_is_done(dmac_channel_number_t channel_num);
+
+/**
  * @brief       Wait for dmac work done
  *
  * @param[in]   channel_num  Dmac channel
@@ -1434,8 +1445,23 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
  */
 void dmac_wait_done(dmac_channel_number_t channel_num);
 
+/**
+ * @brief       Determine the dma is idle or not
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+ * @return      result
+ *     - 0      busy
+ *     - 1      idel
+*/
 int dmac_is_idle(dmac_channel_number_t channel_num);
 
+/**
+ * @brief       Wait for dmac idle
+ *
+ * @param[in]   channel_num  Dmac channel
+ *
+ */
 void dmac_wait_idle(dmac_channel_number_t channel_num);
 
 /**

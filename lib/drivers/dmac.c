@@ -714,6 +714,14 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
     dmac_channel_enable(channel_num);
 }
 
+int dmac_is_done(dmac_channel_number_t channel_num)
+{
+    if(readq(&dmac->channel[channel_num].intstatus) & 0x2)
+        return 1;
+    else
+        return 0;
+}
+
 void dmac_wait_done(dmac_channel_number_t channel_num)
 {
     while (!(readq(&dmac->channel[channel_num].intstatus) & 0x2))
@@ -739,9 +747,12 @@ void dmac_wait_idle(dmac_channel_number_t channel_num)
 
 void dmac_set_src_dest_length(dmac_channel_number_t channel_num, const void *src, void *dest, size_t len)
 {
-    dmac->channel[channel_num].sar = (uint64_t)src;
-    dmac->channel[channel_num].dar = (uint64_t)dest;
-    dmac_set_block_ts(channel_num, len - 1);
+    if(src != NULL)
+        dmac->channel[channel_num].sar = (uint64_t)src;
+    if(dest != NULL)
+        dmac->channel[channel_num].dar = (uint64_t)dest;
+    if(len > 0)
+        dmac_set_block_ts(channel_num, len - 1);
     dmac_channel_enable(channel_num);
 }
 
