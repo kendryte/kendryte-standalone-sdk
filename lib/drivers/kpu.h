@@ -343,4 +343,13 @@ extern kpu_task_t* kpu_task_init(kpu_task_t* task);
  */
 int kpu_run(kpu_task_t* task, dmac_channel_number_t dma_ch, const void *src, void* dest, plic_irq_callback_t callback);
 
+/**
+ * @brief       Get kpu result buf
+ *
+ * @param[in]   task                Kpu handler
+ *
+ * @return      Kpu result buf
+ */
+uint8_t *kpu_get_output_buf(kpu_task_t* task);
+
 #endif

@@ -134,6 +134,7 @@ int kpu_run(kpu_task_t* v_task, dmac_channel_number_t dma_ch, const void *src, v
 {
     if(g_kpu_context.kpu_status)
         return -1;
+
     memcpy((void *)&g_kpu_context.kpu_task, v_task, sizeof(kpu_task_t));
     kpu_task_t *task = (kpu_task_t *)&g_kpu_context.kpu_task;
 
@@ -156,5 +157,18 @@ int kpu_run(kpu_task_t* v_task, dmac_channel_number_t dma_ch, const void *src, v
     kpu_run_dma_input(dma_ch, src, kpu_run_dma_input_done_push_layers, task);
 
     return 0;
+}
+
+uint8_t *kpu_get_output_buf(kpu_task_t* task)
+{
+    kpu_layer_argument_t* last_layer = &task->layers[task->length-1];
+    size_t output_size = ((last_layer->dma_parameter.data.dma_total_byte+1) + 7) / 8 * 8;
+    return malloc(output_size);
+}
+
+void kpu_release_output_buf(uint8_t *output_buf)
+{
+    if(output_buf != NULL)
+        free(output_buf);
 }
 
