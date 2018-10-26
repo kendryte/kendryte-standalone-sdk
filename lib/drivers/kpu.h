@@ -352,4 +352,12 @@ int kpu_run(kpu_task_t* task, dmac_channel_number_t dma_ch, const void *src, voi
  */
 uint8_t *kpu_get_output_buf(kpu_task_t* task);
 
+/**
+ * @brief       Release kpu output buf
+ *
+ * @param[in]   output_buf                Kpu output buf
+ *
+ */
+void kpu_release_output_buf(uint8_t *output_buf);
+
 #endif
