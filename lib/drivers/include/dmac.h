@@ -20,6 +20,7 @@
 #include "platform.h"
 #include "stdbool.h"
 #include "plic.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -1426,12 +1427,42 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
                           size_t block_size);
 
 /**
+ * @brief       Determine the transfer is complete or not
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+ * @return      result
+ *     - 0      uncompleted
+ *     - 1  completed
+*/
+int dmac_is_done(dmac_channel_number_t channel_num);
+
+/**
  * @brief       Wait for dmac work done
  *
  * @param[in]   channel_num  Dmac channel
  *
  */
 void dmac_wait_done(dmac_channel_number_t channel_num);
+
+/**
+ * @brief       Determine the dma is idle or not
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+ * @return      result
+ *     - 0      busy
+ *     - 1      idel
+*/
+int dmac_is_idle(dmac_channel_number_t channel_num);
+
+/**
+ * @brief       Wait for dmac idle
+ *
+ * @param[in]   channel_num  Dmac channel
+ *
+ */
+void dmac_wait_idle(dmac_channel_number_t channel_num);
 
 /**
  * @brief       Set interrupt param
@@ -1452,6 +1483,14 @@ void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_c
  * @param[in]   len                     The length of dmac transfer
  */
 void dmac_set_src_dest_length(dmac_channel_number_t channel_num, const void *src, void *dest, size_t len);
+
+/**
+ * @brief       Disable dmac channel interrupt
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+*/
+void dmac_disable_channel_interrupt(dmac_channel_number_t channel_num);
 
 #ifdef __cplusplus
 }
