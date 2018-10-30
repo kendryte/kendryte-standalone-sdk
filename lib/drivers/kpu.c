@@ -102,7 +102,7 @@ static int kpu_run_dma_input_done_push_layers(void* _task)
     };
     kpu->eight_bit_mode.data = (kpu_config_eight_bit_mode_t)
     {
-        .eight_bit_mode=0
+        .eight_bit_mode=task->eight_bit_mode
     };
 
     kpu_layer_argument_t* last_layer = &task->layers[task->length-1];
