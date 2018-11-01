@@ -15,8 +15,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 
 target_link_libraries(${PROJECT_NAME}
         -Wl,--start-group
+        gcc m c
         -Wl,--whole-archive
-        gcc m c kendryte
+        kendryte
         -Wl,--no-whole-archive
         -Wl,--end-group
         )
