@@ -312,11 +312,12 @@ extern volatile kpu_config_t *const kpu;
 typedef struct
 {
     kpu_layer_argument_t* layers;
-    uint32_t length;
-    int dma_ch;
     uint64_t* dst;
-    uint32_t dst_length;
     plic_irq_callback_t cb;
+    uint32_t length;
+    uint32_t dst_length;
+    uint32_t dma_ch;
+    uint32_t eight_bit_mode;
 } kpu_task_t;
 
 /**
