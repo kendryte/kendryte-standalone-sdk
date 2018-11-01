@@ -19,7 +19,7 @@
 # define LFREG fld
 # define SFREG fsd
 # define REGBYTES 8
-# define STKSHIFT 17
+# define STKSHIFT 16
 
 
 .section .text.start, "ax", @progbits
@@ -119,7 +119,7 @@ _start:
 
   sll a2, a0, STKSHIFT
   add tp, tp, a2
-  add sp, a0, 2
+  add sp, a0, 1
   sll sp, sp, STKSHIFT
   add sp, sp, tp
 

@@ -66,8 +66,6 @@ void _init_bsp(int core_id, int number_of_cores)
     extern int main(int argc, char* argv[]);
     extern void __libc_init_array(void);
     extern void __libc_fini_array(void);
-    /* Initialize thread local data */
-    init_tls();
 
     if (core_id == 0)
     {
