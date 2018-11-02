@@ -99,3 +99,8 @@ void _init_bsp(int core_id, int number_of_cores)
     exit(ret);
 }
 
+int pthread_setcancelstate(int __state, int *__oldstate)
+{
+    return 0;
+}
+
