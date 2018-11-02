@@ -444,9 +444,23 @@ void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_
     {
         fifo_len = spi_handle->rxflr;
         fifo_len = fifo_len < rx_len ? fifo_len : rx_len;
-
-      for (index = 0; index < fifo_len; index++)
-          rx_buff[i++] = (uint8_t)spi_handle->dr[0];
+        switch(frame_width)
+        {
+            case SPI_TRANS_INT:
+                fifo_len = fifo_len / 4 * 4;
+                for (index = 0; index < fifo_len / 4; index++)
+                  ((uint32_t *)rx_buff)[i++] = spi_handle->dr[0];
+                break;
+            case SPI_TRANS_SHORT:
+                fifo_len = fifo_len / 2 * 2;
+                for (index = 0; index < fifo_len / 2; index++)
+                  ((uint16_t *)rx_buff)[i++] = (uint16_t)spi_handle->dr[0];
+                 break;
+            default:
+                  for (index = 0; index < fifo_len; index++)
+                      rx_buff[i++] = (uint8_t)spi_handle->dr[0];
+                break;
+        }
 
         rx_len -= fifo_len;
     }
