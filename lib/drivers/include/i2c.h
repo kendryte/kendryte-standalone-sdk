@@ -340,6 +340,20 @@ typedef enum _i2c_bus_speed_mode
     I2C_BS_HIGHSPEED
 } i2c_bus_speed_mode_t;
 
+typedef enum _i2c_event
+{
+    I2C_EV_START,
+    I2C_EV_RESTART,
+    I2C_EV_STOP
+} i2c_event_t;
+
+typedef struct _i2c_slave_handler
+{
+    void(*on_receive)(uint32_t data);
+    uint32_t(*on_transmit)();
+    void(*on_event)(i2c_event_t event);
+} i2c_slave_handler_t;
+
 /**
  * @brief       Set i2c params
  *
@@ -363,6 +377,8 @@ void i2c_init(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t addr
  *     - Other  Fail
  */
 int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len);
+void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t address_width,
+    const i2c_slave_handler_t *handler);
 
 /**
  * @brief       I2c send data by dma
