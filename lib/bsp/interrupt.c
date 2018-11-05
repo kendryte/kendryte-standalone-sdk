@@ -36,7 +36,7 @@ handle_irq_m_soft(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t 
 uintptr_t __attribute__((weak, alias("handle_irq_dummy")))
 handle_irq_m_timer(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]);
 
-uintptr_t __attribute__((weak, alias("handle_irq_dummy")))
+extern uintptr_t
 handle_irq_m_ext(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]);
 
 uintptr_t __attribute__((weak))
