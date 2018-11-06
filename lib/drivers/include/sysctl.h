@@ -1035,6 +1035,13 @@ void sysctl_enable_irq(void);
  */
 void sysctl_disable_irq(void);
 
+/**
+ * @brief       Get the time start up to now
+ *
+ * @return      The time of microsecond
+ */
+uint64_t sysctl_get_time_us(void);
+
 #ifdef __cplusplus
 }
 #endif
