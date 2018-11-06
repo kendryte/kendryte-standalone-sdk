@@ -19,7 +19,7 @@
 # define LFREG fld
 # define SFREG fsd
 # define REGBYTES 8
-# define STKSHIFT 17
+# define STKSHIFT 16
 
 
 .section .text.start, "ax", @progbits
@@ -72,14 +72,6 @@ _start:
   li  x30,0
   li  x31,0
 
-  csrr t0, misa
-  bltz t0, 1f
-  li a0, 1234
-  j sys_exit
-1:
-
-  andi t0, t0, 1 << ('f' - 'a')
-  beqz t0, 1f
   li t0, MSTATUS_FS
   csrs mstatus, t0
 
@@ -117,17 +109,13 @@ _start:
   fmv.d.x f30,x0
   fmv.d.x f31,x0
 
-1:
   .option push
   .option norelax
-    la gp, __global_pointer$
+   la gp, __global_pointer$
   .option pop
   la  tp, _end + 63
   and tp, tp, -64
   csrr a0, mhartid
-  li a1, 2
-
-1:bgeu a0, a1, 1b
 
   sll a2, a0, STKSHIFT
   add tp, tp, a2

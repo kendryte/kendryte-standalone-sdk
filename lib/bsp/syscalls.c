@@ -390,7 +390,7 @@ handle_ecall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs
         regs[17]  /* n */
     );
 
-    return epc + ((*(unsigned short *)epc & 3) == 3 ? 4 : 2);
+    return epc + 4;
 }
 
 uintptr_t __attribute__((weak, alias("handle_ecall")))

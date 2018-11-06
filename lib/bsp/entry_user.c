@@ -66,8 +66,6 @@ void _init_bsp(int core_id, int number_of_cores)
     extern int main(int argc, char* argv[]);
     extern void __libc_init_array(void);
     extern void __libc_fini_array(void);
-    /* Initialize thread local data */
-    init_tls();
 
     if (core_id == 0)
     {
@@ -99,5 +97,10 @@ void _init_bsp(int core_id, int number_of_cores)
             ret = core1_instance.callback(core1_instance.ctx);
     }
     exit(ret);
+}
+
+int pthread_setcancelstate(int __state, int *__oldstate)
+{
+    return 0;
 }
 

@@ -753,31 +753,23 @@ static int sysctl_pll_is_lock(sysctl_pll_t pll)
      *
      */
 
-    uint8_t lock = 0;
-
     if (pll >= SYSCTL_PLL_MAX)
         return 0;
 
     switch (pll)
     {
         case SYSCTL_PLL0:
-            lock = sysctl->pll_lock.pll_lock0;
-            break;
+            return sysctl->pll_lock.pll_lock0 == 3;
 
         case SYSCTL_PLL1:
-            lock = sysctl->pll_lock.pll_lock1;
-            break;
+            return sysctl->pll_lock.pll_lock1 & 1;
 
         case SYSCTL_PLL2:
-            lock = sysctl->pll_lock.pll_lock2;
-            break;
+            return sysctl->pll_lock.pll_lock2 & 1;
 
         default:
             break;
     }
-
-    if (lock == 3)
-        return 1;
 
     return 0;
 }
