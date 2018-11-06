@@ -1475,6 +1475,14 @@ void dmac_wait_idle(dmac_channel_number_t channel_num);
 void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
 
 /**
+ * @brief       Disable dmac interrupt
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+ */
+void dmac_free_irq(dmac_channel_number_t channel_num);
+
+/**
  * @brief       Set source dest and length
  *
  * @param[in]   channel_num             Dmac channel
