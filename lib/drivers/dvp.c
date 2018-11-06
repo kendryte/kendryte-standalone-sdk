@@ -43,6 +43,17 @@ static void dvp_sccb_clk_init(void)
     dvp->sccb_cfg = tmp;
 }
 
+uint32_t dvp_sccb_set_clk_rate(uint32_t clk_rate)
+{
+    uint32_t tmp;
+    uint32_t v_sccb_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_DVP);
+    uint16_t v_period_clk_cnt = v_sccb_freq / clk_rate / 2;
+    tmp = dvp->sccb_cfg & (~(DVP_SCCB_SCL_LCNT_MASK | DVP_SCCB_SCL_HCNT_MASK));
+    tmp |= DVP_SCCB_SCL_LCNT(v_period_clk_cnt) | DVP_SCCB_SCL_HCNT(v_period_clk_cnt);
+    dvp->sccb_cfg = tmp;
+    return sysctl_clock_get_freq(SYSCTL_CLOCK_DVP) / (v_period_clk_cnt * 2);
+}
+
 static void dvp_sccb_start_transfer(void)
 {
     while (dvp->sts & DVP_STS_SCCB_EN)
