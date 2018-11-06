@@ -183,5 +183,5 @@ void uart_init(uart_device_number_t channel)
     ring_recv[channel] = rb;
     plic_irq_register(IRQN_UART1_INTERRUPT + channel, on_irq_apbuart_recv, (void *)uart[channel]);
     plic_set_priority(IRQN_UART1_INTERRUPT + channel, 1);
-    plic_irq_enable(IRQN_UART1_INTERRUPT);
+    plic_irq_enable(IRQN_UART1_INTERRUPT  + channel);
 }

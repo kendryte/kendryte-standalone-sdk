@@ -155,7 +155,8 @@ void plic_irq_deregister(plic_irq_t irq)
 }
 
 /*Entry Point for PLIC Interrupt Handler*/
-uintptr_t handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
+uintptr_t __attribute__((weak))
+handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
 {
     /*
      * After the highest-priority pending interrupt is claimed by a target

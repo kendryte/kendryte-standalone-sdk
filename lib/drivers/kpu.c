@@ -6,6 +6,7 @@
 #include "printf.h"
 #include "dmac.h"
 #include <string.h>
+#include "bsp.h"
 
 volatile kpu_config_t *const kpu = (volatile kpu_config_t *)AI_BASE_ADDR;
 
@@ -19,7 +20,7 @@ volatile kpu_context_t g_kpu_context;
 
 static int kpu_run_all_done(void* _task)
 {
-    g_kpu_context.kpu_status = 0;
+    atomic_swap(&g_kpu_context.kpu_status, 0);
     kpu_task_t* task = (kpu_task_t*)_task;
     task->cb(task);
     return 0;
@@ -102,7 +103,7 @@ static int kpu_run_dma_input_done_push_layers(void* _task)
     };
     kpu->eight_bit_mode.data = (kpu_config_eight_bit_mode_t)
     {
-        .eight_bit_mode=0
+        .eight_bit_mode=task->eight_bit_mode
     };
 
     kpu_layer_argument_t* last_layer = &task->layers[task->length-1];
@@ -132,7 +133,7 @@ static void kpu_run_dma_input(uint32_t dma_ch, const void* src, plic_irq_callbac
 
 int kpu_run(kpu_task_t* v_task, dmac_channel_number_t dma_ch, const void *src, void* dest, plic_irq_callback_t callback)
 {
-    if(g_kpu_context.kpu_status)
+    if(atomic_cas(&g_kpu_context.kpu_status, 0, 1))
         return -1;
 
     memcpy((void *)&g_kpu_context.kpu_task, v_task, sizeof(kpu_task_t));

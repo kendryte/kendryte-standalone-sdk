@@ -13,3 +13,6 @@ CMakeSettings.json
 *.tar
 *.tar.*
 cmake-build-*
+src
+~src/hello_world
+*.kdev4
