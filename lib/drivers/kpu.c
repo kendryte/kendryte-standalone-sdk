@@ -64,20 +64,20 @@ int kpu_continue(void* _task)
     {
         for(uint32_t i=0; i<layer_burst_size; i++)
         {
-            kpu->layer_argument_fifo = task->layers[i].interrupt_enabe.reg;
-            kpu->layer_argument_fifo = task->layers[i].image_addr.reg;
-            kpu->layer_argument_fifo = task->layers[i].image_channel_num.reg;
-            kpu->layer_argument_fifo = task->layers[i].image_size.reg;
-            kpu->layer_argument_fifo = task->layers[i].kernel_pool_type_cfg.reg;
-            kpu->layer_argument_fifo = task->layers[i].kernel_load_cfg.reg;
-            kpu->layer_argument_fifo = task->layers[i].kernel_offset.reg;
-            kpu->layer_argument_fifo = task->layers[i].kernel_calc_type_cfg.reg;
-            kpu->layer_argument_fifo = task->layers[i].write_back_cfg.reg;
-            kpu->layer_argument_fifo = task->layers[i].conv_value.reg;
-            kpu->layer_argument_fifo = task->layers[i].conv_value2.reg;
-            kpu->layer_argument_fifo = task->layers[i].dma_parameter.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].interrupt_enabe.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].image_addr.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].image_channel_num.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].image_size.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].kernel_pool_type_cfg.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].kernel_load_cfg.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].kernel_offset.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].kernel_calc_type_cfg.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].write_back_cfg.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].conv_value.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].conv_value2.reg;
+            kpu->layer_argument_fifo = task->remain_layers[i].dma_parameter.reg;
         }
-        task->layers += layer_burst_size;
+        task->remain_layers += layer_burst_size;
         task->remain_layers_length -= layer_burst_size;
     }
     return 0;
@@ -86,9 +86,9 @@ int kpu_continue(void* _task)
 static int kpu_run_dma_output(uint32_t dma_ch, void* dst, uint32_t length, plic_irq_callback_t cb, void* _task)
 {
     sysctl_dma_select(dma_ch, SYSCTL_DMA_SELECT_AI_RX_REQ);
-    dmac_set_irq(dma_ch, cb, _task, 1);
+    dmac_set_irq(dma_ch, kpu_run_all_done, _task, 1);
     dmac_set_single_mode(dma_ch, (void *)(&kpu->fifo_data_out), (void *)(dst), DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-        DMAC_MSIZE_8, DMAC_TRANS_WIDTH_64, (length+7)/8);
+                         DMAC_MSIZE_8, DMAC_TRANS_WIDTH_64, (length+7)/8);
     return 0;
 }
 
@@ -110,14 +110,13 @@ static int kpu_run_dma_input_done_push_layers(void* _task)
 
     kpu_run_dma_output(task->dma_ch, task->dst, last_layer->dma_parameter.data.dma_total_byte+1, kpu_run_all_done, task);
 
-    kpu->interrupt_mask.reg = 7;
-    kpu_continue(task);
     kpu->interrupt_mask.data = (kpu_config_interrupt_t)
     {
         .calc_done_int=0,
         .layer_cfg_almost_empty_int=0,
         .layer_cfg_almost_full_int=1
     };
+    kpu_continue(task);
     return 0;
 }
 
