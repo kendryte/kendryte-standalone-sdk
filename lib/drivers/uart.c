@@ -307,6 +307,7 @@ void uart_set_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_
         g_uart_context[channel].uart_receive_context.callback = uart_callback;
         g_uart_context[channel].uart_receive_context.ctx = ctx;
     }
+    g_uart_context[channel].uart_num = channel;
     plic_irq_disable(IRQN_UART1_INTERRUPT + channel);
     plic_set_priority(IRQN_UART1_INTERRUPT + channel, priority);
     plic_irq_register(IRQN_UART1_INTERRUPT + channel, uart_irq_callback, &g_uart_context[channel]);
