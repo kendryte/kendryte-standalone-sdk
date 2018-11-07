@@ -709,6 +709,7 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
                           size_t block_size) {
     dmac_chanel_interrupt_clear(channel_num);
     dmac_channel_disable(channel_num);
+    dmac_wait_idle(channel_num);
     dmac_set_channel_param(channel_num, src, dest, src_inc, dest_inc,
                            dmac_burst_size, dmac_trans_width, block_size);
     dmac_enable();
@@ -784,7 +785,6 @@ void dmac_free_irq(dmac_channel_number_t channel_num)
     dmac_context[channel_num].callback = NULL;
     dmac_context[channel_num].ctx = NULL;
     dmac_disable_channel_interrupt(channel_num);
-    plic_irq_disable(IRQN_DMA0_INTERRUPT + channel_num);
     plic_irq_deregister(IRQN_DMA0_INTERRUPT + channel_num);
 }
 
