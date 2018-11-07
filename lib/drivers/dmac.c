@@ -87,7 +87,7 @@ void src_transaction_complete_int_enable(dmac_channel_number_t channel_num)
     writeq(ch_intstat.data, &dmac->channel[channel_num].intstatus_en);
 }
 
-static void dmac_channel_enable(dmac_channel_number_t channel_num)
+void dmac_channel_enable(dmac_channel_number_t channel_num)
 {
     dmac_chen_u_t chen;
 
@@ -125,36 +125,37 @@ static void dmac_channel_enable(dmac_channel_number_t channel_num)
     writeq(chen.data, &dmac->chen);
 }
 
-static void dmac_channel_disable(dmac_channel_number_t channel_num)
+void dmac_channel_disable(dmac_channel_number_t channel_num)
 {
     dmac_chen_u_t chen;
 
     chen.data = readq(&dmac->chen);
 
-    switch (channel_num) {
+    switch (channel_num)
+    {
     case DMAC_CHANNEL0:
         chen.dmac_chen.ch1_en = 0;
-        chen.dmac_chen.ch1_en_we = 0;
+        chen.dmac_chen.ch1_en_we = 1;
         break;
     case DMAC_CHANNEL1:
         chen.dmac_chen.ch2_en = 0;
-        chen.dmac_chen.ch2_en_we = 0;
+        chen.dmac_chen.ch2_en_we = 1;
         break;
     case DMAC_CHANNEL2:
         chen.dmac_chen.ch3_en = 0;
-        chen.dmac_chen.ch3_en_we = 0;
+        chen.dmac_chen.ch3_en_we = 1;
         break;
     case DMAC_CHANNEL3:
         chen.dmac_chen.ch4_en = 0;
-        chen.dmac_chen.ch4_en_we = 0;
+        chen.dmac_chen.ch4_en_we = 1;
         break;
     case DMAC_CHANNEL4:
         chen.dmac_chen.ch5_en = 0;
-        chen.dmac_chen.ch5_en_we = 0;
+        chen.dmac_chen.ch5_en_we = 1;
         break;
     case DMAC_CHANNEL5:
         chen.dmac_chen.ch6_en = 0;
-        chen.dmac_chen.ch6_en_we = 0;
+        chen.dmac_chen.ch6_en_we = 1;
         break;
     default:
         break;
@@ -733,7 +734,7 @@ int dmac_is_idle(dmac_channel_number_t channel_num)
 {
     dmac_chen_u_t chen;
     chen.data = readq(&dmac->chen);
-    if((chen.data >> channel_num) & 0x101UL)
+    if((chen.data >> channel_num) & 0x1UL)
         return 0;
     else
         return 1;
