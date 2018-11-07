@@ -320,6 +320,8 @@ typedef struct
     uint32_t dst_length;
     uint32_t dma_ch;
     uint32_t eight_bit_mode;
+    volatile float output_scale;
+    volatile float output_bias;
 } kpu_task_t;
 
 /**
