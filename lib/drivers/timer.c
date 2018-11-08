@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <syslog.h>
 #include "timer.h"
 #include "sysctl.h"
 #include "stddef.h"
@@ -29,7 +31,7 @@ typedef struct timer_instance
     bool single_shot;
 } timer_instance_t;
 
-timer_instance_t timer_instance[TIMER_DEVICE_MAX][TIMER_CHANNEL_MAX];
+volatile timer_instance_t timer_instance[TIMER_DEVICE_MAX][TIMER_CHANNEL_MAX];
 
 volatile kendryte_timer_t *const timer[3] =
 {
@@ -223,21 +225,35 @@ static plic_irq_t get_timer_irqn_by_device_and_channel(timer_device_number_t dev
         /*
          * Select timer interrupt part
          * Hierarchy of Timer interrupt to PLIC
-         *   +--------+      +----------+
-         *   |        +------+0A        |
-         *   | TIMER0 |      |          |
-         *   |        +------+0B        |
-         *   +--------+      |          |
-         *   +--------+      |          |
-         *   |        +------+1A        |
-         *   | TIMER1 |      |    PLIC  |
-         *   |        +------+1B        |
-         *   +--------+      |          |
-         *   +--------+      |          |
-         *   |        +------+2A        |
-         *   | TIMER2 |      |          |
-         *   |        +------+2B        |
-         *   +--------+      +----------+
+         *  +---------+       +-----------+
+         *  |        0+----+  |           |
+         *  |         |    +--+0A         |
+         *  |        1+----+  |           |
+         *  | TIMER0  |       |           |
+         *  |        2+----+  |           |
+         *  |         |    +--+0B         |
+         *  |        3+----+  |           |
+         *  +---------+       |           |
+         *                    |           |
+         *  +---------+       |           |
+         *  |        0+----+  |           |
+         *  |         |    +--+1A         |
+         *  |        1+----+  |           |
+         *  | TIMER1  |       |    PLIC   |
+         *  |        2+----+  |           |
+         *  |         |    +--+1B         |
+         *  |        3+----+  |           |
+         *  +---------+       |           |
+         *                    |           |
+         *  +---------+       |           |
+         *  |        0+----+  |           |
+         *  |         |    +--+2A         |
+         *  |        1+----+  |           |
+         *  | TIMER2  |       |           |
+         *  |        2+----+  |           |
+         *  |         |    +--+2B         |
+         *  |        3+----+  |           |
+         *  +---------+       +-----------+
          *
          */
         if (channel < 2) {
@@ -263,25 +279,33 @@ static plic_irq_t get_timer_irqn_by_device_and_channel(timer_device_number_t dev
 static int timer_interrupt_hander(timer_device_number_t device, void *ctx)
 {
     uint32_t channel_int_stat = timer[device]->intr_stat;
-    size_t i = 0;
 
-    for (i = 0; i < 4; i++)
+    for (size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
     {
+        /* Check every bit for interrupt status */
         if (channel_int_stat & 1)
         {
             if (timer_instance[device][i].callback) {
+                /* Process user callback function */
                 timer_instance[device][i].callback(timer_instance[device][i].ctx);
+                /* Check if this timer is a single shot timer */
                 if (timer_instance[device][i].single_shot) {
-                    /* Single shot timer, deregister it */
-                    timer_interrupt_deregister(device, i);
+                    /* Single shot timer, disable it */
+                    timer_set_enable(device, i, 0);
                 }
             }
-            break;
+            /* Clear timer interrupt flag for specific channel */
+            readl(&timer[device]->channel[i].eoi);
         }
         channel_int_stat >>= 1;
     }
 
-    readl(&timer[device]->eoi);
+    /*
+     * NOTE:
+     * Don't read timer[device]->eoi here, or you will lost some interrupt
+     * readl(&timer[device]->eoi);
+     */
+
     return 0;
 }
 
@@ -352,10 +376,12 @@ int timer_interrupt_deregister(timer_device_number_t device, timer_channel_numbe
             .ctx         = NULL,
             .single_shot = 0,
         };
-        if (!(timer_instance[device][TIMER_CHANNEL_0].callback ||
-              timer_instance[device][TIMER_CHANNEL_1].callback ||
-              timer_instance[device][TIMER_CHANNEL_2].callback ||
-              timer_instance[device][TIMER_CHANNEL_3].callback)) {
+
+        /* Combine 0 and 1 to A interrupt, 2 and 3 to B interrupt */
+        if ((!(timer_instance[device][TIMER_CHANNEL_0].callback ||
+              timer_instance[device][TIMER_CHANNEL_1].callback)) ||
+            (!(timer_instance[device][TIMER_CHANNEL_2].callback ||
+              timer_instance[device][TIMER_CHANNEL_3].callback))) {
             plic_irq_t irq_number = get_timer_irqn_by_device_and_channel(device, channel);
             plic_irq_deregister(irq_number);
         }
