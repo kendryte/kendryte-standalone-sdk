@@ -205,14 +205,16 @@ void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_numb
     uint32_t *v_send_buf = malloc(buf_len * sizeof(uint32_t));
     configASSERT(v_send_buf!=NULL);
 
-    uart_send_dma_context[uart_channel].dmac_channel = dmac_channel;
-    uart_send_dma_context[uart_channel].uart_num = uart_channel;
-    uart_send_dma_context[uart_channel].malloc_buffer = v_send_buf;
-    uart_send_dma_context[uart_channel].buffer = (uint8_t *)buffer;
-    uart_send_dma_context[uart_channel].buf_len = buf_len;
-    uart_send_dma_context[uart_channel].int_mode = UART_SEND;
-    uart_send_dma_context[uart_channel].uart_int_context.callback = uart_callback;
-    uart_send_dma_context[uart_channel].uart_int_context.ctx = ctx;
+    uart_send_dma_context[uart_channel] = (uart_dma_context_t) {
+        .dmac_channel = dmac_channel,
+        .uart_num = uart_channel,
+        .malloc_buffer = v_send_buf,
+        .buffer = (uint8_t *)buffer,
+        .buf_len = buf_len,
+        .int_mode = UART_SEND,
+        .uart_int_context.callback = uart_callback,
+        .uart_int_context.ctx = ctx,
+    };
 
     for(uint32_t i = 0; i < buf_len; i++)
         v_send_buf[i] = buffer[i];
