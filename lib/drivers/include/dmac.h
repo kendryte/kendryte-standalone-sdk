@@ -1500,8 +1500,20 @@ void dmac_set_src_dest_length(dmac_channel_number_t channel_num, const void *src
 */
 void dmac_disable_channel_interrupt(dmac_channel_number_t channel_num);
 
+/**
+ * @brief       Disable dmac channel
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+*/
 void dmac_channel_disable(dmac_channel_number_t channel_num);
 
+/**
+ * @brief       Enable dmac channel
+ *
+ * @param[in]   channel_num             Dmac channel
+ *
+*/
 void dmac_channel_enable(dmac_channel_number_t channel_num);
 
 #ifdef __cplusplus
