@@ -12,12 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <syslog.h>
 #include "timer.h"
 #include "sysctl.h"
 #include "stddef.h"
 #include "utils.h"
 #include "plic.h"
 #include "io.h"
+
+/**
+ * @brief       Private definitions for the timer instance
+ */
+typedef struct timer_instance
+{
+    timer_callback_t callback;
+    void *ctx;
+    bool single_shot;
+} timer_instance_t;
+
+volatile timer_instance_t timer_instance[TIMER_DEVICE_MAX][TIMER_CHANNEL_MAX];
 
 volatile kendryte_timer_t *const timer[3] =
 {
@@ -28,6 +42,13 @@ volatile kendryte_timer_t *const timer[3] =
 
 void timer_init(timer_device_number_t timer_number)
 {
+    for(size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
+        timer_instance[timer_number][i] = (const timer_instance_t) {
+            .callback    = NULL,
+            .ctx         = NULL,
+            .single_shot = 0,
+        };
+
     sysctl_clock_enable(SYSCTL_CLOCK_TIMER0 + timer_number);
 }
 
@@ -190,3 +211,181 @@ void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t ch
     }
 }
 
+/**
+ * @brief             Get the timer irqn by device and channel object
+ *
+ * @note              Internal function, not public
+ * @param  device     The device
+ * @param  channel    The channel
+ * @return plic_irq_t IRQ number
+ */
+static plic_irq_t get_timer_irqn_by_device_and_channel(timer_device_number_t device, timer_channel_number_t channel)
+{
+    if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
+        /*
+         * Select timer interrupt part
+         * Hierarchy of Timer interrupt to PLIC
+         *  +---------+       +-----------+
+         *  |        0+----+  |           |
+         *  |         |    +--+0A         |
+         *  |        1+----+  |           |
+         *  | TIMER0  |       |           |
+         *  |        2+----+  |           |
+         *  |         |    +--+0B         |
+         *  |        3+----+  |           |
+         *  +---------+       |           |
+         *                    |           |
+         *  +---------+       |           |
+         *  |        0+----+  |           |
+         *  |         |    +--+1A         |
+         *  |        1+----+  |           |
+         *  | TIMER1  |       |    PLIC   |
+         *  |        2+----+  |           |
+         *  |         |    +--+1B         |
+         *  |        3+----+  |           |
+         *  +---------+       |           |
+         *                    |           |
+         *  +---------+       |           |
+         *  |        0+----+  |           |
+         *  |         |    +--+2A         |
+         *  |        1+----+  |           |
+         *  | TIMER2  |       |           |
+         *  |        2+----+  |           |
+         *  |         |    +--+2B         |
+         *  |        3+----+  |           |
+         *  +---------+       +-----------+
+         *
+         */
+        if (channel < 2) {
+            /* It is part A interrupt, offset + 0 */
+            return IRQN_TIMER0A_INTERRUPT + device * 2;
+        }
+        else {
+            /* It is part B interrupt, offset + 1 */
+            return IRQN_TIMER0B_INTERRUPT + device * 2;
+        }
+    }
+    return IRQN_NO_INTERRUPT;
+}
+
+/**
+ * @brief         Process user callback function
+ *
+ * @note          Internal function, not public
+ * @param  device The timer device
+ * @param  ctx    The context
+ * @return int    The callback result
+ */
+static int timer_interrupt_hander(timer_device_number_t device, void *ctx)
+{
+    uint32_t channel_int_stat = timer[device]->intr_stat;
+
+    for (size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
+    {
+        /* Check every bit for interrupt status */
+        if (channel_int_stat & 1)
+        {
+            if (timer_instance[device][i].callback) {
+                /* Process user callback function */
+                timer_instance[device][i].callback(timer_instance[device][i].ctx);
+                /* Check if this timer is a single shot timer */
+                if (timer_instance[device][i].single_shot) {
+                    /* Single shot timer, disable it */
+                    timer_set_enable(device, i, 0);
+                }
+            }
+            /* Clear timer interrupt flag for specific channel */
+            readl(&timer[device]->channel[i].eoi);
+        }
+        channel_int_stat >>= 1;
+    }
+
+    /*
+     * NOTE:
+     * Don't read timer[device]->eoi here, or you will lost some interrupt
+     * readl(&timer[device]->eoi);
+     */
+
+    return 0;
+}
+
+/**
+ * @brief             Callback function bus for timer interrupt
+ *
+ * @note              Internal function, not public
+ * @param  ctx        The context
+ * @return int        The callback result
+ */
+static int timer0_interrupt_callback(void *ctx)
+{
+    return timer_interrupt_hander(TIMER_DEVICE_0, ctx);
+}
+
+/**
+ * @brief             Callback function bus for timer interrupt
+ *
+ * @note              Internal function, not public
+ * @param  ctx        The context
+ * @return int        The callback result
+ */
+static int timer1_interrupt_callback(void *ctx)
+{
+    return timer_interrupt_hander(TIMER_DEVICE_1, ctx);
+}
+
+/**
+ * @brief             Callback function bus for timer interrupt
+ *
+ * @note              Internal function, not public
+ * @param  ctx        The context
+ * @return int        The callback result
+ */
+static int timer2_interrupt_callback(void *ctx)
+{
+    return timer_interrupt_hander(TIMER_DEVICE_2, ctx);
+}
+
+int timer_interrupt_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx)
+{
+    if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
+        plic_irq_t irq_number = get_timer_irqn_by_device_and_channel(device, channel);
+        plic_irq_callback_t plic_irq_callback[TIMER_DEVICE_MAX] = {
+            timer0_interrupt_callback,
+            timer1_interrupt_callback,
+            timer2_interrupt_callback,
+        };
+
+        timer_instance[device][channel] = (const timer_instance_t) {
+            .callback    = callback,
+            .ctx         = ctx,
+            .single_shot = is_single_shot,
+        };
+        plic_set_priority(irq_number, priority);
+        plic_irq_register(irq_number, plic_irq_callback[device], (void *)&timer_instance[device]);
+        plic_irq_enable(irq_number);
+        return 0;
+    }
+    return -1;
+}
+
+int timer_interrupt_deregister(timer_device_number_t device, timer_channel_number_t channel)
+{
+    if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
+        timer_instance[device][channel] = (const timer_instance_t) {
+            .callback    = NULL,
+            .ctx         = NULL,
+            .single_shot = 0,
+        };
+
+        /* Combine 0 and 1 to A interrupt, 2 and 3 to B interrupt */
+        if ((!(timer_instance[device][TIMER_CHANNEL_0].callback ||
+              timer_instance[device][TIMER_CHANNEL_1].callback)) ||
+            (!(timer_instance[device][TIMER_CHANNEL_2].callback ||
+              timer_instance[device][TIMER_CHANNEL_3].callback))) {
+            plic_irq_t irq_number = get_timer_irqn_by_device_and_channel(device, channel);
+            plic_irq_deregister(irq_number);
+        }
+        return 0;
+    }
+    return -1;
+}
