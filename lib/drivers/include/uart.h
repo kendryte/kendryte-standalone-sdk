@@ -212,15 +212,96 @@ void uart_init(uart_device_number_t channel);
  */
 void uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity);
 
+/**
+ * @brief       Register uart interrupt
+ *
+ * @param[in]   channel             Uart index
+ * @param[in]   interrupt_mode      Interrupt Mode receive or send
+ * @param[in]   uart_callback       Call back
+ * @param[in]   ctx                 Param of call back
+ * @param[in]   priority            Interrupt priority
+ *
+ */
 void uart_set_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode, plic_irq_callback_t uart_callback, void *ctx, uint32_t priority);
-void uart_set_send_trigger(uart_device_number_t channel, uart_send_trigger_t trigger);
-void uart_set_receive_trigger(uart_device_number_t channel, uart_receive_trigger_t trigger);
+
+/**
+ * @brief       Deregister uart interrupt
+ *
+ * @param[in]   channel             Uart index
+ * @param[in]   interrupt_mode      Interrupt Mode receive or send
+ *
+ */
 void uart_free_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode);
+
+/**
+ * @brief       Set send interrupt threshold
+ *
+ * @param[in]   channel             Uart index
+ * @param[in]   trigger             Threshold of send interrupt
+ *
+ */
+void uart_set_send_trigger(uart_device_number_t channel, uart_send_trigger_t trigger);
+
+/**
+ * @brief       Set receive interrupt threshold
+ *
+ * @param[in]   channel             Uart index
+ * @param[in]   trigger             Threshold of receive interrupt
+ *
+ */
+void uart_set_receive_trigger(uart_device_number_t channel, uart_receive_trigger_t trigger);
+
+/**
+ * @brief       Send data by dma
+ *
+ * @param[in]   channel             Uart index
+ * @param[in]   dmac_channel        Dmac channel
+ * @param[in]   buffer              Send data
+ * @param[in]   buf_len             Data length
+ *
+ */
 void uart_send_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel, const uint8_t *buffer, size_t buf_len);
+
+/**
+ * @brief       Receive data by dma
+ *
+ * @param[in]   channel             Uart index
+ * @param[in]   dmac_channel        Dmac channel
+ * @param[in]   buffer              Receive data
+ * @param[in]   buf_len             Data length
+ *
+ */
 void uart_receive_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel, uint8_t *buffer, size_t buf_len);
+
+
+/**
+ * @brief       Send data by dma
+ *
+ * @param[in]   uart_channel        Uart index
+ * @param[in]   dmac_channel        Dmac channel
+ * @param[in]   buffer              Send data
+ * @param[in]   buf_len             Data length
+ * @param[in]   uart_callback       Call back
+ * @param[in]   ctx                 Param of call back
+ * @param[in]   priority            Interrupt priority
+ *
+ */
 void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel,
                             const uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
                             void *ctx, uint32_t priority);
+
+/**
+ * @brief       Receive data by dma
+ *
+ * @param[in]   uart_channel        Uart index
+ * @param[in]   dmac_channel        Dmac channel
+ * @param[in]   buffer              Receive data
+ * @param[in]   buf_len             Data length
+ * @param[in]   uart_callback       Call back
+ * @param[in]   ctx                 Param of call back
+ * @param[in]   priority            Interrupt priority
+ *
+ */
 void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel,
                                uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
                                void *ctx, uint32_t priority);
