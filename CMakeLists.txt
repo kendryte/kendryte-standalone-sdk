@@ -5,7 +5,10 @@ set(BUILDING_SDK "yes" CACHE INTERNAL "")
 
 # basic config
 if (NOT PROJ)
-    message(FATAL_ERROR "PROJ must be set. e.g. -DPROJ=hello_world")
+    get_filename_component(PROJ ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+    get_filename_component(PROJ ${PROJ} NAME)
+    string(REPLACE " " "_" PROJ ${PROJ})
+    message(STATUS "PROJ not set, use ${PROJ} as PROJ. Also, you can set it manually. e.g. -DPROJ=hello_world")
 else()
     message("PROJ = ${PROJ}")
 endif ()
