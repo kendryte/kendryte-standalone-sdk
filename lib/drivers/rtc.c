@@ -66,7 +66,7 @@ rtc_timer_mode_t rtc_timer_get_mode(void)
     }
     else if ((!register_ctrl.read_enable) && (register_ctrl.write_enable)) {
         /* RTC_TIMER_SETTING */
-        timer_mode = RTC_TIMER_RUNNING;
+        timer_mode = RTC_TIMER_SETTING;
     }
     else
     {
@@ -288,8 +288,8 @@ struct tm *rtc_timer_get_tm(void)
     tm->tm_sec = timer_time.second % 60;
     tm->tm_min = timer_time.minute % 60;
     tm->tm_hour = timer_time.hour % 24;
-    tm->tm_mday = timer_date.day % 31;
-    tm->tm_mon = (timer_date.month % 12) - 1;
+    tm->tm_mday = (timer_date.day - 1) % 31 + 1;
+    tm->tm_mon = (timer_date.month - 1)% 12;
     tm->tm_year = (timer_date.year % 100) + (timer_extended.century * 100) - 1900;
     tm->tm_wday = timer_date.week;
     tm->tm_yday = rtc_get_yday(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
