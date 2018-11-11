@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "fpioa.h"
 #include "sysctl.h"
+#include <math.h>
 
 volatile dvp_t* const dvp = (volatile dvp_t*)DVP_BASE_ADDR;
 static uint8_t g_sccb_reg_len = 8;
@@ -38,9 +39,24 @@ static void dvp_sccb_clk_init(void)
     uint32_t tmp;
 
     tmp = dvp->sccb_cfg & (~(DVP_SCCB_SCL_LCNT_MASK | DVP_SCCB_SCL_HCNT_MASK));
-    tmp |= DVP_SCCB_SCL_LCNT(500) | DVP_SCCB_SCL_HCNT(500);
+    tmp |= DVP_SCCB_SCL_LCNT(255) | DVP_SCCB_SCL_HCNT(255);
 
     dvp->sccb_cfg = tmp;
+}
+
+uint32_t dvp_sccb_set_clk_rate(uint32_t clk_rate)
+{
+    uint32_t tmp;
+    uint32_t v_sccb_freq = sysctl_clock_get_freq(SYSCTL_CLOCK_APB1);
+    uint16_t v_period_clk_cnt = round(v_sccb_freq / clk_rate / 2.0);
+    if(v_period_clk_cnt > 255)
+    {
+        return 0;
+    }
+    tmp = dvp->sccb_cfg & (~(DVP_SCCB_SCL_LCNT_MASK | DVP_SCCB_SCL_HCNT_MASK));
+    tmp |= DVP_SCCB_SCL_LCNT(v_period_clk_cnt) | DVP_SCCB_SCL_HCNT(v_period_clk_cnt);
+    dvp->sccb_cfg = tmp;
+    return sysctl_clock_get_freq(SYSCTL_CLOCK_DVP) / (v_period_clk_cnt * 2);
 }
 
 static void dvp_sccb_start_transfer(void)

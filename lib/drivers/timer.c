@@ -206,7 +206,7 @@ void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t ch
     else
     {
         plic_set_priority(IRQN_TIMER0B_INTERRUPT + timer_number * 2, priority);
-        plic_irq_register(IRQN_TIMER0B_INTERRUPT + timer_number * 2, timer_isr, NULL);
+        plic_irq_register(IRQN_TIMER0B_INTERRUPT + timer_number * 2, timer_isr, (void *)timer[timer_number]);
         plic_irq_enable(IRQN_TIMER0B_INTERRUPT + timer_number * 2);
     }
 }
