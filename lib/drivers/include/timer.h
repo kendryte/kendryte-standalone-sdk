@@ -130,7 +130,7 @@ void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t ch
  *     - 0      Success
  *     - Other  Fail
  */
-int timer_interrupt_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx);
+int timer_irq_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx);
 
 /**
  * @brief      Deregister timer interrupt user callback function
@@ -142,7 +142,7 @@ int timer_interrupt_register(timer_device_number_t device, timer_channel_number_
  *     - 0      Success
  *     - Other  Fail
  */
-int timer_interrupt_deregister(timer_device_number_t device, timer_channel_number_t channel);
+int timer_irq_deregister(timer_device_number_t device, timer_channel_number_t channel);
 
 /**
  * @brief       Enable timer

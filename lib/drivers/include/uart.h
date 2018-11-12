@@ -222,7 +222,7 @@ void uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth
  * @param[in]   priority            Interrupt priority
  *
  */
-void uart_set_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode, plic_irq_callback_t uart_callback, void *ctx, uint32_t priority);
+void uart_irq_register(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode, plic_irq_callback_t uart_callback, void *ctx, uint32_t priority);
 
 /**
  * @brief       Deregister uart interrupt
@@ -231,7 +231,7 @@ void uart_set_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_
  * @param[in]   interrupt_mode      Interrupt Mode receive or send
  *
  */
-void uart_free_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode);
+void uart_irq_deregister(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode);
 
 /**
  * @brief       Set send interrupt threshold
