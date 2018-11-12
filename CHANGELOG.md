@@ -27,4 +27,51 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 - Non-breaking bug fixes
   - Fix out of memory issues
   - Fix lcd unused issues
+
+## 0.4.1
+
+- Major change
+  - Add dma support for aes driver
+  - Add uarths driver
+  - Add dma interrupt handler
+
+- Non-breaking bug fixes
+  - Fix the procedure of setting pll
+  - Fix wdt interrupt bug
+  - Fix serveral bugs in i2s drivers
   
+## 0.5.0
+  
+- Major change
+  - Add KPU driver
+  - Find toolchain automatically
+
+- Non-breaking bug fixes
+  - Fix aes gcm bug
+  - Fix dmac interrupt bug
+  - Fix i2s  transfer bug
+
+## 0.5.1
+
+- Major changes
+  - Add i2c slave driver
+  
+- Non-breaking bug fixes
+  - Fix pll init issues
+  - Fix spi receive mode issues
+  - Fix redefine function does not report error issues
+  - Reduce stack size
+  
+## 0.5.2
+- Major change
+  - Add KPU driver for latest model compiler
+  - Automatic set PROJ if user not set it
+  - Update timer driver to support better interrupt
+  - Add uart dma and interrupt function
+- Non-breaking bug fixes
+  - Fix rtc issues
+  - Fix sccb issues
+
+- Breaking change
+  - Fix timer interrupt lost problem
+  - Add new timer interrupt API
