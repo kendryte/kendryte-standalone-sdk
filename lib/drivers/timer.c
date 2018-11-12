@@ -345,7 +345,7 @@ static int timer2_interrupt_callback(void *ctx)
     return timer_interrupt_hander(TIMER_DEVICE_2, ctx);
 }
 
-int timer_interrupt_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx)
+int timer_irq_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx)
 {
     if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
         plic_irq_t irq_number = get_timer_irqn_by_device_and_channel(device, channel);
@@ -368,7 +368,7 @@ int timer_interrupt_register(timer_device_number_t device, timer_channel_number_
     return -1;
 }
 
-int timer_interrupt_deregister(timer_device_number_t device, timer_channel_number_t channel)
+int timer_irq_deregister(timer_device_number_t device, timer_channel_number_t channel)
 {
     if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
         timer_instance[device][channel] = (const timer_instance_t) {

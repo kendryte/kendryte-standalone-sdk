@@ -297,7 +297,7 @@ void uart_set_receive_trigger(uart_device_number_t channel, uart_receive_trigger
     uart[channel]->FCR = g_uart_context[channel].receive_fifo_intterupt << 6 | g_uart_context[channel].send_fifo_intterupt | 0x1;
 }
 
-void uart_set_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode, plic_irq_callback_t uart_callback, void *ctx, uint32_t priority)
+void uart_irq_register(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode, plic_irq_callback_t uart_callback, void *ctx, uint32_t priority)
 {
     if(interrupt_mode == UART_SEND)
     {
@@ -318,7 +318,7 @@ void uart_set_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_
     plic_irq_enable(IRQN_UART1_INTERRUPT + channel);
 }
 
-void uart_free_irq(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode)
+void uart_irq_deregister(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode)
 {
     if(interrupt_mode == UART_SEND)
     {
