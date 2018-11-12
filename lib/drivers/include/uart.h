@@ -213,6 +213,18 @@ void uart_init(uart_device_number_t channel);
 void uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity);
 
 /**
+ * @brief       Set uart param
+ *
+ * @param[in]   channel         Uart index
+ * @param[in]   baud_rate       Baudrate
+ * @param[in]   data_width      Data width
+ * @param[in]   stopbit         Stop bit
+ * @param[in]   parity          Odd Even parity
+ *
+ */
+void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity);
+
+/**
  * @brief       Register uart interrupt
  *
  * @param[in]   channel             Uart index

@@ -225,7 +225,7 @@ void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_numb
 
 }
 
-void uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity)
+void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity)
 {
     configASSERT(data_width >= 5 && data_width <= 8);
     if (data_width == 5)
@@ -279,6 +279,9 @@ void uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth
     g_uart_context[channel].send_fifo_intterupt = UART_SEND_FIFO_8;
     uart[channel]->FCR = UART_RECEIVE_FIFO_1 << 6 | UART_SEND_FIFO_8 << 4 | 0x1 << 3 | 0x1;
 }
+
+void __attribute__((weak, alias("uart_configure")))
+uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity);
 
 void uart_init(uart_device_number_t channel)
 {
