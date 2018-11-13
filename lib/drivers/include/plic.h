@@ -455,6 +455,17 @@ void plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void *ctx);
  */
 void plic_irq_deregister(plic_irq_t irq);
 
+/**
+ * @brief       Deegister user callback function by IRQ number
+ *
+ * @param[in]   irq     The irq
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+void plic_irq_unregister(plic_irq_t irq);
+
 /* For c++ compatibility */
 #ifdef __cplusplus
 }

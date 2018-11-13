@@ -142,7 +142,7 @@ int timer_irq_register(timer_device_number_t device, timer_channel_number_t chan
  *     - 0      Success
  *     - Other  Fail
  */
-int timer_irq_deregister(timer_device_number_t device, timer_channel_number_t channel);
+int timer_irq_unregister(timer_device_number_t device, timer_channel_number_t channel);
 
 /**
  * @brief       Enable timer

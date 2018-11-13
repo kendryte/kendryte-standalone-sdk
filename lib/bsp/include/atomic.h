@@ -72,7 +72,6 @@ typedef struct _corelock
     int core;
 } corelock_t;
 
-
 static inline int spinlock_trylock(spinlock_t *lock)
 {
     int res = atomic_swap(&lock->lock, -1);
@@ -83,11 +82,7 @@ static inline int spinlock_trylock(spinlock_t *lock)
 
 static inline void spinlock_lock(spinlock_t *lock)
 {
-    do
-    {
-        while (atomic_read(&lock->lock))
-            ;
-    } while (spinlock_trylock(lock));
+    while (spinlock_trylock(lock));
 }
 
 static inline void spinlock_unlock(spinlock_t *lock)
@@ -95,6 +90,7 @@ static inline void spinlock_unlock(spinlock_t *lock)
     /* Use memory barrier to keep coherency */
     mb();
     atomic_set(&lock->lock, 0);
+    asm volatile ("nop");
 }
 
 static inline void semaphore_signal(semaphore_t *semaphore, int i)
@@ -143,7 +139,10 @@ static inline int corelock_trylock(corelock_t *lock)
 
     asm volatile("csrr %0, mhartid;"
                  : "=r"(core));
-    spinlock_lock(&lock->lock);
+    if(spinlock_trylock(&lock->lock))
+    {
+        return -1;
+    }
 
     if (lock->count == 0)
     {

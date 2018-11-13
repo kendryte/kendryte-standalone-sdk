@@ -141,7 +141,7 @@ int clint_timer_register(clint_timer_callback_t callback, void *ctx)
     return 0;
 }
 
-int clint_timer_deregister(void)
+int clint_timer_unregister(void)
 {
     /* Just assign NULL to user callback function and context */
     return clint_timer_register(NULL, NULL);
@@ -211,7 +211,7 @@ int clint_ipi_register(clint_ipi_callback_t callback, void *ctx)
     return 0;
 }
 
-int clint_ipi_deregister(void)
+int clint_ipi_unregister(void)
 {
     /* Just assign NULL to user callback function and context */
     return clint_ipi_register(NULL, NULL);

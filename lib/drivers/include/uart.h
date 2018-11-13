@@ -243,7 +243,7 @@ void uart_irq_register(uart_device_number_t channel, uart_interrupt_mode_t inter
  * @param[in]   interrupt_mode      Interrupt Mode receive or send
  *
  */
-void uart_irq_deregister(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode);
+void uart_irq_unregister(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode);
 
 /**
  * @brief       Set send interrupt threshold

@@ -102,7 +102,7 @@ int uartapb_getc(uart_device_number_t channel)
     return (char)(uart[channel]->RBR & 0xff);
 }
 
-int uart_dma_callback(void *ctx)
+static int uart_dma_callback(void *ctx)
 {
     uart_dma_context_t *v_uart_dma_context = (uart_dma_context_t *)ctx;
     dmac_channel_number_t dmac_channel = v_uart_dma_context->dmac_channel;
@@ -321,7 +321,7 @@ void uart_irq_register(uart_device_number_t channel, uart_interrupt_mode_t inter
     plic_irq_enable(IRQN_UART1_INTERRUPT + channel);
 }
 
-void uart_irq_deregister(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode)
+void uart_irq_unregister(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode)
 {
     if(interrupt_mode == UART_SEND)
     {
@@ -338,7 +338,7 @@ void uart_irq_deregister(uart_device_number_t channel, uart_interrupt_mode_t int
     if(uart[channel]->IER == 0)
     {
         plic_irq_disable(IRQN_UART1_INTERRUPT + channel);
-        plic_irq_deregister(IRQN_UART1_INTERRUPT + channel);
+        plic_irq_unregister(IRQN_UART1_INTERRUPT + channel);
     }
 }
 
