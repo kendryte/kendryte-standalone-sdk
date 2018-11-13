@@ -82,6 +82,10 @@ typedef enum _timer_channel_number
 
 extern volatile kendryte_timer_t *const timer[3];
 
+/**
+ * @brief       Definitions for the timer callbacks
+ */
+typedef int (*timer_callback_t)(void *ctx);
 
 /**
  * @brief       Set timer timeout
@@ -102,7 +106,7 @@ size_t timer_set_interval(timer_device_number_t timer_number, timer_channel_numb
 void timer_init(timer_device_number_t timer_number);
 
 /**
- * @brief       Set timer timeout function
+ * @brief       [DEPRECATED] Set timer timeout function
  *
  * @param[in]   timer           timer
  * @param[in]   channel         channel
@@ -111,6 +115,34 @@ void timer_init(timer_device_number_t timer_number);
  *
  */
 void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void(*func)(),  uint32_t priority);
+
+/**
+ * @brief      Register timer interrupt user callback function
+ *
+ * @param[in]  device       The timer device number
+ * @param[in]  channel      The channel
+ * @param[in]  is_one_shot  Indicates if single shot
+ * @param[in]  priority     The priority
+ * @param[in]  callback     The callback function
+ * @param[in]  ctx          The context
+ *
+ * @return     result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int timer_irq_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx);
+
+/**
+ * @brief      Deregister timer interrupt user callback function
+ *
+ * @param[in]  device   The timer device number
+ * @param[in]  channel  The channel
+ *
+ * @return     result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int timer_irq_unregister(timer_device_number_t device, timer_channel_number_t channel);
 
 /**
  * @brief       Enable timer

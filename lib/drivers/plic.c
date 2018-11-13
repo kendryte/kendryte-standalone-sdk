@@ -148,11 +148,13 @@ void plic_irq_register(plic_irq_t irq, plic_irq_callback_t callback, void *ctx)
     plic_instance[core_id][irq].ctx = ctx;
 }
 
-void plic_irq_deregister(plic_irq_t irq)
+void plic_irq_unregister(plic_irq_t irq)
 {
     /* Just assign NULL to user callback function and context */
     plic_irq_register(irq, NULL, NULL);
 }
+
+void __attribute__((weak, alias("plic_irq_unregister"))) plic_irq_deregister(plic_irq_t irq);
 
 /*Entry Point for PLIC Interrupt Handler*/
 uintptr_t __attribute__((weak))

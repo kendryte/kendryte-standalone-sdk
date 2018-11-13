@@ -257,7 +257,7 @@ int clint_timer_register(clint_timer_callback_t callback, void *ctx);
  *     - 0      Success
  *     - Other  Fail
  */
-int clint_timer_deregister(void);
+int clint_timer_unregister(void);
 
 /**
  * @brief       Initialize local interprocessor interrupt
@@ -328,7 +328,7 @@ int clint_ipi_register(clint_ipi_callback_t callback, void *ctx);
  *     - 0      Success
  *     - Other  Fail
  */
-int clint_ipi_deregister(void);
+int clint_ipi_unregister(void);
 
 #ifdef __cplusplus
 }
