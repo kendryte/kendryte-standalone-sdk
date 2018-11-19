@@ -253,6 +253,15 @@ void dvp_set_output_enable(dvp_output_mode_t index, int enable);
  */
 uint32_t dvp_sccb_set_clk_rate(uint32_t clk_rate);
 
+/**
+ * @brief       Set xclk rate
+ *
+ * @param[in]   clk_rate       xclk rate
+ *
+ * @return      The real xclk rate
+ */
+uint32_t dvp_set_xclk_rate(uint32_t xclk_rate);
+
 #ifdef __cplusplus
 }
 #endif

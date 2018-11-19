@@ -145,6 +145,22 @@ void dvp_init(uint8_t reg_len)
     dvp_reset();
 }
 
+uint32_t dvp_set_xclk_rate(uint32_t xclk_rate)
+{
+    uint32_t v_apb1_clk = sysctl_clock_get_freq(SYSCTL_CLOCK_APB1);
+    uint32_t v_period;
+    if(v_apb1_clk > xclk_rate * 2)
+        v_period = round(v_apb1_clk / (xclk_rate * 2.0)) - 1;
+    else
+        v_period = 0;
+    if(v_period > 255)
+        v_period = 255;
+    dvp->cmos_cfg &= (~DVP_CMOS_CLK_DIV_MASK);
+    dvp->cmos_cfg |= DVP_CMOS_CLK_DIV(v_period) | DVP_CMOS_CLK_ENABLE;
+    dvp_reset();
+    return v_apb1_clk / ((v_period + 1) * 2);
+}
+
 void dvp_set_image_format(uint32_t format)
 {
     uint32_t tmp;
