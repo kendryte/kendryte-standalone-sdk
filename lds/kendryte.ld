@@ -71,6 +71,7 @@ SECTIONS
     PROVIDE( _text = ABSOLUTE(.) );
     /* Initialization code segment */
     KEEP( *(.text.start) )
+    KEEP( *(.text.systick) )
     *(.text.unlikely .text.unlikely.*)
     *(.text.startup .text.startup.*)
     /* Normal code segment */
