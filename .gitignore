@@ -808,3 +808,5 @@ kendryte-standlone-sdk.si4project/
 
 src/
 !src/hello_world
+/CMakeSettings.json
+/build_i
