@@ -103,6 +103,11 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
         break;
     }
 
+    set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->rise_ip.u32, pin, 1);
+    set_gpio_bit(gpiohs->fall_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->fall_ip.u32, pin, 1);
+
     set_gpio_bit(gpiohs->rise_ie.u32, pin, rise);
     set_gpio_bit(gpiohs->fall_ie.u32, pin, fall);
     pin_context[pin].edge = edge;
