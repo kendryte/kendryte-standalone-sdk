@@ -331,7 +331,7 @@ typedef struct
  *
  * @return      Kpu handler
  */
-extern int kpu_task_init(kpu_task_t* task);
+extern kpu_task_t *kpu_task_init(kpu_task_t* task);
 
 /**
  * @brief       Kpu run for AI
