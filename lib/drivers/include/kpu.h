@@ -365,4 +365,16 @@ uint8_t *kpu_get_output_buf(kpu_task_t* task);
  */
 void kpu_release_output_buf(uint8_t *output_buf);
 
+typedef struct _quantize_param
+{
+    float scale;
+    float bias;
+} quantize_param_t;
+
+void kpu_init(int eight_bit_mode, plic_irq_callback_t callback, void *userdata);
+void kpu_input_dma(kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata);
+void kpu_conv2d(kpu_layer_argument_t *layer, int stride);
+void kpu_conv2d_output(kpu_layer_argument_t *layer, int stride, dmac_channel_number_t dma_ch, uint8_t *dest, plic_irq_callback_t callback, void *userdata);
+void kpu_add(const uint8_t *src1, const quantize_param_t *src1_param, const uint8_t *src2, const quantize_param_t *src2_param, int width, int height, int channels, uint8_t *dest, const quantize_param_t *dest_param);
+
 #endif
