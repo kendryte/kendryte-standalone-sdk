@@ -117,8 +117,6 @@ _start:
   and tp, tp, -64
   csrr a0, mhartid
 
-  sll a2, a0, STKSHIFT
-  add tp, tp, a2
   add sp, a0, 1
   sll sp, sp, STKSHIFT
   add sp, sp, tp
