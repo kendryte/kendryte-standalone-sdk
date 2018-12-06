@@ -20,6 +20,7 @@ project(${PROJ})
 include(./cmake/macros.internal.cmake)
 header_directories(${SDK_ROOT}/lib)
 header_directories(src/${PROJ})
+header_directories(kendryte-standalone-demo/${PROJ})
 # build library first
 add_subdirectory(lib)
 
