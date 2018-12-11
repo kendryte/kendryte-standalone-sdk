@@ -19,7 +19,7 @@
 # define LFREG fld
 # define SFREG fsd
 # define REGBYTES 8
-# define STKSHIFT 16
+# define STKSHIFT 15
 
 
 .section .text.start, "ax", @progbits
