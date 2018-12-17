@@ -307,31 +307,27 @@ typedef struct
     } eight_bit_mode;
 } kpu_config_t;
 
-extern volatile kpu_config_t *const kpu;
-
 typedef struct
 {
-    kpu_layer_argument_t* layers;
-    kpu_layer_argument_t* remain_layers;
-    uint64_t* dst;
-    plic_irq_callback_t cb;
+    kpu_layer_argument_t *layers;
+    kpu_layer_argument_t *remain_layers;
+    void (*callback)(void);
+    uint64_t *src;
+    uint64_t *dst;
+    uint32_t src_length;
+    uint32_t dst_length;
     uint32_t layers_length;
     uint32_t remain_layers_length;
-    uint32_t dst_length;
     uint32_t dma_ch;
     uint32_t eight_bit_mode;
-    volatile float output_scale;
-    volatile float output_bias;
+    float output_scale;
+    float output_bias;
+//    float input_scale;
+//    float input_bias;
 } kpu_task_t;
 
-/**
- * @brief       Modle complier init kpu handler
- *
- * @param[in]   task            Kpu handler
- *
- * @return      Kpu handler
- */
-extern kpu_task_t *kpu_task_init(kpu_task_t* task);
+int kpu_task_init(kpu_task_t *task);
+int kpu_task_deinit(kpu_task_t *task);
 
 /**
  * @brief       Kpu run for AI
@@ -346,23 +342,23 @@ extern kpu_task_t *kpu_task_init(kpu_task_t* task);
  *     - 0      Success
  *     - Other  Fail.Kpu is busy.
  */
-int kpu_run(kpu_task_t* task, dmac_channel_number_t dma_ch, const void *src, void* dest, plic_irq_callback_t callback);
+int kpu_run(kpu_task_t *task);
 
-/**
- * @brief       Get kpu result buf
- *
- * @param[in]   task                Kpu handler
- *
- * @return      Kpu result buf
- */
-uint8_t *kpu_get_output_buf(kpu_task_t* task);
+typedef struct _quantize_param
+{
+    float scale;
+    float bias;
+} quantize_param_t;
 
-/**
- * @brief       Release kpu output buf
- *
- * @param[in]   output_buf                Kpu output buf
- *
- */
-void kpu_release_output_buf(uint8_t *output_buf);
+void kpu_init(int eight_bit_mode, plic_irq_callback_t callback, void *userdata);
+void kpu_input_dma(kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata);
+void kpu_conv2d(kpu_layer_argument_t *layer);
+void kpu_conv2d_output(kpu_layer_argument_t *layer, dmac_channel_number_t dma_ch, uint8_t *dest, plic_irq_callback_t callback, void *userdata);
+void kpu_conv2d_output_full_add(kpu_layer_argument_t *layer, dmac_channel_number_t dma_ch, uint64_t *dest, plic_irq_callback_t callback, void *userdata);
+void kpu_add(const uint8_t *src1, const quantize_param_t *src1_param, const uint8_t *src2, const quantize_param_t *src2_param, int width, int height, int channels, uint8_t *dest, const quantize_param_t *dest_param);
+void kpu_global_average_pool(const uint8_t *src, const quantize_param_t *src_param, int kernel_size, int channels, uint8_t *dest, const quantize_param_t *dest_param);
+#define kpu_matmul_begin kpu_conv2d_output
+void kpu_matmul_end(const uint8_t *src, int channels, float *dest, const quantize_param_t *dest_param);
+void kpu_dequantize(const uint8_t *src, const quantize_param_t *src_param, size_t count, float *dest);
 
 #endif
