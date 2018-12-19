@@ -25,6 +25,8 @@ typedef struct _gpiohs_pin_context
     size_t pin;
     gpio_pin_edge_t edge;
     void (*callback)();
+    plic_irq_callback_t gpiohs_callback;
+    void *context;
 } gpiohs_pin_context;
 
 gpiohs_pin_context pin_context[32];
@@ -155,6 +157,8 @@ int gpiohs_pin_onchange_isr(void *userdata)
 
     if (ctx->callback)
         ctx->callback();
+    if(ctx->gpiohs_callback)
+        ctx->gpiohs_callback(ctx->context);
     return 0;
 }
 
@@ -167,6 +171,23 @@ void gpiohs_set_irq(uint8_t pin, uint32_t priority, void (*func)())
     plic_set_priority(IRQN_GPIOHS0_INTERRUPT + pin, priority);
     plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_context[pin]));
     plic_irq_enable(IRQN_GPIOHS0_INTERRUPT + pin);
+}
+
+void gpiohs_irq_register(uint8_t pin, uint32_t priority, plic_irq_callback_t callback, void *ctx)
+{
+    pin_context[pin].pin = pin;
+    pin_context[pin].gpiohs_callback = callback;
+    pin_context[pin].context = ctx;
+
+    plic_set_priority(IRQN_GPIOHS0_INTERRUPT + pin, priority);
+    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_context[pin]));
+    plic_irq_enable(IRQN_GPIOHS0_INTERRUPT + pin);
+}
+
+void gpiohs_irq_unregister(uint8_t pin)
+{
+    plic_irq_unregister(IRQN_GPIOHS0_INTERRUPT + pin);
+    plic_irq_disable(IRQN_GPIOHS0_INTERRUPT + pin);
 }
 
 void gpiohs_irq_disable(size_t pin)

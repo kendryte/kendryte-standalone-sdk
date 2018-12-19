@@ -242,6 +242,10 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge);
  */
 void gpiohs_set_irq(uint8_t pin, uint32_t priority, void(*func)());
 
+void gpiohs_irq_register(uint8_t pin, uint32_t priority, plic_irq_callback_t callback, void *ctx);
+
+void gpiohs_irq_unregister(uint8_t pin);
+
 #ifdef __cplusplus
 }
 #endif
