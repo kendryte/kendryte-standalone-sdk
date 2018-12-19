@@ -322,8 +322,8 @@ typedef struct
     uint32_t eight_bit_mode;
     float output_scale;
     float output_bias;
-//    float input_scale;
-//    float input_bias;
+    float input_scale;
+    float input_bias;
 } kpu_task_t;
 
 int kpu_task_init(kpu_task_t *task);
