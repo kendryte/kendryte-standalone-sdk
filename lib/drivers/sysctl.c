@@ -1825,3 +1825,33 @@ uint64_t sysctl_get_time_us(void)
     return v_cycle * 1000000 / sysctl_clock_get_freq(SYSCTL_CLOCK_CPU);
 }
 
+sysctl_reset_enum_status_t sysctl_get_reset_status(void)
+{
+    static sysctl_reset_enum_status_t s_reset_status = 0;
+    if(s_reset_status != 0)
+    {
+        return s_reset_status;
+    }
+
+    if(sysctl->reset_status.wdt0_reset_sts)
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_WDT0;
+    }
+    else if(sysctl->reset_status.wdt1_reset_sts)
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_WDT1;
+    }
+    else if(sysctl->reset_status.soft_reset_sts)
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_SOFT;
+    }
+    else
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_HARD;
+    }
+    sysctl->reset_status.reset_sts_clr = 1;
+
+    return s_reset_status;
+}
+
+

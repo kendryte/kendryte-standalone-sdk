@@ -79,6 +79,8 @@ void _init_bsp(int core_id, int number_of_cores)
         atexit(__libc_fini_array);
         /* Init libc array for C++ */
         __libc_init_array();
+        /* Get reset status */
+        sysctl_get_reset_status();
     }
 
     int ret = 0;

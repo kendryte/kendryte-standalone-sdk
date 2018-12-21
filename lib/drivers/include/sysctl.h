@@ -712,6 +712,17 @@ typedef struct _sysctl_reset_status
     uint32_t reserved : 27;
 } __attribute__((packed, aligned(4))) sysctl_reset_status_t;
 
+
+
+typedef enum _sysctl_reset_enum_status
+{
+    SYSCTL_RESET_STATUS_HARD,
+    SYSCTL_RESET_STATUS_SOFT,
+    SYSCTL_RESET_STATUS_WDT0,
+    SYSCTL_RESET_STATUS_WDT1,
+    SYSCTL_RESET_STATUS_MAX,
+} sysctl_reset_enum_status_t;
+
 /**
  * @brief       DMA handshake selector
  *
@@ -1041,6 +1052,13 @@ void sysctl_disable_irq(void);
  * @return      The time of microsecond
  */
 uint64_t sysctl_get_time_us(void);
+
+/**
+ * @brief       Get reset status
+ *
+ * @return      The status of reset
+ */
+sysctl_reset_enum_status_t sysctl_get_reset_status(void);
 
 #ifdef __cplusplus
 }
