@@ -26,7 +26,6 @@ static int kpu_config_input(void *ctx)
 {
     kpu_task_t *task = (kpu_task_t *)ctx;
     kpu->interrupt_clear.reg = 7;
-
     if (task->remain_layers_length <= LAYER_BURST_SIZE)
     {
         for (uint32_t i = 0; i < task->remain_layers_length; i++)
@@ -127,6 +126,7 @@ int kpu_task_init(kpu_task_t *task)
     task->src_length = first_layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (first_layer->image_channel_num.data.i_ch_num + 1) / 8;
     task->dst_length = ((last_layer->dma_parameter.data.dma_total_byte + 1) + 7) / 8;
     task->dst = (uint64_t *)malloc(task->dst_length * 8);
+    memset(task->dst, 0, task->dst_length * 8);
     if (task->dst == NULL)
         return 1;
     return 0;

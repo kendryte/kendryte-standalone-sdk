@@ -270,6 +270,9 @@ typedef enum _sysctl_reset_t
     SYSCTL_RESET_MAX = 31
 } sysctl_reset_t;
 
+/**
+ * @brief      System controller power bank id
+ */
 typedef enum _sysctl_power_bank
 {
     SYSCTL_POWER_BANK0,
@@ -291,6 +294,18 @@ typedef enum _sysctl_io_power_mode
     SYSCTL_POWER_V33,
     SYSCTL_POWER_V18
 } sysctl_io_power_mode_t;
+
+/**
+ * @brief      System reset status
+ */
+typedef enum _sysctl_reset_enum_status
+{
+    SYSCTL_RESET_STATUS_HARD,
+    SYSCTL_RESET_STATUS_SOFT,
+    SYSCTL_RESET_STATUS_WDT0,
+    SYSCTL_RESET_STATUS_WDT1,
+    SYSCTL_RESET_STATUS_MAX,
+} sysctl_reset_enum_status_t;
 
 /**
  * @brief       Git short commit id
@@ -711,17 +726,6 @@ typedef struct _sysctl_reset_status
     uint32_t soft_reset_sts : 1;
     uint32_t reserved : 27;
 } __attribute__((packed, aligned(4))) sysctl_reset_status_t;
-
-
-
-typedef enum _sysctl_reset_enum_status
-{
-    SYSCTL_RESET_STATUS_HARD,
-    SYSCTL_RESET_STATUS_SOFT,
-    SYSCTL_RESET_STATUS_WDT0,
-    SYSCTL_RESET_STATUS_WDT1,
-    SYSCTL_RESET_STATUS_MAX,
-} sysctl_reset_enum_status_t;
 
 /**
  * @brief       DMA handshake selector
