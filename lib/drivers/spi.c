@@ -440,20 +440,18 @@ void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_
     }
 
     i = 0;
-    while (rx_len)
+    while (v_rx_len)
     {
         fifo_len = spi_handle->rxflr;
-        fifo_len = fifo_len < rx_len ? fifo_len : rx_len;
+        fifo_len = fifo_len < v_rx_len ? fifo_len : v_rx_len;
         switch(frame_width)
         {
             case SPI_TRANS_INT:
-                fifo_len = fifo_len / 4 * 4;
-                for (index = 0; index < fifo_len / 4; index++)
+                for (index = 0; index < fifo_len; index++)
                   ((uint32_t *)rx_buff)[i++] = spi_handle->dr[0];
                 break;
             case SPI_TRANS_SHORT:
-                fifo_len = fifo_len / 2 * 2;
-                for (index = 0; index < fifo_len / 2; index++)
+                for (index = 0; index < fifo_len; index++)
                   ((uint16_t *)rx_buff)[i++] = (uint16_t)spi_handle->dr[0];
                  break;
             default:
@@ -462,7 +460,7 @@ void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_
                 break;
         }
 
-        rx_len -= fifo_len;
+        v_rx_len -= fifo_len;
     }
 
     spi_handle->ser = 0x00;
@@ -643,20 +641,18 @@ void spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_
         spi_handle->ser = 1U << chip_select;
     }
 
-    while (rx_len)
+    while (v_rx_len)
     {
         fifo_len = spi_handle->rxflr;
-        fifo_len = fifo_len < rx_len ? fifo_len : rx_len;
+        fifo_len = fifo_len < v_rx_len ? fifo_len : v_rx_len;
         switch(frame_width)
         {
             case SPI_TRANS_INT:
-                fifo_len = fifo_len / 4 * 4;
-                for (index = 0; index < fifo_len / 4; index++)
+                for (index = 0; index < fifo_len; index++)
                   ((uint32_t *)rx_buff)[i++] = spi_handle->dr[0];
                 break;
             case SPI_TRANS_SHORT:
-                fifo_len = fifo_len / 2 * 2;
-                for (index = 0; index < fifo_len / 2; index++)
+                for (index = 0; index < fifo_len; index++)
                   ((uint16_t *)rx_buff)[i++] = (uint16_t)spi_handle->dr[0];
 
                 break;
@@ -666,7 +662,7 @@ void spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_
                 break;
         }
 
-        rx_len -= fifo_len;
+        v_rx_len -= fifo_len;
     }
 
     spi_handle->ser = 0x00;
