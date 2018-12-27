@@ -372,11 +372,123 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
     spi_handle->ssienr = 0x00;
 }
 
+void spi_dup_send_receive_data(dmac_channel_number_t dma_send_channel_num,
+                               dmac_channel_number_t dma_receive_channel_num,
+                               spi_device_num_t spi_num, spi_chip_select_t chip_select,
+                               const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len)
+{
+    spi_set_tmod(spi_num, SPI_TMOD_TRANS_RECV);
+    volatile spi_t *spi_handle = spi[spi_num];
+
+    uint8_t dfs_offset;
+    switch(spi_num){
+        case 0:
+        case 1:
+            dfs_offset = 16;
+            break;
+        case 2:
+            configASSERT(!"Spi Bus 2 Not Support!");
+            break;
+        case 3:
+        default:
+            dfs_offset = 0;
+            break;
+    }
+    uint32_t data_bit_length = (spi_handle->ctrlr0 >> dfs_offset) & 0x1F;
+    spi_transfer_width_t frame_width = spi_get_frame_size(data_bit_length);
+    size_t v_tx_len = tx_len / frame_width;
+    size_t v_rx_len = rx_len / frame_width;
+
+    size_t v_max_len = v_tx_len > v_rx_len ? v_tx_len : v_rx_len;
+
+    uint32_t *v_tx_buf = malloc(v_max_len * 4);
+    uint32_t *v_rx_buf = malloc(v_max_len * 4);
+    uint32_t i = 0;
+    switch(frame_width)
+    {
+        case SPI_TRANS_INT:
+            for(i = 0; i < v_tx_buf; i++)
+            {
+                v_tx_buf[i] = ((uint32_t *)tx_buf)[i];
+            }
+            if(v_max_len > v_tx_buf)
+            {
+                while(i < v_max_len)
+                {
+                    v_tx_buf[i++] = 0xFFFFFFFF;
+                }
+            }
+            break;
+        case SPI_TRANS_SHORT:
+            for(i = 0; i < v_tx_buf; i++)
+            {
+                v_tx_buf[i] = ((uint16_t *)tx_buf)[i];
+            }
+            if(v_max_len > v_tx_buf)
+            {
+                while(i < v_max_len)
+                {
+                    v_tx_buf[i++] = 0xFFFFFFFF;
+                }
+            }
+            break;
+        default:
+            for(i = 0; i < v_tx_buf; i++)
+            {
+                v_tx_buf[i] = tx_buf[i];
+            }
+            if(v_max_len > v_tx_buf)
+            {
+                while(i < v_max_len)
+                {
+                    v_tx_buf[i++] = 0xFFFFFFFF;
+                }
+            }
+            break;
+    }
+
+    spi_handle->dmacr = 0x3;
+    spi_handle->ssienr = 0x01;
+
+    sysctl_dma_select((sysctl_dma_channel_t)dma_send_channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
+    sysctl_dma_select((sysctl_dma_channel_t)dma_receive_channel_num, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_num * 2);
+
+    dmac_set_single_mode(dma_receive_channel_num, (void *)(&spi_handle->dr[0]), v_rx_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+                           DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, v_max_len);
+
+    dmac_set_single_mode(dma_send_channel_num, v_tx_buf, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
+                           DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, v_max_len);
+
+    spi_handle->ser = 1U << chip_select;
+    dmac_wait_done(dma_send_channel_num);
+    dmac_wait_done(dma_receive_channel_num);
+
+    spi_handle->ser = 0x00;
+    spi_handle->ssienr = 0x00;
+
+    switch(frame_width)
+    {
+       case SPI_TRANS_INT:
+           for(i = 0; i < v_rx_len; i++)
+               ((uint32_t *)rx_buf)[i] = v_rx_buf[i];
+           break;
+       case SPI_TRANS_SHORT:
+           for(i = 0; i < v_rx_len; i++)
+               ((uint16_t *)rx_buf)[i] = v_rx_buf[i];
+           break;
+       default:
+           for(i = 0; i < v_rx_len; i++)
+               rx_buf[i] = v_rx_buf[i];
+           break;
+    }
+    free(v_tx_buf);
+    free(v_rx_buf);
+}
+
 void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff,
                                size_t cmd_len, uint8_t *rx_buff, size_t rx_len)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
-    size_t v_cmd_len = cmd_len;
     size_t index, fifo_len;
     if(cmd_len == 0)
         spi_set_tmod(spi_num, SPI_TMOD_RECV);
@@ -401,9 +513,9 @@ void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_
     uint32_t data_bit_length = (spi_handle->ctrlr0 >> dfs_offset) & 0x1F;
     spi_transfer_width_t frame_width = spi_get_frame_size(data_bit_length);
 
-    uint32_t v_rx_len = 0;
     uint32_t i = 0;
-    v_rx_len = rx_len / frame_width;
+    size_t v_cmd_len = cmd_len / frame_width;
+    uint32_t v_rx_len = rx_len / frame_width;
 
     spi_handle->ctrlr1 = (uint32_t)(v_rx_len - 1);
     spi_handle->ssienr = 0x01;
@@ -415,13 +527,11 @@ void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_
         switch(frame_width)
         {
             case SPI_TRANS_INT:
-                fifo_len = fifo_len / 4 * 4;
-                for (index = 0; index < fifo_len / 4; index++)
+                for (index = 0; index < fifo_len; index++)
                     spi_handle->dr[0] = ((uint32_t *)cmd_buff)[i++];
                 break;
             case SPI_TRANS_SHORT:
-                fifo_len = fifo_len / 2 * 2;
-                for (index = 0; index < fifo_len / 2; index++)
+                for (index = 0; index < fifo_len; index++)
                     spi_handle->dr[0] = ((uint16_t *)cmd_buff)[i++];
                 break;
             default:
@@ -615,7 +725,7 @@ void spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_
     uint32_t data_bit_length = (spi_handle->ctrlr0 >> dfs_offset) & 0x1F;
     spi_transfer_width_t frame_width = spi_get_frame_size(data_bit_length);
 
-    uint32_t v_cmd_len = cmd_len * 4;
+    uint32_t v_cmd_len = cmd_len;
     uint32_t i = 0;
 
     uint32_t v_rx_len = rx_len / frame_width;
@@ -628,8 +738,7 @@ void spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_
         fifo_len = 32 - spi_handle->txflr;
         fifo_len = fifo_len < v_cmd_len ? fifo_len : v_cmd_len;
 
-        fifo_len = fifo_len / 4 * 4;
-        for (index = 0; index < fifo_len / 4; index++)
+        for (index = 0; index < fifo_len; index++)
             spi_handle->dr[0] = *cmd_buff++;
 
         spi_handle->ser = 1U << chip_select;

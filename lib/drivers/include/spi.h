@@ -381,6 +381,12 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
  */
 uint32_t spi_set_clk_rate(spi_device_num_t spi_num, uint32_t spi_clk);
 
+
+void spi_dup_send_receive_data(dmac_channel_number_t dma_send_channel_num,
+                               dmac_channel_number_t dma_receive_channel_num,
+                               spi_device_num_t spi_num, spi_chip_select_t chip_select,
+                               const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len);
+
 #ifdef __cplusplus
 }
 #endif
