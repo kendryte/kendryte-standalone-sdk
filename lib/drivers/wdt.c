@@ -91,6 +91,12 @@ void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t
     wdt_enable(id);
 }
 
+void wdt_init(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq, void *ctx)
+{
+    wdt_start(id, time_out_ms, NULL);
+    plic_irq_register(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT, on_irq, ctx);
+}
+
 void wdt_stop(wdt_device_number_t id)
 {
     wdt_disable(id);
