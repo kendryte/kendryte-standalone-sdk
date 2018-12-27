@@ -769,7 +769,7 @@ static int dmac_irq_callback(void *ctx)
     return 0;
 }
 
-void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority)
+void dmac_irq_register(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority)
 {
     dmac_context[channel_num].dmac_channel = channel_num;
     dmac_context[channel_num].callback = dmac_callback;
@@ -780,11 +780,15 @@ void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_c
     plic_irq_register(IRQN_DMA0_INTERRUPT + channel_num, dmac_irq_callback, &dmac_context[channel_num]);
 }
 
-void dmac_free_irq(dmac_channel_number_t channel_num)
+void __attribute__((weak, alias("dmac_irq_register"))) dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
+
+void dmac_irq_unregister(dmac_channel_number_t channel_num)
 {
     dmac_context[channel_num].callback = NULL;
     dmac_context[channel_num].ctx = NULL;
     dmac_disable_channel_interrupt(channel_num);
     plic_irq_unregister(IRQN_DMA0_INTERRUPT + channel_num);
 }
+
+void __attribute__((weak, alias("dmac_irq_unregister"))) dmac_free_irq(dmac_channel_number_t channel_num);
 

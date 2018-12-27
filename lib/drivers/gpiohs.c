@@ -27,9 +27,9 @@ typedef struct _gpiohs_pin_context
     void (*callback)();
     plic_irq_callback_t gpiohs_callback;
     void *context;
-} gpiohs_pin_context_t;
+} gpiohs_pin_instance_t;
 
-gpiohs_pin_context_t pin_context[32];
+gpiohs_pin_instance_t pin_context[32];
 
 void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
@@ -117,7 +117,7 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
 
 int gpiohs_pin_onchange_isr(void *userdata)
 {
-    gpiohs_pin_context_t *ctx = (gpiohs_pin_context_t *)userdata;
+    gpiohs_pin_instance_t *ctx = (gpiohs_pin_instance_t *)userdata;
     size_t pin = ctx->pin;
     uint32_t rise, fall;
     switch (ctx->edge)
@@ -186,7 +186,7 @@ void gpiohs_irq_register(uint8_t pin, uint32_t priority, plic_irq_callback_t cal
 
 void gpiohs_irq_unregister(uint8_t pin)
 {
-    pin_context[pin] = (gpiohs_pin_context_t){
+    pin_context[pin] = (gpiohs_pin_instance_t){
         .callback = NULL,
         .gpiohs_callback = NULL,
         .context = NULL,

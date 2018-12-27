@@ -37,19 +37,19 @@ typedef struct _uart_interrupt_context
 {
     plic_irq_callback_t callback;
     void *ctx;
-} uart_interrupt_context_t;
+} uart_interrupt_instance_t;
 
 typedef struct _uart_context
 {
-    uart_interrupt_context_t uart_receive_context;
-    uart_interrupt_context_t uart_send_context;
+    uart_interrupt_instance_t uart_receive_context;
+    uart_interrupt_instance_t uart_send_context;
     uint32_t uart_num;
     uint32_t send_fifo_intterupt : 2;
     uint32_t receive_fifo_intterupt : 2;
     uint32_t reserved:28;
-} uart_context_t;
+} uart_instance_t;
 
-uart_context_t g_uart_context[3];
+uart_instance_t g_uart_context[3];
 
 typedef struct _uart_dma_context
 {
@@ -59,7 +59,7 @@ typedef struct _uart_dma_context
     uart_interrupt_mode_t int_mode;
     dmac_channel_number_t dmac_channel;
     uart_device_number_t uart_num;
-    uart_interrupt_context_t uart_int_context;
+    uart_interrupt_instance_t uart_int_context;
 } uart_dma_context_t;
 
 uart_dma_context_t uart_send_dma_context[3];
@@ -69,7 +69,7 @@ volatile int g_write_count = 0;
 
 static int uart_irq_callback(void *param)
 {
-    uart_context_t *uart_context = (uart_context_t *)param;
+    uart_instance_t *uart_context = (uart_instance_t *)param;
     uint32_t v_channel = uart_context->uart_num;
     uint8_t v_int_status = uart[v_channel]->IIR & 0xF;
 
