@@ -407,11 +407,11 @@ void spi_dup_send_receive_data(dmac_channel_number_t dma_send_channel_num,
     switch(frame_width)
     {
         case SPI_TRANS_INT:
-            for(i = 0; i < v_tx_buf; i++)
+            for(i = 0; i < v_tx_len; i++)
             {
                 v_tx_buf[i] = ((uint32_t *)tx_buf)[i];
             }
-            if(v_max_len > v_tx_buf)
+            if(v_max_len > v_tx_len)
             {
                 while(i < v_max_len)
                 {
@@ -420,11 +420,11 @@ void spi_dup_send_receive_data(dmac_channel_number_t dma_send_channel_num,
             }
             break;
         case SPI_TRANS_SHORT:
-            for(i = 0; i < v_tx_buf; i++)
+            for(i = 0; i < v_tx_len; i++)
             {
                 v_tx_buf[i] = ((uint16_t *)tx_buf)[i];
             }
-            if(v_max_len > v_tx_buf)
+            if(v_max_len > v_tx_len)
             {
                 while(i < v_max_len)
                 {
@@ -433,11 +433,11 @@ void spi_dup_send_receive_data(dmac_channel_number_t dma_send_channel_num,
             }
             break;
         default:
-            for(i = 0; i < v_tx_buf; i++)
+            for(i = 0; i < v_tx_len; i++)
             {
                 v_tx_buf[i] = tx_buf[i];
             }
-            if(v_max_len > v_tx_buf)
+            if(v_max_len > v_tx_len)
             {
                 while(i < v_max_len)
                 {
