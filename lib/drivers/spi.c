@@ -372,10 +372,10 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
     spi_handle->ssienr = 0x00;
 }
 
-void spi_dup_send_receive_data(dmac_channel_number_t dma_send_channel_num,
-                               dmac_channel_number_t dma_receive_channel_num,
-                               spi_device_num_t spi_num, spi_chip_select_t chip_select,
-                               const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len)
+void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
+                                   dmac_channel_number_t dma_receive_channel_num,
+                                   spi_device_num_t spi_num, spi_chip_select_t chip_select,
+                                   const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len)
 {
     spi_set_tmod(spi_num, SPI_TMOD_TRANS_RECV);
     volatile spi_t *spi_handle = spi[spi_num];
