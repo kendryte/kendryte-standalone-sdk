@@ -1854,4 +1854,3 @@ sysctl_reset_enum_status_t sysctl_get_reset_status(void)
     return s_reset_status;
 }
 
-

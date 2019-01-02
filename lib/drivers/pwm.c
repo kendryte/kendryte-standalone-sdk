@@ -27,14 +27,18 @@ void pwm_init(pwm_device_number_t pwm_number)
 
 void pwm_set_enable(pwm_device_number_t pwm_number, pwm_channel_number_t channel, int enable)
 {
-    if (enable) {
+    if (enable)
+    {
         if (timer[pwm_number]->channel[channel].load_count == 0)
             timer[pwm_number]->channel[channel].load_count = 1;
         if (timer[pwm_number]->load_count2[channel] == 0)
             timer[pwm_number]->load_count2[channel] = 1;
         timer[pwm_number]->channel[channel].control = TIMER_CR_INTERRUPT_MASK | TIMER_CR_PWM_ENABLE | TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
-    } else
+    }
+    else
+    {
         timer[pwm_number]->channel[channel].control = TIMER_CR_INTERRUPT_MASK;
+    }
 }
 
 double pwm_set_frequency(pwm_device_number_t pwm_number, pwm_channel_number_t channel, double frequency, double duty)
