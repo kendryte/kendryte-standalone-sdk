@@ -285,6 +285,7 @@ static void kpu_data_input(kpu_task_t *task)
 
 int kpu_single_task_init(kpu_task_t *task)
 {
+    sysctl_clock_enable(SYSCTL_CLOCK_AI);
     kpu_layer_argument_t *first_layer = &task->layers[0];
     kpu_layer_argument_t *last_layer = &task->layers[task->layers_length - 1];
 
