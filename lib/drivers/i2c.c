@@ -27,7 +27,7 @@ typedef struct _i2c_slave_context
     const i2c_slave_handler_t *slave_handler;
 } i2c_slave_context_t;
 
-i2c_slave_context_t slave_context;
+static i2c_slave_context_t slave_context;
 
 volatile i2c_t* const i2c[3] =
 {
