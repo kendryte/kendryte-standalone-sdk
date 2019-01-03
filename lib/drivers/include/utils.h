@@ -282,12 +282,12 @@ extern "C" {
 #define kendryte_replbits_dword(dest, msk, src) \
     (kendryte_write_dword(dest, (kendryte_read_dword(dest) & ~(msk)) | ((src) & (msk))))
 
-#define configASSERT(x)                               \
-    if ((x) == 0)                                     \
-    {                                                 \
-        printf("(%s:%d) %s", __FILE__, __LINE__, #x); \
-        for (;;)                                      \
-            ;                                         \
+#define configASSERT(x)                                 \
+    if ((x) == 0)                                       \
+    {                                                   \
+        printf("(%s:%d) %s\n", __FILE__, __LINE__, #x); \
+        for (;;)                                        \
+            ;                                           \
     }
 
 /**
