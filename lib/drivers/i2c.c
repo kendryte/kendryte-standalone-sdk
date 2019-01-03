@@ -130,7 +130,7 @@ int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
     size_t fifo_len, index;
-
+    i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     while (send_buf_len)
     {
         fifo_len = 8 - i2c_adapter->txflr;
@@ -141,8 +141,11 @@ int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
             return 1;
         send_buf_len -= fifo_len;
     }
-    while (i2c_adapter->status & I2C_STATUS_ACTIVITY)
+    while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
         ;
+
+    if (i2c_adapter->tx_abrt_source != 0)
+        return 1;
 
     return 0;
 }
@@ -152,7 +155,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
-
+    i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
     int i;
     for (i = 0; i < send_buf_len; i++)
@@ -167,7 +170,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     dmac_wait_done(dma_channel_num);
     free((void *)buf);
 
-    while (i2c_adapter->status & I2C_STATUS_ACTIVITY)
+    while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
     {
         if (i2c_adapter->tx_abrt_source != 0)
             configASSERT(!"source abort");
