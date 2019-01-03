@@ -90,3 +90,4 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 - Breaking change
   - Fix uarths stopbit problem
   - Fix core1 stack problem
+  - Fix core1 interrupt problem
