@@ -91,7 +91,7 @@ int kpu_continue(void* _task)
 static int kpu_run_dma_output(uint32_t dma_ch, void* dst, uint32_t length, plic_irq_callback_t cb, void* _task)
 {
     sysctl_dma_select(dma_ch, SYSCTL_DMA_SELECT_AI_RX_REQ);
-    dmac_set_irq(dma_ch, kpu_run_all_done, _task, 1);
+    dmac_irq_register(dma_ch, kpu_run_all_done, _task, 1);
     dmac_set_single_mode(dma_ch, (void *)(&kpu->fifo_data_out), (void *)(dst), DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
                          DMAC_MSIZE_8, DMAC_TRANS_WIDTH_64, (length+7)/8);
     return 0;
@@ -130,7 +130,7 @@ static void kpu_run_dma_input(uint32_t dma_ch, const void* src, plic_irq_callbac
     kpu_task_t* task = _task;
     kpu_layer_argument_t* first_layer = &task->layers[0];
     uint64_t input_size = first_layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (first_layer->image_channel_num.data.i_ch_num+1);
-    dmac_set_irq(dma_ch, cb, _task, 1);
+    dmac_irq_register(dma_ch, cb, _task, 1);
     dmac_set_single_mode(dma_ch, (void *)src, (void *)(AI_IO_BASE_ADDR), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
 }
@@ -238,7 +238,7 @@ static int kpu_config_input(void *ctx)
 static void kpu_data_output(kpu_task_t *task)
 {
     sysctl_dma_select(task->dma_ch, SYSCTL_DMA_SELECT_AI_RX_REQ);
-    dmac_set_irq(task->dma_ch, kpu_done, task, 1);
+    dmac_irq_register(task->dma_ch, kpu_done, task, 1);
     dmac_set_single_mode(task->dma_ch, (void *)(&kpu->fifo_data_out), (void *)(task->dst), DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_8, DMAC_TRANS_WIDTH_64, task->dst_length);
 }
@@ -277,7 +277,7 @@ static void kpu_data_input(kpu_task_t *task)
         kpu_data_ready(task);
         return;
     }
-    dmac_set_irq(task->dma_ch, kpu_data_ready, task, 1);
+    dmac_irq_register(task->dma_ch, kpu_data_ready, task, 1);
     kpu_layer_argument_t *layer = &task->layers[0];
     dmac_set_single_mode(task->dma_ch, task->src, (void *)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, task->src_length);

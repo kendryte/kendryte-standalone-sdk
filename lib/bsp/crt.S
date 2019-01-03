@@ -127,36 +127,6 @@ _start:
   .type trap_entry, @function
   .align 2
 trap_entry:
-  addi sp, sp, -REGBYTES
-  sd t0, 0x0(sp)
-  csrr t0, mcause
-  bgez t0, .handle_other
-  # Test soft interrupt
-  slli t0, t0, 1
-  addi t0, t0, -(IRQ_M_SOFT << 1)
-  bnez t0, .handle_other
-  # Interupt is soft interrupt
-  # Get event
-  addi sp, sp, -REGBYTES
-  sd t1, 0x0(sp)
-  la   t0, g_core_pending_switch
-  csrr t1, mhartid
-  slli t1, t1, 3
-  add  t0, t0, t1
-  ld t1, 0x0(sp)
-  addi sp, sp, REGBYTES
-  # Test ContextSwitch event
-  ld   t0, 0x0(t0)
-  beqz t0, .handle_other
-
-  ld t0, 0x0(sp)
-  addi sp, sp, REGBYTES
-  # Do not use jal here
-  j    xPortSysTickInt
-  mret
-.handle_other:
-  ld   t0, 0x0(sp)
-  addi sp, sp, REGBYTES
   addi sp, sp, -64*REGBYTES
 
   SREG x1, 1*REGBYTES(sp)

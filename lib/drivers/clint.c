@@ -217,3 +217,45 @@ int clint_ipi_unregister(void)
     return clint_ipi_register(NULL, NULL);
 }
 
+uintptr_t handle_irq_m_timer(uintptr_t cause, uintptr_t epc)
+{
+    /* Read core id */
+    uint64_t core_id = current_coreid();
+    uint64_t ie_flag = read_csr(mie);
+
+    clear_csr(mie, MIP_MTIP | MIP_MSIP);
+    set_csr(mstatus, MSTATUS_MIE);
+    if (clint_timer_instance[core_id].callback != NULL)
+        clint_timer_instance[core_id].callback(
+            clint_timer_instance[core_id].ctx);
+    clear_csr(mstatus, MSTATUS_MIE);
+    set_csr(mstatus, MSTATUS_MPIE | MSTATUS_MPP);
+    write_csr(mie, ie_flag);
+    /* If not single shot and cycle interval is not 0, repeat this timer */
+    if (!clint_timer_instance[core_id].single_shot && clint_timer_instance[core_id].cycles != 0)
+    {
+        /* Set mtimecmp by core id */
+        clint->mtimecmp[core_id] += clint_timer_instance[core_id].cycles;
+    }
+    else
+        clear_csr(mie, MIP_MTIP);
+    return epc;
+}
+
+uintptr_t handle_irq_m_soft(uintptr_t cause, uintptr_t epc)
+{
+    /* Read core id */
+    uint64_t core_id = current_coreid();
+    /* Clear the Machine-Software bit in MIE to prevent call again */
+    clear_csr(mie, MIP_MSIP);
+    set_csr(mstatus, MSTATUS_MIE);
+    /* Clear ipi flag */
+    clint_ipi_clear(core_id);
+    if (clint_ipi_instance[core_id].callback != NULL)
+        clint_ipi_instance[core_id].callback(clint_ipi_instance[core_id].ctx);
+    clear_csr(mstatus, MSTATUS_MIE);
+    set_csr(mstatus, MSTATUS_MPIE | MSTATUS_MPP);
+    set_csr(mie, MIP_MSIP);
+    return epc;
+}
+
