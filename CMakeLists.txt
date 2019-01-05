@@ -14,7 +14,7 @@ else()
 endif ()
 cmake_minimum_required(VERSION 3.0)
 include(./cmake/common.cmake)
-project(${PROJ})
+project(${PROJ} C CXX ASM)
 
 # config self use headers
 include(./cmake/macros.internal.cmake)
