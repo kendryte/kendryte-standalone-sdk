@@ -79,7 +79,6 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 ## 0.5.3
 - Major change
   - Modify KPU driver for latest model compiler
-  - Add freertos
   - Add new gpiohs and wdt interrupt function
   - Add dvp xclk setting
   - Add sysctl reset status
@@ -91,3 +90,4 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 - Breaking change
   - Fix uarths stopbit problem
   - Fix core1 stack problem
+  - Fix core1 interrupt problem

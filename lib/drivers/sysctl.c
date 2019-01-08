@@ -20,7 +20,6 @@
 #include "string.h"
 #include "encoding.h"
 #include "bsp.h"
-#include "portmacro.h"
 
 #define SYSCTRL_CLOCK_FREQ_IN0 (26000000UL)
 
@@ -51,7 +50,6 @@ const uint8_t get_source_aclk[] =
 };
 
 volatile sysctl_t *const sysctl = (volatile sysctl_t *)SYSCTL_BASE_ADDR;
-extern UBaseType_t uxCPUClockRate;
 
 uint32_t sysctl_get_git_id(void)
 {
@@ -1802,9 +1800,7 @@ uint32_t sysctl_cpu_set_freq(uint32_t freq)
     if(freq == 0)
         return 0;
 
-    freq = sysctl_pll_set_freq(SYSCTL_PLL0, (sysctl->clk_sel0.aclk_divider_sel + 1) * 2 * freq);
-    uxCPUClockRate = freq;
-    return freq;
+    return sysctl_pll_set_freq(SYSCTL_PLL0, (sysctl->clk_sel0.aclk_divider_sel + 1) * 2 * freq);
 }
 
 void sysctl_enable_irq(void)
