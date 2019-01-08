@@ -206,6 +206,8 @@ void gpiohs_irq_unregister(uint8_t pin)
     };
     set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
     set_gpio_bit(gpiohs->fall_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->low_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->high_ie.u32, pin, 0);
     plic_irq_unregister(IRQN_GPIOHS0_INTERRUPT + pin);
 }
 
