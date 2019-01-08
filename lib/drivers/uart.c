@@ -106,7 +106,7 @@ static int uart_dma_callback(void *ctx)
 {
     uart_dma_context_t *v_uart_dma_context = (uart_dma_context_t *)ctx;
     dmac_channel_number_t dmac_channel = v_uart_dma_context->dmac_channel;
-    dmac_free_irq(dmac_channel);
+    dmac_irq_unregister(dmac_channel);
 
     if(v_uart_dma_context->int_mode == UART_RECEIVE)
     {
@@ -168,7 +168,7 @@ void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_n
     uart_recv_dma_context[uart_channel].uart_int_context.callback = uart_callback;
     uart_recv_dma_context[uart_channel].uart_int_context.ctx = ctx;
 
-    dmac_set_irq(dmac_channel, uart_dma_callback, &uart_recv_dma_context[uart_channel], priority);
+    dmac_irq_register(dmac_channel, uart_dma_callback, &uart_recv_dma_context[uart_channel], priority);
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_RX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, (void *)(&uart[uart_channel]->RBR), v_recv_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
@@ -218,7 +218,7 @@ void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_numb
 
     for(uint32_t i = 0; i < buf_len; i++)
         v_send_buf[i] = buffer[i];
-    dmac_set_irq(dmac_channel, uart_dma_callback, &uart_send_dma_context[uart_channel], priority);
+    dmac_irq_register(dmac_channel, uart_dma_callback, &uart_send_dma_context[uart_channel], priority);
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_TX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, v_send_buf, (void *)(&uart[uart_channel]->THR), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
