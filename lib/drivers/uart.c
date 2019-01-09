@@ -315,7 +315,6 @@ void uart_irq_register(uart_device_number_t channel, uart_interrupt_mode_t inter
         g_uart_context[channel].uart_receive_context.ctx = ctx;
     }
     g_uart_context[channel].uart_num = channel;
-    plic_irq_disable(IRQN_UART1_INTERRUPT + channel);
     plic_set_priority(IRQN_UART1_INTERRUPT + channel, priority);
     plic_irq_register(IRQN_UART1_INTERRUPT + channel, uart_irq_callback, &g_uart_context[channel]);
     plic_irq_enable(IRQN_UART1_INTERRUPT + channel);
@@ -337,7 +336,6 @@ void uart_irq_unregister(uart_device_number_t channel, uart_interrupt_mode_t int
     }
     if(uart[channel]->IER == 0)
     {
-        plic_irq_disable(IRQN_UART1_INTERRUPT + channel);
         plic_irq_unregister(IRQN_UART1_INTERRUPT + channel);
     }
 }
