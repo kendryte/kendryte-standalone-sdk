@@ -122,7 +122,7 @@ typedef enum _uart_device_number
 
 typedef enum _uart_bitwidth
 {
-    UART_BITWIDTH_5BIT = 0,
+    UART_BITWIDTH_5BIT = 5,
     UART_BITWIDTH_6BIT,
     UART_BITWIDTH_7BIT,
     UART_BITWIDTH_8BIT,
