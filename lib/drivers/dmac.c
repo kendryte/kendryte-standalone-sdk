@@ -726,9 +726,7 @@ int dmac_is_done(dmac_channel_number_t channel_num)
 
 void dmac_wait_done(dmac_channel_number_t channel_num)
 {
-    while (!(readq(&dmac->channel[channel_num].intstatus) & 0x2))
-        ;
-    dmac_chanel_interrupt_clear(channel_num); /* clear interrupt */
+    dmac_wait_idle(channel_num);
 }
 
 int dmac_is_idle(dmac_channel_number_t channel_num)
