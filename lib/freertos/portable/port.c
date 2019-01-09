@@ -100,8 +100,8 @@ void vPortSetupTimer(void)
 {
     UBaseType_t uxPsrId = uxPortGetProcessorId();
     clint->mtimecmp[uxPsrId] = clint->mtime + (configTICK_CLOCK_HZ / configTICK_RATE_HZ);
-    /* Enable timer interupt */
-    __asm volatile("csrs mie,%0" ::"r"(0x80));
+    /* Enable timer and soft interupt */
+    __asm volatile("csrs mie,%0" ::"r"(0x88));
 }
 
 /*-----------------------------------------------------------*/
@@ -120,7 +120,7 @@ void prvTaskExitError(void)
     /* A function that implements a task must not exit or attempt to return to
     its caller as there is nothing to return to.  If a task wants to exit it
     should instead call vTaskDelete( NULL ).
-    
+
     Artificially force an assert() to be triggered if configASSERT() is
     defined, then stop here so application writers can catch the error. */
     UBaseType_t uxPsrId = uxPortGetProcessorId();
