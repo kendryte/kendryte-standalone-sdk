@@ -27,7 +27,7 @@ typedef struct _i2c_slave_context
     const i2c_slave_handler_t *slave_handler;
 } i2c_slave_context_t;
 
-static i2c_slave_context_t slave_context;
+static i2c_slave_context_t slave_context[I2C_MAX_NUM];
 
 volatile i2c_t* const i2c[3] =
 {
@@ -105,8 +105,8 @@ void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint
 {
     configASSERT(address_width == 7 || address_width == 10);
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
-    slave_context.i2c_num = i2c_num;
-    slave_context.slave_handler = handler;
+    slave_context[i2c_num].i2c_num = i2c_num;
+    slave_context[i2c_num].slave_handler = handler;
 
     i2c_clk_init(i2c_num);
     i2c_adapter->enable = 0;
@@ -119,7 +119,7 @@ void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint
     i2c_adapter->intr_mask = I2C_INTR_MASK_RX_FULL | I2C_INTR_MASK_START_DET | I2C_INTR_MASK_STOP_DET | I2C_INTR_MASK_RD_REQ;
 
     plic_set_priority(IRQN_I2C0_INTERRUPT + i2c_num, 1);
-    plic_irq_register(IRQN_I2C0_INTERRUPT + i2c_num, i2c_slave_irq, &slave_context);
+    plic_irq_register(IRQN_I2C0_INTERRUPT + i2c_num, i2c_slave_irq, slave_context + i2c_num);
     plic_irq_enable(IRQN_I2C0_INTERRUPT + i2c_num);
 
     i2c_adapter->enable = I2C_ENABLE_ENABLE;
@@ -249,4 +249,3 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
 
     free(write_cmd);
 }
-
