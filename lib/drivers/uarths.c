@@ -21,14 +21,14 @@
 
 volatile uarths_t *const uarths = (volatile uarths_t *)UARTHS_BASE_ADDR;
 
-typedef struct _uarths_context
+typedef struct _uarths_instance
 {
     plic_irq_callback_t callback;
     void *ctx;
     uarths_interrupt_mode_t uarths_interrupt_mode;
-} uarths_context_t;
+} uarths_instance_t;
 
-uarths_context_t g_uarths_context;
+uarths_instance_t g_uarths_instance;
 
 uarths_interrupt_mode_t uarths_get_interrupt_mode(void)
 {
@@ -39,7 +39,7 @@ uarths_interrupt_mode_t uarths_get_interrupt_mode(void)
 
 int uarths_irq_callback(void *ctx)
 {
-    uarths_context_t *uart_context = (uarths_context_t *)ctx;
+    uarths_instance_t *uart_context = (uarths_instance_t *)ctx;
 
     if(uart_context->callback)
         uart_context->callback(uart_context->ctx);
@@ -66,8 +66,8 @@ void uarths_set_interrupt_cnt(uarths_interrupt_mode_t interrupt_mode, uint8_t cn
 
 void uarths_set_irq(uarths_interrupt_mode_t interrupt_mode, plic_irq_callback_t uarths_callback, void *ctx, uint32_t priority)
 {
-    g_uarths_context.callback = uarths_callback;
-    g_uarths_context.ctx = ctx;
+    g_uarths_instance.callback = uarths_callback;
+    g_uarths_instance.ctx = ctx;
 
     switch(interrupt_mode)
     {
@@ -84,10 +84,10 @@ void uarths_set_irq(uarths_interrupt_mode_t interrupt_mode, plic_irq_callback_t 
             uarths->ie.rxwm = 1;
             break;
     }
-    g_uarths_context.uarths_interrupt_mode = interrupt_mode;
+    g_uarths_instance.uarths_interrupt_mode = interrupt_mode;
 
     plic_set_priority(IRQN_UARTHS_INTERRUPT, priority);
-    plic_irq_register(IRQN_UARTHS_INTERRUPT, uarths_irq_callback, &g_uarths_context);
+    plic_irq_register(IRQN_UARTHS_INTERRUPT, uarths_irq_callback, &g_uarths_instance);
     plic_irq_enable(IRQN_UARTHS_INTERRUPT);
 }
 

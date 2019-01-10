@@ -20,7 +20,7 @@
 
 volatile gpiohs_t* const gpiohs = (volatile gpiohs_t*)GPIOHS_BASE_ADDR;
 
-typedef struct _gpiohs_pin_context
+typedef struct _gpiohs_pin_instance
 {
     size_t pin;
     gpio_pin_edge_t edge;
@@ -29,7 +29,7 @@ typedef struct _gpiohs_pin_context
     void *context;
 } gpiohs_pin_instance_t;
 
-static gpiohs_pin_instance_t pin_context[32];
+static gpiohs_pin_instance_t pin_instance[32];
 
 void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
@@ -131,7 +131,7 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
         set_gpio_bit(gpiohs->high_ie.u32, pin, 0);
     }
 
-    pin_context[pin].edge = edge;
+    pin_instance[pin].edge = edge;
 }
 
 int gpiohs_pin_onchange_isr(void *userdata)
@@ -178,28 +178,28 @@ int gpiohs_pin_onchange_isr(void *userdata)
 void gpiohs_set_irq(uint8_t pin, uint32_t priority, void (*func)())
 {
 
-    pin_context[pin].pin = pin;
-    pin_context[pin].callback = func;
+    pin_instance[pin].pin = pin;
+    pin_instance[pin].callback = func;
 
     plic_set_priority(IRQN_GPIOHS0_INTERRUPT + pin, priority);
-    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_context[pin]));
+    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_instance[pin]));
     plic_irq_enable(IRQN_GPIOHS0_INTERRUPT + pin);
 }
 
 void gpiohs_irq_register(uint8_t pin, uint32_t priority, plic_irq_callback_t callback, void *ctx)
 {
-    pin_context[pin].pin = pin;
-    pin_context[pin].gpiohs_callback = callback;
-    pin_context[pin].context = ctx;
+    pin_instance[pin].pin = pin;
+    pin_instance[pin].gpiohs_callback = callback;
+    pin_instance[pin].context = ctx;
 
     plic_set_priority(IRQN_GPIOHS0_INTERRUPT + pin, priority);
-    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_context[pin]));
+    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_instance[pin]));
     plic_irq_enable(IRQN_GPIOHS0_INTERRUPT + pin);
 }
 
 void gpiohs_irq_unregister(uint8_t pin)
 {
-    pin_context[pin] = (gpiohs_pin_instance_t){
+    pin_instance[pin] = (gpiohs_pin_instance_t){
         .callback = NULL,
         .gpiohs_callback = NULL,
         .context = NULL,

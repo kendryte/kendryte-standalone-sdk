@@ -253,7 +253,7 @@ void gpiohs_set_irq(uint8_t pin, uint32_t priority, void(*func)());
 void gpiohs_irq_register(uint8_t pin, uint32_t priority, plic_irq_callback_t callback, void *ctx);
 
 /**
- * @brief      Set Gpiohs pin interrupt
+ * @brief      Unregister Gpiohs pin interrupt
  *
  * @param[in]   pin             Gpiohs pin
  */
