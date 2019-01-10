@@ -26,7 +26,7 @@ static int kpu_run_all_done(void* _task)
 {
     atomic_swap(&g_kpu_context.kpu_status, 0);
     kpu_task_t* task = (kpu_task_t*)_task;
-    task->cb(task);
+    task->callback(task);
     return 0;
 }
 
@@ -153,7 +153,7 @@ int kpu_run(kpu_task_t* v_task, dmac_channel_number_t dma_ch, const void *src, v
     task->dma_ch = dma_ch;
     task->dst = dest;
     task->dst_length = output_size;
-    task->cb = callback;
+    task->callback = callback;
     task->remain_layers_length = task->layers_length;
     task->remain_layers = task->layers;
 
@@ -184,7 +184,7 @@ static int kpu_done(void *ctx)
 {
     atomic_swap(&kpu_status, 0);
     kpu_task_t *task = (kpu_task_t *)ctx;
-    task->callback();
+    task->callback(task->ctx);
     return 0;
 }
 

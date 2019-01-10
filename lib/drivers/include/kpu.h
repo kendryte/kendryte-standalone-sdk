@@ -311,10 +311,10 @@ typedef struct
 {
     kpu_layer_argument_t *layers;
     kpu_layer_argument_t *remain_layers;
-    void (*callback)(void);
+    plic_irq_callback_t callback;
+    void *ctx;
     uint64_t *src;
     uint64_t *dst;
-    plic_irq_callback_t cb;
     uint32_t src_length;
     uint32_t dst_length;
     uint32_t layers_length;
