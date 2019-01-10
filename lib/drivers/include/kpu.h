@@ -319,7 +319,7 @@ typedef struct
     uint32_t dst_length;
     uint32_t layers_length;
     uint32_t remain_layers_length;
-    uint32_t dma_ch;
+    dmac_channel_number_t dma_ch;
     uint32_t eight_bit_mode;
     float output_scale;
     float output_bias;
