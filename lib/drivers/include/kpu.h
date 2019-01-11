@@ -307,22 +307,47 @@ typedef struct
     } eight_bit_mode;
 } kpu_config_t;
 
-extern volatile kpu_config_t *const kpu;
+typedef struct
+{
+    kpu_layer_argument_t *layers;
+    kpu_layer_argument_t *remain_layers;
+    plic_irq_callback_t callback;
+    void *ctx;
+    uint64_t *src;
+    uint64_t *dst;
+    uint32_t src_length;
+    uint32_t dst_length;
+    uint32_t layers_length;
+    uint32_t remain_layers_length;
+    dmac_channel_number_t dma_ch;
+    uint32_t eight_bit_mode;
+    float output_scale;
+    float output_bias;
+    float input_scale;
+    float input_bias;
+} kpu_task_t;
 
 typedef struct
 {
-    kpu_layer_argument_t* layers;
-    kpu_layer_argument_t* remain_layers;
-    uint64_t* dst;
-    plic_irq_callback_t cb;
+    uint32_t version;
+    uint32_t flags;
     uint32_t layers_length;
-    uint32_t remain_layers_length;
-    uint32_t dst_length;
-    uint32_t dma_ch;
-    uint32_t eight_bit_mode;
-    volatile float output_scale;
-    volatile float output_bias;
-} kpu_task_t;
+    uint32_t max_start_address;
+    uint32_t layers_argument_start;
+} kpu_model_header_t;
+
+typedef struct
+{
+    uint32_t weigths_offset;
+    uint32_t bn_offset;
+    uint32_t act_offset;
+    float input_scale;
+    float input_bias;
+    float output_scale;
+    float output_bias;
+} kpu_model_layer_metadata_t;
+
+extern volatile kpu_config_t *const kpu;
 
 /**
  * @brief       Modle complier init kpu handler
@@ -331,7 +356,7 @@ typedef struct
  *
  * @return      Kpu handler
  */
-extern kpu_task_t* kpu_task_init(kpu_task_t* task);
+extern kpu_task_t *kpu_task_init(kpu_task_t* task);
 
 /**
  * @brief       Kpu run for AI
@@ -364,5 +389,51 @@ uint8_t *kpu_get_output_buf(kpu_task_t* task);
  *
  */
 void kpu_release_output_buf(uint8_t *output_buf);
+
+/**
+ * @brief       Kpu run for AI
+ *
+ * @param[in]   task                Kpu handler
+*
+* @return      result
+*     - 0      Success
+*     - Other  Fail.Kpu is busy.
+*/
+int kpu_start(kpu_task_t *task);
+
+/**
+ * @brief      Initialize kpu handler
+ *
+ * @param[in]   task            Kpu handler
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail.
+ */
+int kpu_single_task_init(kpu_task_t *task);
+
+/**
+ * @brief      Uninitialize kpu handler
+ *
+ * @param[in]   task            Kpu handler
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail.
+ */
+int kpu_single_task_deinit(kpu_task_t *task);
+
+/**
+ * @brief      Load kmodel and init kpu task
+ *
+ * @param[in]   task            Kpu handler
+ * @param[in]   buffer          Kmodel
+ * @param[in]   meta            Test data
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail.
+ */
+int kpu_model_load_from_buffer(kpu_task_t *task, uint8_t *buffer, kpu_model_layer_metadata_t **meta);
 
 #endif

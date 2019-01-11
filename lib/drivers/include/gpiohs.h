@@ -242,6 +242,23 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge);
  */
 void gpiohs_set_irq(uint8_t pin, uint32_t priority, void(*func)());
 
+/**
+ * @brief      Set Gpiohs pin interrupt
+ *
+ * @param[in]   pin             Gpiohs pin
+ * @param[in]   priority        Gpiohs pin interrupt priority
+ * @param[in]   callback        Gpiohs pin interrupt service routine
+ * @param[in]   ctx             Gpiohs interrupt param
+ */
+void gpiohs_irq_register(uint8_t pin, uint32_t priority, plic_irq_callback_t callback, void *ctx);
+
+/**
+ * @brief      Unregister Gpiohs pin interrupt
+ *
+ * @param[in]   pin             Gpiohs pin
+ */
+void gpiohs_irq_unregister(uint8_t pin);
+
 #ifdef __cplusplus
 }
 #endif

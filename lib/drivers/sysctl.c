@@ -20,6 +20,7 @@
 #include "string.h"
 #include "encoding.h"
 #include "bsp.h"
+#include "portmacro.h"
 
 #define SYSCTRL_CLOCK_FREQ_IN0 (26000000UL)
 
@@ -50,6 +51,7 @@ const uint8_t get_source_aclk[] =
 };
 
 volatile sysctl_t *const sysctl = (volatile sysctl_t *)SYSCTL_BASE_ADDR;
+extern UBaseType_t uxCPUClockRate;
 
 uint32_t sysctl_get_git_id(void)
 {
@@ -1800,7 +1802,9 @@ uint32_t sysctl_cpu_set_freq(uint32_t freq)
     if(freq == 0)
         return 0;
 
-    return sysctl_pll_set_freq(SYSCTL_PLL0, (sysctl->clk_sel0.aclk_divider_sel + 1) * 2 * freq);
+    freq = sysctl_pll_set_freq(SYSCTL_PLL0, (sysctl->clk_sel0.aclk_divider_sel + 1) * 2 * freq);
+    uxCPUClockRate = freq;
+    return freq;
 }
 
 void sysctl_enable_irq(void)
@@ -1819,5 +1823,34 @@ uint64_t sysctl_get_time_us(void)
 {
     uint64_t v_cycle = read_cycle();
     return v_cycle * 1000000 / sysctl_clock_get_freq(SYSCTL_CLOCK_CPU);
+}
+
+sysctl_reset_enum_status_t sysctl_get_reset_status(void)
+{
+    static sysctl_reset_enum_status_t s_reset_status = 0;
+    if(s_reset_status != 0)
+    {
+        return s_reset_status;
+    }
+
+    if(sysctl->reset_status.wdt0_reset_sts)
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_WDT0;
+    }
+    else if(sysctl->reset_status.wdt1_reset_sts)
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_WDT1;
+    }
+    else if(sysctl->reset_status.soft_reset_sts)
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_SOFT;
+    }
+    else
+    {
+        s_reset_status = SYSCTL_RESET_STATUS_HARD;
+    }
+    sysctl->reset_status.reset_sts_clr = 1;
+
+    return s_reset_status;
 }
 

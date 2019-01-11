@@ -20,14 +20,16 @@
 
 volatile gpiohs_t* const gpiohs = (volatile gpiohs_t*)GPIOHS_BASE_ADDR;
 
-typedef struct _gpiohs_pin_context
+typedef struct _gpiohs_pin_instance
 {
     size_t pin;
     gpio_pin_edge_t edge;
     void (*callback)();
-} gpiohs_pin_context;
+    plic_irq_callback_t gpiohs_callback;
+    void *context;
+} gpiohs_pin_instance_t;
 
-gpiohs_pin_context pin_context[32];
+static gpiohs_pin_instance_t pin_instance[32];
 
 void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
 {
@@ -81,87 +83,132 @@ void gpiohs_set_pin(uint8_t pin, gpio_pin_value_t value)
 
 void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
 {
-    uint32_t rise, fall, irq;
-    switch (edge)
+    set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->rise_ip.u32, pin, 1);
+
+    set_gpio_bit(gpiohs->fall_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->fall_ip.u32, pin, 1);
+
+    set_gpio_bit(gpiohs->low_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->low_ip.u32, pin, 1);
+
+    set_gpio_bit(gpiohs->high_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->high_ip.u32, pin, 1);
+
+    if(edge & GPIO_PE_FALLING)
     {
-    case GPIO_PE_NONE:
-        rise = fall = irq = 0;
-        break;
-    case GPIO_PE_FALLING:
-        rise = 0;
-        fall = irq = 1;
-        break;
-    case GPIO_PE_RISING:
-        fall = 0;
-        rise = irq = 1;
-        break;
-    case GPIO_PE_BOTH:
-        rise = fall = irq = 1;
-        break;
-    default:
-        configASSERT(!"Invalid gpio edge");
-        break;
+        set_gpio_bit(gpiohs->fall_ie.u32, pin, 1);
+    }
+    else
+    {
+        set_gpio_bit(gpiohs->fall_ie.u32, pin, 0);
     }
 
-    set_gpio_bit(gpiohs->rise_ie.u32, pin, rise);
-    set_gpio_bit(gpiohs->fall_ie.u32, pin, fall);
-    pin_context[pin].edge = edge;
+    if(edge & GPIO_PE_RISING)
+    {
+        set_gpio_bit(gpiohs->rise_ie.u32, pin, 1);
+    }
+    else
+    {
+        set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
+    }
+
+    if(edge & GPIO_PE_LOW)
+    {
+        set_gpio_bit(gpiohs->low_ie.u32, pin, 1);
+    }
+    else
+    {
+        set_gpio_bit(gpiohs->low_ie.u32, pin, 0);
+    }
+
+    if(edge & GPIO_PE_HIGH)
+    {
+        set_gpio_bit(gpiohs->high_ie.u32, pin, 1);
+    }
+    else
+    {
+        set_gpio_bit(gpiohs->high_ie.u32, pin, 0);
+    }
+
+    pin_instance[pin].edge = edge;
 }
 
 int gpiohs_pin_onchange_isr(void *userdata)
 {
-    gpiohs_pin_context *ctx = (gpiohs_pin_context *)userdata;
+    gpiohs_pin_instance_t *ctx = (gpiohs_pin_instance_t *)userdata;
     size_t pin = ctx->pin;
-    uint32_t rise, fall;
-    switch (ctx->edge)
-    {
-    case GPIO_PE_NONE:
-        rise = fall = 0;
-        break;
-    case GPIO_PE_FALLING:
-        rise = 0;
-        fall = 1;
-        break;
-    case GPIO_PE_RISING:
-        fall = 0;
-        rise = 1;
-        break;
-    case GPIO_PE_BOTH:
-        rise = fall = 1;
-        break;
-    default:
-        configASSERT(!"Invalid gpio edge");
-        break;
-    }
 
-    if (rise)
-    {
-        set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
-        set_gpio_bit(gpiohs->rise_ip.u32, pin, 1);
-        set_gpio_bit(gpiohs->rise_ie.u32, pin, 1);
-    }
-
-    if (fall)
+    if(ctx->edge & GPIO_PE_FALLING)
     {
         set_gpio_bit(gpiohs->fall_ie.u32, pin, 0);
         set_gpio_bit(gpiohs->fall_ip.u32, pin, 1);
         set_gpio_bit(gpiohs->fall_ie.u32, pin, 1);
     }
 
+    if(ctx->edge & GPIO_PE_RISING)
+    {
+        set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
+        set_gpio_bit(gpiohs->rise_ip.u32, pin, 1);
+        set_gpio_bit(gpiohs->rise_ie.u32, pin, 1);
+    }
+
+    if(ctx->edge & GPIO_PE_LOW)
+    {
+        set_gpio_bit(gpiohs->low_ie.u32, pin, 0);
+        set_gpio_bit(gpiohs->low_ip.u32, pin, 1);
+        set_gpio_bit(gpiohs->low_ie.u32, pin, 1);
+    }
+
+    if(ctx->edge & GPIO_PE_HIGH)
+    {
+        set_gpio_bit(gpiohs->high_ie.u32, pin, 0);
+        set_gpio_bit(gpiohs->high_ip.u32, pin, 1);
+        set_gpio_bit(gpiohs->high_ie.u32, pin, 1);
+    }
+
     if (ctx->callback)
         ctx->callback();
+    if(ctx->gpiohs_callback)
+        ctx->gpiohs_callback(ctx->context);
+
     return 0;
 }
 
 void gpiohs_set_irq(uint8_t pin, uint32_t priority, void (*func)())
 {
 
-    pin_context[pin].pin = pin;
-    pin_context[pin].callback = func;
+    pin_instance[pin].pin = pin;
+    pin_instance[pin].callback = func;
 
     plic_set_priority(IRQN_GPIOHS0_INTERRUPT + pin, priority);
-    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_context[pin]));
+    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_instance[pin]));
     plic_irq_enable(IRQN_GPIOHS0_INTERRUPT + pin);
+}
+
+void gpiohs_irq_register(uint8_t pin, uint32_t priority, plic_irq_callback_t callback, void *ctx)
+{
+    pin_instance[pin].pin = pin;
+    pin_instance[pin].gpiohs_callback = callback;
+    pin_instance[pin].context = ctx;
+
+    plic_set_priority(IRQN_GPIOHS0_INTERRUPT + pin, priority);
+    plic_irq_register(IRQN_GPIOHS0_INTERRUPT + pin, gpiohs_pin_onchange_isr, &(pin_instance[pin]));
+    plic_irq_enable(IRQN_GPIOHS0_INTERRUPT + pin);
+}
+
+void gpiohs_irq_unregister(uint8_t pin)
+{
+    pin_instance[pin] = (gpiohs_pin_instance_t){
+        .callback = NULL,
+        .gpiohs_callback = NULL,
+        .context = NULL,
+    };
+    set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->fall_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->low_ie.u32, pin, 0);
+    set_gpio_bit(gpiohs->high_ie.u32, pin, 0);
+    plic_irq_unregister(IRQN_GPIOHS0_INTERRUPT + pin);
 }
 
 void gpiohs_irq_disable(size_t pin)

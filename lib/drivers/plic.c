@@ -40,9 +40,14 @@ void plic_init(void)
     for (i = 0; i < ((PLIC_NUM_SOURCES + 32u) / 32u); i++)
         plic->target_enables.target[core_id].enable[i] = 0;
 
+    static uint8_t s_plic_priorities_init_flag = 0;
     /* Set priorities to zero. */
-    for (i = 0; i < PLIC_NUM_SOURCES; i++)
-        plic->source_priorities.priority[i] = 0;
+    if(s_plic_priorities_init_flag == 0)
+    {
+        for (i = 0; i < PLIC_NUM_SOURCES; i++)
+            plic->source_priorities.priority[i] = 0;
+        s_plic_priorities_init_flag = 1;
+    }
 
     /* Set the threshold to zero. */
     plic->targets.target[core_id].priority_threshold = 0;

@@ -91,6 +91,23 @@ void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t
     wdt_enable(id);
 }
 
+uint32_t wdt_init(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq, void *ctx)
+{
+    sysctl_reset(id ? SYSCTL_RESET_WDT1 : SYSCTL_RESET_WDT0);
+    sysctl_clock_set_threshold(id ? SYSCTL_THRESHOLD_WDT1 : SYSCTL_THRESHOLD_WDT0, 0);
+    sysctl_clock_enable(id ? SYSCTL_CLOCK_WDT1 : SYSCTL_CLOCK_WDT0);
+
+    plic_set_priority(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT, 1);
+    plic_irq_enable(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT);
+    plic_irq_register(id ? IRQN_WDT1_INTERRUPT : IRQN_WDT0_INTERRUPT, on_irq, ctx);
+
+    wdt_response_mode(id, WDT_CR_RMOD_INTERRUPT);
+    uint8_t m_top = wdt_get_top(id, time_out_ms);
+    wdt_set_timeout(id, m_top);
+    wdt_enable(id);
+    return (1UL << (m_top + 16 + 1)) * 1000UL / wdt_get_pclk(id);
+}
+
 void wdt_stop(wdt_device_number_t id)
 {
     wdt_disable(id);

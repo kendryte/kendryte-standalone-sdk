@@ -127,11 +127,25 @@ void wdt_feed(wdt_device_number_t id);
 /**
  * @brief       Start wdt
  *
- * @param[in]   id          Wdt id 0 or 1
- * @param[in]   time_out_ms        Wdt trigger time
+ * @param[in]   id                  Wdt id 0 or 1
+ * @param[in]   time_out_ms         Wdt trigger time
+ * @param[in]   on_irq              Wdt interrupt callback
  *
  */
 void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq);
+
+/**
+ * @brief       Start wdt
+ *
+ * @param[in]   id                 Wdt id 0 or 1
+ * @param[in]   time_out_ms        Wdt trigger time
+ * @param[in]   on_irq             Wdt interrupt callback
+ * @param[in]   ctx                Param of callback
+ *
+ * @return      Wdt time
+ *
+ */
+uint32_t wdt_init(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq, void *ctx);
 
 /**
  * @brief       Stop wdt

@@ -8,6 +8,7 @@ add_compile_flags(LD
         -Wl,--no-whole-archive
         -Wl,--end-group
         -Wl,-EL
+        -Wl,--no-relax
         -T ${SDK_ROOT}/lds/kendryte.ld
         )
 
@@ -39,12 +40,12 @@ if (BUILDING_SDK)
             -Wno-unused-parameter
             -Wno-sign-compare
             -Wno-error=missing-braces
-			-Wno-error=return-type
-			-Wno-error=pointer-sign
-			-Wno-missing-braces
-			-Wno-strict-aliasing
-			-Wno-implicit-fallthrough
-			-Wno-missing-field-initializers
+            -Wno-error=return-type
+            -Wno-error=pointer-sign
+            -Wno-missing-braces
+            -Wno-strict-aliasing
+            -Wno-implicit-fallthrough
+            -Wno-missing-field-initializers
             )
 
     add_compile_flags(C -Wno-old-style-declaration)

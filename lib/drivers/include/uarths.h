@@ -180,8 +180,8 @@ typedef enum _uarths_interrupt_mode
 
 typedef enum _uarths_stopbit
 {
-    UART_STOP_1,
-    UART_STOP_2
+    UARTHS_STOP_1,
+    UARTHS_STOP_2
 } uarths_stopbit_t;
 
 extern volatile uarths_t *const uarths;

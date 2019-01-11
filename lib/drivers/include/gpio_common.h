@@ -32,7 +32,9 @@ typedef enum _gpio_pin_edge
     GPIO_PE_NONE,
     GPIO_PE_FALLING,
     GPIO_PE_RISING,
-    GPIO_PE_BOTH
+    GPIO_PE_BOTH,
+    GPIO_PE_LOW,
+    GPIO_PE_HIGH = 8,
 } gpio_pin_edge_t;
 
 typedef enum _gpio_pin_value

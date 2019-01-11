@@ -21,13 +21,13 @@
 #include "string.h"
 #include "sysctl.h"
 
-typedef struct _i2c_slave_context
+typedef struct _i2c_slave_instance
 {
     uint32_t i2c_num;
     const i2c_slave_handler_t *slave_handler;
-} i2c_slave_context_t;
+} i2c_slave_instance_t;
 
-i2c_slave_context_t slave_context;
+static i2c_slave_instance_t slave_instance[I2C_MAX_NUM];
 
 volatile i2c_t* const i2c[3] =
 {
@@ -75,26 +75,26 @@ void i2c_init(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t addr
 
 static int i2c_slave_irq(void *userdata)
 {
-    i2c_slave_context_t *context = (i2c_slave_context_t *)userdata;
-    volatile i2c_t *i2c_adapter = i2c[context->i2c_num];
+    i2c_slave_instance_t *instance = (i2c_slave_instance_t *)userdata;
+    volatile i2c_t *i2c_adapter = i2c[instance->i2c_num];
     uint32_t status = i2c_adapter->intr_stat;
     if (status & I2C_INTR_STAT_START_DET)
     {
-        context->slave_handler->on_event(I2C_EV_START);
+        instance->slave_handler->on_event(I2C_EV_START);
         readl(&i2c_adapter->clr_start_det);
     }
     if (status & I2C_INTR_STAT_STOP_DET)
     {
-        context->slave_handler->on_event(I2C_EV_STOP);
+        instance->slave_handler->on_event(I2C_EV_STOP);
         readl(&i2c_adapter->clr_stop_det);
     }
     if (status & I2C_INTR_STAT_RX_FULL)
     {
-        context->slave_handler->on_receive(i2c_adapter->data_cmd);
+        instance->slave_handler->on_receive(i2c_adapter->data_cmd);
     }
     if (status & I2C_INTR_STAT_RD_REQ)
     {
-        i2c_adapter->data_cmd = context->slave_handler->on_transmit();
+        i2c_adapter->data_cmd = instance->slave_handler->on_transmit();
         readl(&i2c_adapter->clr_rd_req);
     }
     return 0;
@@ -105,8 +105,8 @@ void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint
 {
     configASSERT(address_width == 7 || address_width == 10);
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
-    slave_context.i2c_num = i2c_num;
-    slave_context.slave_handler = handler;
+    slave_instance[i2c_num].i2c_num = i2c_num;
+    slave_instance[i2c_num].slave_handler = handler;
 
     i2c_clk_init(i2c_num);
     i2c_adapter->enable = 0;
@@ -119,7 +119,7 @@ void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint
     i2c_adapter->intr_mask = I2C_INTR_MASK_RX_FULL | I2C_INTR_MASK_START_DET | I2C_INTR_MASK_STOP_DET | I2C_INTR_MASK_RD_REQ;
 
     plic_set_priority(IRQN_I2C0_INTERRUPT + i2c_num, 1);
-    plic_irq_register(IRQN_I2C0_INTERRUPT + i2c_num, i2c_slave_irq, &slave_context);
+    plic_irq_register(IRQN_I2C0_INTERRUPT + i2c_num, i2c_slave_irq, slave_instance + i2c_num);
     plic_irq_enable(IRQN_I2C0_INTERRUPT + i2c_num);
 
     i2c_adapter->enable = I2C_ENABLE_ENABLE;
@@ -130,7 +130,7 @@ int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
     size_t fifo_len, index;
-
+    i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     while (send_buf_len)
     {
         fifo_len = 8 - i2c_adapter->txflr;
@@ -141,8 +141,11 @@ int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
             return 1;
         send_buf_len -= fifo_len;
     }
-    while (i2c_adapter->status & I2C_STATUS_ACTIVITY)
+    while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
         ;
+
+    if (i2c_adapter->tx_abrt_source != 0)
+        return 1;
 
     return 0;
 }
@@ -152,7 +155,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t* i2c_adapter = i2c[i2c_num];
-
+    i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
     int i;
     for (i = 0; i < send_buf_len; i++)
@@ -167,7 +170,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     dmac_wait_done(dma_channel_num);
     free((void *)buf);
 
-    while (i2c_adapter->status & I2C_STATUS_ACTIVITY)
+    while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
     {
         if (i2c_adapter->tx_abrt_source != 0)
             configASSERT(!"source abort");
@@ -246,4 +249,3 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
 
     free(write_cmd);
 }
-
