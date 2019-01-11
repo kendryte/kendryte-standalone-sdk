@@ -57,9 +57,9 @@ static uint64_t wdt_get_pclk(wdt_device_number_t id)
 static uint8_t wdt_get_top(wdt_device_number_t id, uint64_t timeout_ms)
 {
     uint64_t wdt_clk = wdt_get_pclk(id);
-    uint64_t ret = (timeout_ms * wdt_clk / 1000);
+    uint64_t ret = (timeout_ms * wdt_clk / 1000) >> 16;
     if (ret)
-        ret = (uint32_t)(log2(ret) - 16 + 1);
+        ret = (uint32_t)log2(ret);
     if (ret > 0xf)
         ret = 0xf;
     return (uint8_t)ret;
@@ -105,7 +105,7 @@ uint64_t wdt_init(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callbac
     uint8_t m_top = wdt_get_top(id, time_out_ms);
     wdt_set_timeout(id, m_top);
     wdt_enable(id);
-    return (1UL << (m_top + 16)) * 1000UL / wdt_get_pclk(id);
+    return (1UL << (m_top + 16 + 1)) * 1000UL / wdt_get_pclk(id);
 }
 
 void wdt_stop(wdt_device_number_t id)
