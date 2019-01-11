@@ -327,6 +327,26 @@ typedef struct
     float input_bias;
 } kpu_task_t;
 
+typedef struct
+{
+    uint32_t version;
+    uint32_t flags;
+    uint32_t layers_length;
+    uint32_t max_start_address;
+    uint32_t layers_argument_start;
+} kpu_model_header_t;
+
+typedef struct
+{
+    uint32_t weigths_offset;
+    uint32_t bn_offset;
+    uint32_t act_offset;
+    float input_scale;
+    float input_bias;
+    float output_scale;
+    float output_bias;
+} kpu_model_layer_metadata_t;
+
 extern volatile kpu_config_t *const kpu;
 
 /**
@@ -402,5 +422,18 @@ int kpu_single_task_init(kpu_task_t *task);
  *     - Other  Fail.
  */
 int kpu_single_task_deinit(kpu_task_t *task);
+
+/**
+ * @brief      Load kmodel and init kpu task
+ *
+ * @param[in]   task            Kpu handler
+ * @param[in]   buffer          Kmodel
+ * @param[in]   meta            Test data
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail.
+ */
+int kpu_model_load_from_buffer(kpu_task_t *task, uint8_t *buffer, kpu_model_layer_metadata_t **meta);
 
 #endif

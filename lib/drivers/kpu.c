@@ -306,6 +306,34 @@ int kpu_single_task_deinit(kpu_task_t *task)
     return 0;
 }
 
+int kpu_model_load_from_buffer(kpu_task_t *task, uint8_t *buffer, kpu_model_layer_metadata_t **meta)
+{
+    uintptr_t base_addr = (uintptr_t)buffer;
+    kpu_model_header_t *header = (kpu_model_header_t *)buffer;
+    kpu_model_layer_metadata_t *layer_meta = (kpu_model_layer_metadata_t *)(base_addr + sizeof(kpu_model_header_t));
+    kpu_layer_argument_t *layers = (kpu_layer_argument_t *)(base_addr + header->layers_argument_start);
+
+    if (header->version != 1)
+        return -1;
+    uint32_t layers_length = header->layers_length;
+    task->layers_length = layers_length;
+    task->eight_bit_mode = header->flags & 1;
+    task->layers = layers;
+    task->output_scale = layer_meta[layers_length - 1].output_scale;
+    task->output_bias = layer_meta[layers_length - 1].output_bias;
+    size_t i;
+    for (i = 0; i < layers_length; i++)
+    {
+        layers[i].kernel_load_cfg.data.para_start_addr = (uint64_t)(base_addr + layer_meta[i].weigths_offset);
+        layers[i].kernel_pool_type_cfg.data.bwsx_base_addr = (uint64_t)(base_addr + layer_meta[i].bn_offset);
+        layers[i].kernel_calc_type_cfg.data.active_addr = (uint64_t)(base_addr + layer_meta[i].act_offset);
+    }
+
+    if (meta)
+        *meta = layer_meta;
+    return 0;
+}
+
 int kpu_start(kpu_task_t *task)
 {
     if (atomic_cas(&kpu_status, 0, 1))
