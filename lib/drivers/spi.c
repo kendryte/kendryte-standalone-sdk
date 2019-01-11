@@ -204,7 +204,8 @@ void spi_send_data_normal(spi_device_num_t spi_num, spi_chip_select_t chip_selec
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
         case 0:
         case 1:
             dfs_offset = 16;
@@ -277,7 +278,8 @@ void spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_nu
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
         case 0:
         case 1:
             dfs_offset = 16;
@@ -381,7 +383,8 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
         case 0:
         case 1:
             dfs_offset = 16;
@@ -497,7 +500,8 @@ void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
         case 0:
         case 1:
             dfs_offset = 16;
@@ -624,7 +628,8 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
         case 0:
         case 1:
             dfs_offset = 16;
@@ -709,7 +714,8 @@ void spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
         case 0:
         case 1:
             dfs_offset = 16;
@@ -789,7 +795,8 @@ void spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num,
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
        case 0:
        case 1:
            dfs_offset = 16;
@@ -889,7 +896,8 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
     volatile spi_t *spi_handle = spi[spi_num];
 
     uint8_t dfs_offset;
-    switch(spi_num){
+    switch(spi_num)
+    {
         case 0:
         case 1:
             dfs_offset = 16;
