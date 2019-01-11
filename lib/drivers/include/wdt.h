@@ -142,8 +142,10 @@ void wdt_start(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t
  * @param[in]   on_irq             Wdt interrupt callback
  * @param[in]   ctx                Param of callback
  *
+ * @return      Wdt time
+ *
  */
-void wdt_init(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq, void *ctx);
+uint64_t wdt_init(wdt_device_number_t id, uint64_t time_out_ms, plic_irq_callback_t on_irq, void *ctx);
 
 /**
  * @brief       Stop wdt
