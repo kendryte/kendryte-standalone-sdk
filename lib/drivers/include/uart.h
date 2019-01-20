@@ -78,10 +78,22 @@ typedef struct _uart
     volatile uint32_t MCR;
     volatile uint32_t LSR;
     volatile uint32_t MSR;
-    volatile uint32_t SCR;
-    volatile uint32_t LPDLL;
-    volatile uint32_t LPDLH;
-    volatile uint32_t reserve[18];
+
+    union
+    {
+        volatile uint32_t SCR;
+        volatile uint32_t LPDLL;
+        volatile uint32_t LPDLH;
+    };
+
+    volatile uint32_t reserved1[4];
+
+    union
+    {
+        volatile uint32_t SRBR[16];
+        volatile uint32_t STHR[16];
+    };
+
     volatile uint32_t FAR;
     volatile uint32_t TFR;
     volatile uint32_t RFW;
@@ -106,7 +118,7 @@ typedef struct _uart
     volatile uint32_t RAR;
     volatile uint32_t TAR;
     volatile uint32_t LCR_EXT;
-    volatile uint32_t R[5];
+    volatile uint32_t reserved2[9];
     volatile uint32_t CPR;
     volatile uint32_t UCV;
     volatile uint32_t CTR;
