@@ -254,8 +254,10 @@ void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwi
     }
 
     uint32_t freq = sysctl_clock_get_freq(SYSCTL_CLOCK_APB0);
-    uint32_t u16Divider = (freq + __UART_BRATE_CONST * baud_rate / 2) /
-        (__UART_BRATE_CONST * baud_rate);
+    uint32_t divisor = freq / baud_rate;
+    uint8_t dlh = divisor >> 12;
+    uint8_t dll = (divisor - (dlh << 12)) / __UART_BRATE_CONST;
+    uint8_t dlf = divisor - (dlh << 12) - dll * __UART_BRATE_CONST;
 
     /* Set UART registers */
     uart[channel]->TCR &= ~(1u);
@@ -266,8 +268,9 @@ void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwi
     uart[channel]->DE_EN &= ~(1u);
 
     uart[channel]->LCR |= 1u << 7;
-    uart[channel]->DLL = u16Divider & 0xFF;
-    uart[channel]->DLH = u16Divider >> 8;
+    uart[channel]->DLH = dlh;
+    uart[channel]->DLL = dll;
+    uart[channel]->DLF = dlf;
     uart[channel]->LCR = 0;
     uart[channel]->LCR = (data_width - 5) | (stopbit_val << 2) | (parity_val << 3);
     uart[channel]->LCR &= ~(1u << 7);
