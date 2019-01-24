@@ -44,7 +44,6 @@ typedef struct _uart_instance
     uart_interrupt_instance_t uart_receive_instance;
     uart_interrupt_instance_t uart_send_instance;
     uint32_t uart_num;
-    uint32_t reserved:28;
 } uart_instance_t;
 
 uart_instance_t g_uart_instance[3];
