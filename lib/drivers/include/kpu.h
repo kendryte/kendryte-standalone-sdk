@@ -350,15 +350,6 @@ typedef struct
 extern volatile kpu_config_t *const kpu;
 
 /**
- * @brief       Modle complier init kpu handler
- *
- * @param[in]   task            Kpu handler
- *
- * @return      Kpu handler
- */
-extern kpu_task_t *kpu_task_init(kpu_task_t* task);
-
-/**
  * @brief       Kpu run for AI
  *
  * @param[in]   task                Kpu handler
