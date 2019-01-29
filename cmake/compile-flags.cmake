@@ -46,6 +46,7 @@ if (BUILDING_SDK)
             -Wno-strict-aliasing
             -Wno-implicit-fallthrough
             -Wno-missing-field-initializers
+            -Wno-int-to-pointer-cast
             )
 
     add_compile_flags(C -Wno-old-style-declaration)

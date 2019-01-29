@@ -179,7 +179,6 @@ void kpu_release_output_buf(uint8_t *output_buf)
         free(output_buf);
 }
 
-
 static int kpu_done(void *ctx)
 {
     atomic_swap(&kpu_status, 0);
@@ -343,5 +342,272 @@ int kpu_start(kpu_task_t *task)
     task->remain_layers = task->layers;
     kpu_data_input(task);
     return 0;
+}
+
+static void kpu_send_layer(const kpu_layer_argument_t *layer)
+{
+    kpu->layer_argument_fifo = layer->interrupt_enabe.reg;
+    kpu->layer_argument_fifo = layer->image_addr.reg;
+    kpu->layer_argument_fifo = layer->image_channel_num.reg;
+    kpu->layer_argument_fifo = layer->image_size.reg;
+    kpu->layer_argument_fifo = layer->kernel_pool_type_cfg.reg;
+    kpu->layer_argument_fifo = layer->kernel_load_cfg.reg;
+    kpu->layer_argument_fifo = layer->kernel_offset.reg;
+    kpu->layer_argument_fifo = layer->kernel_calc_type_cfg.reg;
+    kpu->layer_argument_fifo = layer->write_back_cfg.reg;
+    kpu->layer_argument_fifo = layer->conv_value.reg;
+    kpu->layer_argument_fifo = layer->conv_value2.reg;
+    kpu->layer_argument_fifo = layer->dma_parameter.reg;
+}
+
+void kpu_init(int eight_bit_mode, plic_irq_callback_t callback, void *userdata)
+{
+    kpu->interrupt_clear.reg = 7;
+    kpu->fifo_threshold.data = (kpu_config_fifo_threshold_t)
+    {
+        .fifo_full_threshold = 10, .fifo_empty_threshold = 1
+    };
+    kpu->eight_bit_mode.data = (kpu_config_eight_bit_mode_t)
+    {
+        .eight_bit_mode = eight_bit_mode
+    };
+    kpu->interrupt_mask.data = (kpu_config_interrupt_t)
+    {
+        .calc_done_int = 1,
+        .layer_cfg_almost_empty_int = 0,
+        .layer_cfg_almost_full_int = 1
+    };
+
+    plic_irq_enable(IRQN_AI_INTERRUPT);
+    plic_set_priority(IRQN_AI_INTERRUPT, 1);
+    plic_irq_register(IRQN_AI_INTERRUPT, callback, userdata);
+}
+
+void kpu_input_dma(kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata)
+{
+    uint64_t input_size = layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (layer->image_channel_num.data.i_ch_num + 1);
+    dmac_set_irq(dma_ch, callback, userdata, 1);
+    dmac_set_single_mode(dma_ch, (void *)src, (void *)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+        DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
+}
+
+void kpu_input_with_padding(kpu_layer_argument_t *layer, const uint8_t *src, int width, int height, int channels)
+{
+    uint8_t *dest = (uint8_t *)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64);
+    size_t oc, y, x;
+
+    uint32_t row_padding;
+    uint32_t row_group;
+    uint32_t row_length;
+
+    if (width <= 16)
+    {
+        row_padding = 16;
+        row_group = 4;
+        row_length = 1;
+    }
+    else if (width <= 32)
+    {
+        row_padding = 32;
+        row_group = 2;
+        row_length = 1;
+    }
+    else
+    {
+        row_padding = 64;
+        row_group = 1;
+        row_length = (width + 63) / 64;
+    }
+
+    for (oc = 0; oc < channels; oc++)
+    {
+        uint8_t *channel_origin = dest + oc / row_group * row_length * height * 64 + oc % row_group * row_padding;
+        for (y = 0; y < height; y++)
+        {
+            uint8_t *y_origin = channel_origin + y * row_length * 64;
+            for (x = 0; x < width; x++)
+                y_origin[x] = *src++;
+        }
+    }
+}
+
+static void kpu_conv2d_core(kpu_layer_argument_t *layer)
+{
+    kpu_send_layer(layer);
+}
+
+void kpu_conv2d(kpu_layer_argument_t *layer)
+{
+    kpu->interrupt_clear.data = (kpu_config_interrupt_t)
+    {
+        .calc_done_int = 1,
+        .layer_cfg_almost_empty_int = 1,
+        .layer_cfg_almost_full_int = 1
+    };
+    kpu->interrupt_mask.data = (kpu_config_interrupt_t)
+    {
+        .calc_done_int = 1,
+        .layer_cfg_almost_empty_int = 0,
+        .layer_cfg_almost_full_int = 1
+    };
+    kpu_conv2d_core(layer);
+}
+
+void kpu_conv2d_output(kpu_layer_argument_t *layer, dmac_channel_number_t dma_ch, uint8_t *dest, plic_irq_callback_t callback, void *userdata)
+{
+    kpu->interrupt_clear.data = (kpu_config_interrupt_t)
+    {
+        .calc_done_int = 1,
+        .layer_cfg_almost_empty_int = 1,
+        .layer_cfg_almost_full_int = 1
+    };
+    kpu->interrupt_mask.data = (kpu_config_interrupt_t)
+    {
+        .calc_done_int = 1,
+        .layer_cfg_almost_empty_int = 1,
+        .layer_cfg_almost_full_int = 1
+    };
+    layer->dma_parameter.data.send_data_out = 1;
+    sysctl_dma_select(dma_ch, SYSCTL_DMA_SELECT_AI_RX_REQ);
+    dmac_set_irq(dma_ch, callback, userdata, 1);
+    dmac_set_single_mode(dma_ch, (void *)(&kpu->fifo_data_out), dest, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+        DMAC_MSIZE_8, DMAC_TRANS_WIDTH_64, (layer->dma_parameter.data.dma_total_byte + 8) / 8);
+    kpu_conv2d_core(layer);
+}
+
+void kpu_conv2d_output_full_add(kpu_layer_argument_t *layer, dmac_channel_number_t dma_ch, uint64_t *dest, plic_irq_callback_t callback, void *userdata)
+{
+    uint32_t channels = layer->image_channel_num.data.o_ch_num + 1;
+    layer->interrupt_enabe.data.full_add = 1;
+
+    kpu->interrupt_clear.data = (kpu_config_interrupt_t)
+    {
+        .calc_done_int = 1,
+        .layer_cfg_almost_empty_int = 1,
+        .layer_cfg_almost_full_int = 1
+    };
+    kpu->interrupt_mask.data = (kpu_config_interrupt_t)
+    {
+        .calc_done_int = 1,
+        .layer_cfg_almost_empty_int = 1,
+        .layer_cfg_almost_full_int = 1
+    };
+    layer->dma_parameter.data.send_data_out = 1;
+    sysctl_dma_select(dma_ch, SYSCTL_DMA_SELECT_AI_RX_REQ);
+    dmac_set_irq(dma_ch, callback, userdata, 1);
+    dmac_set_single_mode(dma_ch, (void *)(&kpu->fifo_data_out), dest, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+        DMAC_MSIZE_8, DMAC_TRANS_WIDTH_64, channels);
+    kpu_conv2d_core(layer);
+}
+
+void kpu_add(const uint8_t *src1, const quantize_param_t *src1_param, const uint8_t *src2, const quantize_param_t *src2_param, size_t count, uint8_t *dest, const quantize_param_t *dest_param)
+{
+    quantize_param_t q1 = *src1_param, q2 = *src2_param, q3 = *dest_param;
+
+    size_t i;
+    for (i = 0; i < count; i++)
+    {
+        int value = ((*src1++ * q1.scale + q1.bias + *src2++ * q2.scale + q2.bias) - q3.bias) / q3.scale;
+        if (value < 0) value = 0;
+        if (value > 0xFF) value = 0xFF;
+        *dest++ = value;
+    }
+}
+
+void kpu_global_average_pool(const uint8_t *src, const quantize_param_t *src_param, int kernel_size, int channels, uint8_t *dest, const quantize_param_t *dest_param)
+{
+    quantize_param_t q1 = *src_param, q2 = *dest_param;
+    size_t oc, y, x;
+
+    if (((uintptr_t)dest) >= AI_IO_BASE_ADDR && ((uintptr_t)dest) < AI_IO_BASE_ADDR + 2 * 1024 * 1024)
+    {
+        uint32_t row_padding = 16;
+        uint32_t row_group = 4;
+        uint32_t row_length = 1;
+        uint32_t height = 4;
+
+        for (oc = 0; oc < channels; oc++)
+        {
+            uint8_t *channel_origin = dest + oc / row_group * row_length * height * 64 + oc % row_group * row_padding;
+            for (y = 0; y < 1; y++)
+            {
+                uint8_t *y_origin = channel_origin + y * row_length * 64;
+                for (x = 0; x < 1; x++)
+                {
+                    int64_t sum = 0;
+                    size_t i;
+                    for (i = 0; i < kernel_size; i++)
+                        sum += *src++;
+
+                    int value = ((sum * q1.scale + q1.bias) / kernel_size - q2.bias) / q2.scale;
+                    if (value < 0) value = 0;
+                    if (value > 0xFF) value = 0xFF;
+                    y_origin[x] = value;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (oc = 0; oc < channels; oc++)
+        {
+            int64_t sum = 0;
+            size_t i;
+            for (i = 0; i < kernel_size; i++)
+                sum += *src++;
+
+            int value = ((sum * q1.scale + q1.bias) / kernel_size - q2.bias) / q2.scale;
+            if (value < 0) value = 0;
+            if (value > 0xFF) value = 0xFF;
+            dest[oc] = value;
+        }
+    }
+}
+
+void kpu_global_average_pool_float(const uint8_t *src, const quantize_param_t *src_param, int kernel_size, int channels, float *dest)
+{
+    quantize_param_t q = *src_param;
+    size_t oc;
+
+    for (oc = 0; oc < channels; oc++)
+    {
+        int64_t sum = 0;
+        size_t i;
+        for (i = 0; i < kernel_size; i++)
+            sum += *src++;
+
+        float value = (sum * q.scale + q.bias) / kernel_size;
+        dest[oc] = value;
+    }
+}
+
+void kpu_matmul_end(const uint8_t *src, int channels, float *dest, const quantize_param_t *dest_param)
+{
+    quantize_param_t q1 = *dest_param;
+    size_t i = 0;
+    for (i = 0; i < channels; i++)
+        *dest++ = src[i * 16] * q1.scale + q1.bias;
+}
+
+void kpu_fully_connected(const float *src, const float *weights, const float *biases, float *dest, int input_channels, int output_channels)
+{
+    int ic, oc;
+    for (oc = 0; oc < output_channels; oc++)
+    {
+        const float *c_weights = weights + oc * input_channels;
+
+        float sum = 0.0f;
+        for (ic = 0; ic < input_channels; ic++)
+            sum += src[ic] * c_weights[ic];
+        dest[oc] = sum + biases[oc];
+    }
+}
+
+void kpu_dequantize(const uint8_t *src, const quantize_param_t *src_param, size_t count, float *dest)
+{
+    quantize_param_t q1 = *src_param;
+    size_t i = 0;
+    for (i = 0; i < count; i++)
+        *dest++ = src[i] * q1.scale + q1.bias;
 }
 

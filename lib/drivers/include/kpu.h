@@ -5,6 +5,8 @@
 #include <plic.h>
 #include "dmac.h"
 
+#define kpu_matmul_begin kpu_conv2d_output
+
 typedef int (*plic_irq_callback_t)(void *ctx);
 
 typedef struct
@@ -347,6 +349,12 @@ typedef struct
     float output_bias;
 } kpu_model_layer_metadata_t;
 
+typedef struct _quantize_param
+{
+    double scale;
+    double bias;
+} quantize_param_t;
+
 extern volatile kpu_config_t *const kpu;
 
 /**
@@ -435,5 +443,119 @@ int kpu_single_task_deinit(kpu_task_t *task);
  *     - Other  Fail.
  */
 int kpu_model_load_from_buffer(kpu_task_t *task, uint8_t *buffer, kpu_model_layer_metadata_t **meta);
+
+/**
+ * @brief       Kpu initialize
+ *
+ * @param[in]   eight_bit_mode            0:16bit mode  1:8bit mode
+ * @param[in]   callback                  Callback of kpu
+ * @param[in]   userdata                  Data of callback
+ *
+ */
+void kpu_init(int eight_bit_mode, plic_irq_callback_t callback, void *userdata);
+
+/**
+ * @brief       Kpu input data by dma
+ *
+ * @param[in]   layer                   Kpu task layer
+ * @param[in]   src                     Image data
+ * @param[in]   dma_ch                  Dmac channel
+ * @param[in]   callback                Dmac complete callback
+ * @param[in]   userdata                Data of callback
+ *
+ */
+void kpu_input_dma(kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata);
+
+/**
+ * @brief       Kpu input data by cpu
+ *
+ * @param[in]   layer                   Kpu task layer
+ * @param[in]   src                     Image data
+ * @param[in]   width                   Image width
+ * @param[in]   height                  Image heigth
+ * @param[in]   channels                Color channel, RGB is 3
+ *
+ */
+void kpu_input_with_padding(kpu_layer_argument_t *layer, const uint8_t *src, int width, int height, int channels);
+
+/**
+ * @brief       Kpu run only one layer
+ *
+ * @param[in]   layer                   Kpu task layer
+ *
+ */
+void kpu_conv2d(kpu_layer_argument_t *layer);
+
+/**
+ * @brief       Kpu run only one layer then get the result by dma
+ *
+ * @param[in]   layer                   Kpu task layer
+ * @param[in]   dma_ch                  Dmac channel
+ * @param[in]   dest                    Result
+ * @param[in]   callback                Dmac complete callback
+ * @param[in]   userdata                Data of callback
+ *
+ */
+void kpu_conv2d_output(kpu_layer_argument_t *layer, dmac_channel_number_t dma_ch, uint8_t *dest, plic_irq_callback_t callback, void *userdata);
+
+/**
+ * @brief       Kpu pooling
+ *
+ * @param[in]   src                        Source
+ * @param[in]   src_param                  Source param
+ * @param[in]   kernel_size                Kernel size, 7*7 is 49
+ * @param[in]   channels                   Channels
+ * @param[in]   dest                       Dest
+ * @param[in]   dest_param                 Dest param
+ *
+ */
+void kpu_global_average_pool(const uint8_t *src, const quantize_param_t *src_param, int kernel_size, int channels, uint8_t *dest, const quantize_param_t *dest_param);
+
+/**
+ * @brief       Kpu pooling
+ *
+ * @param[in]   src                        Source
+ * @param[in]   src_param                  Source param
+ * @param[in]   kernel_size                Kernel size, 7*7 is 49
+ * @param[in]   channels                   Channels
+ * @param[in]   dest                       Dest
+ *
+ */
+void kpu_global_average_pool_float(const uint8_t *src, const quantize_param_t *src_param, int kernel_size, int channels, float *dest);
+
+/**
+ * @brief       Kpu fullly connected by cpu
+ *
+ * @param[in]   src                                 Source
+ * @param[in]   weights                             Weight
+ * @param[in]   biases                              Biases
+ * @param[in]   dest                                Dest
+ * @param[in]   input_channels                      Input channels
+ * @param[in]   output_channels                     Output channels
+ *
+ */
+void kpu_fully_connected(const float *src, const float *weights, const float *biases, float *dest, int input_channels, int output_channels);
+
+/**
+ * @brief       Kpu matrix multiplication
+ *
+ * @param[in]   src                                 Source
+ * @param[in]   channels                            Channels
+ * @param[in]   dest                                Dest
+ * @param[in]   dest_param                          Dest param
+ *
+ */
+void kpu_matmul_end(const uint8_t *src, int channels, float *dest, const quantize_param_t *dest_param);
+
+/**
+ * @brief       Kpu dequantize
+ *
+ * @param[in]   src                                 Source
+ * @param[in]   src_param                           Source param
+ * @param[in]   count                               Dequantize count
+ * @param[in]   dest                                Dest
+ *
+ */
+void kpu_dequantize(const uint8_t *src, const quantize_param_t *src_param, size_t count, float *dest);
 
 #endif
