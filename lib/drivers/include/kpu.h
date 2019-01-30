@@ -351,8 +351,8 @@ typedef struct
 
 typedef struct _quantize_param
 {
-    double scale;
-    double bias;
+    float scale;
+    float bias;
 } quantize_param_t;
 
 extern volatile kpu_config_t *const kpu;
