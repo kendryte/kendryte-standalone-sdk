@@ -109,14 +109,14 @@ dump_core(const char *reason, uintptr_t cause, uintptr_t epc, uintptr_t regs[32]
         if (!reason)
             reason = unknown_reason;
 
-        DUMP_PRINTF("core dump: %s\n", reason);
-        DUMP_PRINTF("Cause 0x%016lx, EPC 0x%016lx\n", cause, epc);
+        DUMP_PRINTF("core dump: %s\r\n", reason);
+        DUMP_PRINTF("Cause 0x%016lx, EPC 0x%016lx\r\n", cause, epc);
 
         int i = 0;
         for (i = 0; i < 32 / 2; i++)
         {
             DUMP_PRINTF(
-                "reg[%02d](%s) = 0x%016lx, reg[%02d](%s) = 0x%016lx\n",
+                "reg[%02d](%s) = 0x%016lx, reg[%02d](%s) = 0x%016lx\r\n",
                 i * 2, reg_usage[i * 2][0], regs[i * 2],
                 i * 2 + 1, reg_usage[i * 2 + 1][0], regs[i * 2 + 1]);
         }
@@ -124,7 +124,7 @@ dump_core(const char *reason, uintptr_t cause, uintptr_t epc, uintptr_t regs[32]
         for (i = 0; i < 32 / 2; i++)
         {
             DUMP_PRINTF(
-                "freg[%02d](%s) = 0x%016lx(%f), freg[%02d](%s) = 0x%016lx(%f)\n",
+                "freg[%02d](%s) = 0x%016lx(%f), freg[%02d](%s) = 0x%016lx(%f)\r\n",
                 i * 2, regf_usage[i * 2][0], fregs[i * 2], (float)fregs[i * 2],
                 i * 2 + 1, regf_usage[i * 2 + 1][0], fregs[i * 2 + 1], (float)fregs[i * 2 + 1]);
         }
