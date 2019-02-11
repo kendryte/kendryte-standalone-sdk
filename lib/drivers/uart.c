@@ -44,9 +44,6 @@ typedef struct _uart_instance
     uart_interrupt_instance_t uart_receive_instance;
     uart_interrupt_instance_t uart_send_instance;
     uint32_t uart_num;
-    uint32_t send_fifo_intterupt : 2;
-    uint32_t receive_fifo_intterupt : 2;
-    uint32_t reserved:28;
 } uart_instance_t;
 
 uart_instance_t g_uart_instance[3];
@@ -256,8 +253,10 @@ void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwi
     }
 
     uint32_t freq = sysctl_clock_get_freq(SYSCTL_CLOCK_APB0);
-    uint32_t u16Divider = (freq + __UART_BRATE_CONST * baud_rate / 2) /
-        (__UART_BRATE_CONST * baud_rate);
+    uint32_t divisor = freq / baud_rate;
+    uint8_t dlh = divisor >> 12;
+    uint8_t dll = (divisor - (dlh << 12)) / __UART_BRATE_CONST;
+    uint8_t dlf = divisor - (dlh << 12) - dll * __UART_BRATE_CONST;
 
     /* Set UART registers */
     uart[channel]->TCR &= ~(1u);
@@ -268,15 +267,14 @@ void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwi
     uart[channel]->DE_EN &= ~(1u);
 
     uart[channel]->LCR |= 1u << 7;
-    uart[channel]->DLL = u16Divider & 0xFF;
-    uart[channel]->DLH = u16Divider >> 8;
+    uart[channel]->DLH = dlh;
+    uart[channel]->DLL = dll;
+    uart[channel]->DLF = dlf;
     uart[channel]->LCR = 0;
     uart[channel]->LCR = (data_width - 5) | (stopbit_val << 2) | (parity_val << 3);
     uart[channel]->LCR &= ~(1u << 7);
     uart[channel]->MCR &= ~3;
     uart[channel]->IER |= 0x80; /* THRE */
-    g_uart_instance[channel].receive_fifo_intterupt = UART_RECEIVE_FIFO_1;
-    g_uart_instance[channel].send_fifo_intterupt = UART_SEND_FIFO_8;
     uart[channel]->FCR = UART_RECEIVE_FIFO_1 << 6 | UART_SEND_FIFO_8 << 4 | 0x1 << 3 | 0x1;
 }
 
@@ -290,14 +288,12 @@ void uart_init(uart_device_number_t channel)
 
 void uart_set_send_trigger(uart_device_number_t channel, uart_send_trigger_t trigger)
 {
-    g_uart_instance[channel].send_fifo_intterupt = trigger;
-    uart[channel]->FCR = g_uart_instance[channel].receive_fifo_intterupt << 6 | g_uart_instance[channel].send_fifo_intterupt | 0x1;
+    uart[channel]->STET = trigger;
 }
 
 void uart_set_receive_trigger(uart_device_number_t channel, uart_receive_trigger_t trigger)
 {
-    g_uart_instance[channel].receive_fifo_intterupt = trigger;
-    uart[channel]->FCR = g_uart_instance[channel].receive_fifo_intterupt << 6 | g_uart_instance[channel].send_fifo_intterupt | 0x1;
+    uart[channel]->SRT = trigger;
 }
 
 void uart_irq_register(uart_device_number_t channel, uart_interrupt_mode_t interrupt_mode, plic_irq_callback_t uart_callback, void *ctx, uint32_t priority)
