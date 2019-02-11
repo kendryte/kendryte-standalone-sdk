@@ -79,14 +79,11 @@ typedef struct _uart
     volatile uint32_t LSR;
     volatile uint32_t MSR;
 
-    union
-    {
-        volatile uint32_t SCR;
-        volatile uint32_t LPDLL;
-        volatile uint32_t LPDLH;
-    };
+    volatile uint32_t SCR;
+    volatile uint32_t LPDLL;
+    volatile uint32_t LPDLH;
 
-    volatile uint32_t reserved1[4];
+    volatile uint32_t reserved1[2];
 
     union
     {
