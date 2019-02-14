@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "math.h": "c",
+        "sysctl.h": "c"
+    }
+}
