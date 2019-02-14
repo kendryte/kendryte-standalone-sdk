@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "id": "kendryte",
+            "type": "kendryte",
+            "request": "launch",
+            "name": "Kendryte: Debug with OpenOCD",
+            "executable": "/home/pl/github/kendryte-standalone-sdk/build/kendryte-standalone-sdk",
+            "target": "127.0.0.1:42003",
+            "remote": true,
+            "cwd": "${workspaceRoot}/build",
+            "internalConsoleOptions": "openOnSessionStart",
+            "env": {
+                "PATH": "/data/KendryteIDE/LocalPackage/cmake/bin:/data/KendryteIDE/LocalPackage/toolchain/bin:/home/pl/.local/bin:/home/pl/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+                "PYTHONPATH": ":/usr/lib/python2.7/:/usr/lib/python2/:/lib/python2.7/:/lib/python2/:/data/KendryteIDE/LocalPackage/toolchain/share/gdb/python",
+                "PYTHONDONTWRITEBYTECODE": "yes"
+            },
+            "printCalls": true,
+            "stopOnAttach": false,
+            "autorun": [],
+            "gdbpath": "/data/KendryteIDE/LocalPackage/toolchain/bin/riscv64-unknown-elf-gdb"
+        },
+    ]
+}
