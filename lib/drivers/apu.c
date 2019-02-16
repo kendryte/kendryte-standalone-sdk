@@ -1,13 +1,26 @@
 #include <stddef.h>
 #include <stdint.h>
-#include "encoding.h"
-#include "syscalls.h"
-#include "sysctl.h"
+#include <atomic.h>
+#include <math.h>
+#include <i2s.h>
+#include <fpioa.h>
+#include <encoding.h>
+#include <syscalls.h>
+#include <sysctl.h>
+#include <printf.h>
 #include "apu.h"
 
 #define BEAFORMING_BASE_ADDR    (0x50250200U)
 
 volatile struct apu_reg_t *const apu = (volatile struct apu_reg_t *)BEAFORMING_BASE_ADDR;
+
+semaphore_t apu_dir_ready = {0};
+semaphore_t apu_voc_ready = {0};
+volatile void* apu_dir_buffer = NULL;
+volatile void* apu_voc_buffer = NULL;
+volatile int apu_using_fft = 0;
+volatile dmac_channel_number_t apu_dma_dir_ch;
+volatile dmac_channel_number_t apu_dma_voc_ch;
 
 /*
  *
@@ -440,4 +453,316 @@ void apu_print_setting(void)
     printf("  };\n");
 
     printf("}\n");
+}
+
+
+/*
+ * R:radius mic_num_a_circle: the num of mic per circle; center: 0: no center mic, 1:have center mic
+ */
+void apu_set_delay(
+    float R, uint8_t mic_num_a_circle, uint8_t center, 
+    float sound_speed, int sample_rate, int direction_res
+){
+#ifndef M_PI
+    static const double M_PI = (double)3.14159265358979323846;
+#endif
+	uint8_t offsets[16][8];
+	int i, j;
+	float seta[8], delay[8], hudu_jiao;
+	float cm_tick = (float)sound_speed * 100 / sample_rate; //distance per tick (cm)
+	float min;
+
+	for (i = 0; i < mic_num_a_circle; ++i)
+	{
+		seta[i] = 360 * i / mic_num_a_circle;
+		hudu_jiao = 2 * M_PI * seta[i] / 360;
+		delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
+	}
+	if (center)
+		delay[mic_num_a_circle] = R / cm_tick;
+
+	for (i = 0; i < mic_num_a_circle + center; ++i)
+	{
+		offsets[0][i] = (int)(delay[i] + 0.5);
+	}
+	for (; i < 8; i++)
+		offsets[0][i] = 0;
+
+	for (j = 1; j < direction_res; ++j)
+	{
+		for (i = 0; i < mic_num_a_circle; ++i)
+		{
+			seta[i] -= 360 / direction_res;
+			hudu_jiao = 2 * M_PI * seta[i] / 360;
+			delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
+		}
+		if (center)
+			delay[mic_num_a_circle] = R / cm_tick;
+
+		min = 2 * R;
+		for (i = 0; i < mic_num_a_circle; ++i)
+		{
+			if (delay[i] < min)
+				min = delay[i];
+		}
+		if (min)
+		{
+			for (i = 0; i < mic_num_a_circle + center; ++i)
+			{
+				delay[i] = delay[i] - min;
+			}
+		}
+
+		for (i = 0; i < mic_num_a_circle + center; ++i)
+		{
+			offsets[j][i] = (int)(delay[i] + 0.5);
+		}
+		for (; i < 8; i++)
+			offsets[0][i] = 0;
+	}
+	for (size_t i = 0; i < direction_res; i++)
+	{ //
+		apu_set_direction_delay(i, offsets[i]);
+	}
+}
+
+static void init_dma_ch(int ch, volatile uint32_t *src_reg, volatile void *buffer, size_t size_of_byte)
+{
+	dmac_set_single_mode(ch, src_reg, buffer, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT, DMAC_MSIZE_16, DMAC_TRANS_WIDTH_32, size_of_byte / 4);
+}
+
+static int int_apu(void *ctx)
+{
+	struct apu_int_stat_t rdy_reg = apu->bf_int_stat_reg;
+    static int dir_fft_current_ch = 0;
+
+	if (rdy_reg.dir_search_data_rdy)
+	{
+		apu_dir_clear_int_state();
+        if(apu_using_fft){
+            dir_fft_current_ch = (dir_fft_current_ch + 1) % 16;
+            for (uint32_t i = 0; i < 512; i++)
+            { //
+                uint32_t data = apu->sobuf_dma_rdata;
+
+                ((uint32_t*)apu_dir_buffer)[dir_fft_current_ch*512 + i] = data;
+            }
+            if (dir_fft_current_ch == 0)
+            { //
+                semaphore_signal(&apu_dir_ready, 1);
+            }
+        }else{
+            for (uint32_t ch = 0; ch < 16; ch++)
+            {
+                for (uint32_t i = 0; i < 256; i++)
+                { //
+                    uint32_t data = apu->sobuf_dma_rdata;
+                    ((int16_t*)apu_dir_buffer)[ch*512 + i * 2 + 0] = data & 0xffff;
+                    ((int16_t*)apu_dir_buffer)[ch*512 + i * 2 + 1] = (data >> 16) & 0xffff;
+                }
+            }
+            semaphore_signal(&apu_dir_ready, 1);
+        }
+	}
+	else if (rdy_reg.voc_buf_data_rdy)
+	{
+		apu_voc_clear_int_state();
+
+        if(apu_using_fft){
+            for (uint32_t i = 0; i < 512; i++)
+            { //
+                uint32_t data = apu->vobuf_dma_rdata;
+
+                ((uint32_t*)apu_voc_buffer)[i] = data;
+            }
+        }else{
+            for (uint32_t i = 0; i < 256; i++)
+            { //
+                uint32_t data = apu->vobuf_dma_rdata;
+
+                ((int16_t*)apu_voc_buffer)[i * 2 + 0] = data & 0xffff;
+                ((int16_t*)apu_voc_buffer)[i * 2 + 1] = (data >> 16) & 0xffff;
+            }
+        }
+
+        semaphore_signal(&apu_voc_ready, 1);
+	}
+	else
+	{ //
+		printk("[waring]: unknown %s interrupt cause.\n", __func__);
+	}
+	return 0;
+}
+
+static int int_apu_dir_dma(void *ctx)
+{
+	static int ch = 0;
+    if(apu_using_fft){
+        ch = (ch + 1) % 16;
+        init_dma_ch(apu_dma_dir_ch,
+                    &apu->sobuf_dma_rdata,
+                    &((uint32_t*)apu_dir_buffer)[ch * 512], 512 * 4);
+    }else{
+        init_dma_ch(apu_dma_dir_ch,
+                    &apu->sobuf_dma_rdata, apu_dir_buffer,
+                    512 * 16 * 2);
+    }
+
+    if(apu_using_fft){
+        if (ch == 0)
+        { //
+            semaphore_signal(&apu_dir_ready, 1);
+        }
+    }else{
+        semaphore_signal(&apu_dir_ready, 1);
+    }
+
+	return 0;
+}
+
+static int int_apu_voc_dma(void *ctx)
+{
+    if(apu_using_fft){
+        init_dma_ch(apu_dma_voc_ch,
+                    &apu->vobuf_dma_rdata, ((int16_t*)apu_voc_buffer),
+                    512 * 4);
+    }else{
+        init_dma_ch(apu_dma_voc_ch,
+                    &apu->vobuf_dma_rdata, ((int16_t*)apu_voc_buffer),
+                    512 * 2);
+    }
+    semaphore_signal(&apu_voc_ready, 1);
+
+	return 0;
+}
+
+int event_loop_step(plic_irq_callback_t voc_logic, plic_irq_callback_t dir_logic)
+{
+    if (semaphore_count(&apu_dir_ready) > 0) {
+        semaphore_wait(&apu_dir_ready, 1);
+        dir_logic(NULL);
+    }
+    if (semaphore_count(&apu_voc_ready) > 0) {
+        semaphore_wait(&apu_voc_ready, 1);
+        voc_logic(NULL);
+    }
+	return 1;
+}
+
+void apu_init_default(
+	int reinit_fpioa, int sclk, int ws, int d0, int d1, int d2, int d3,
+	int reinit_plic,
+	int using_dma, int reinit_dma,
+	dmac_channel_number_t dma_dir_ch, dmac_channel_number_t dma_voc_ch,
+	int reinit_i2s, uint32_t sample_rate,
+	i2s_word_length_t word_length,  // RESOLUTION_16_BIT
+    i2s_word_select_cycles_t word_select_size,  // SCLK_CYCLES_32
+    i2s_fifo_threshold_t trigger_level,  // TRIGGER_LEVEL_4
+    i2s_work_mode_t word_mode,  // STANDARD_MODE
+	int using_fft,
+	int using_dir, int using_voc, 
+	volatile void* dir_buffer, volatile void* voc_buffer
+){
+	if(reinit_fpioa){
+		fpioa_init();
+	}
+	fpioa_set_function(sclk, FUNC_I2S0_SCLK);
+	fpioa_set_function(ws, FUNC_I2S0_WS);
+	fpioa_set_function(d0, FUNC_I2S0_IN_D0);
+	fpioa_set_function(d1, FUNC_I2S0_IN_D1);
+	fpioa_set_function(d2, FUNC_I2S0_IN_D2);
+	fpioa_set_function(d3, FUNC_I2S0_IN_D3);
+
+	if(reinit_plic){
+		plic_init();
+	}
+	if(using_dma){
+		dmac_irq_register(dma_dir_ch, int_apu_dir_dma, NULL, 4);
+		dmac_irq_register(dma_voc_ch, int_apu_voc_dma, NULL, 4);
+	}else{
+		plic_set_priority(IRQN_I2S0_INTERRUPT, 4);
+		plic_irq_enable(IRQN_I2S0_INTERRUPT);
+		plic_irq_register(IRQN_I2S0_INTERRUPT, int_apu, NULL);
+	}
+	if(using_dma && reinit_dma){
+		dmac_init();
+	}
+	if(using_dma){
+        apu_dma_dir_ch = dma_dir_ch;
+        apu_dma_voc_ch = dma_voc_ch;
+		if(using_fft){	
+			init_dma_ch(dma_dir_ch,
+					&apu->sobuf_dma_rdata,
+					dir_buffer, 512 * 16 * 4);
+			init_dma_ch(dma_voc_ch,
+					&apu->vobuf_dma_rdata, voc_buffer,
+					512 * 4);
+		}else{
+			init_dma_ch(dma_dir_ch,
+						&apu->sobuf_dma_rdata, dir_buffer,
+						512 * 16 * 2);
+			init_dma_ch(dma_voc_ch,
+						&apu->vobuf_dma_rdata, voc_buffer,
+						512 * 2);
+		}
+	}
+
+
+	if(reinit_i2s){
+		i2s_init(I2S_DEVICE_0, I2S_RECEIVER, 0x3);
+
+		i2s_rx_channel_config(I2S_DEVICE_0, I2S_CHANNEL_0,
+							word_length, word_select_size,
+							trigger_level, word_mode);
+		i2s_rx_channel_config(I2S_DEVICE_0, I2S_CHANNEL_1,
+							word_length, word_select_size,
+							trigger_level, word_mode);
+		i2s_rx_channel_config(I2S_DEVICE_0, I2S_CHANNEL_2,
+							word_length, word_select_size,
+							trigger_level, word_mode);
+		i2s_rx_channel_config(I2S_DEVICE_0, I2S_CHANNEL_3,
+							word_length, word_select_size,
+							trigger_level, word_mode);
+
+		sysctl_pll_set_freq(SYSCTL_PLL2, sample_rate * 1024);
+		i2s_set_sample_rate(I2S_DEVICE_0, sample_rate);
+	}
+
+
+	uint16_t fir_neg_one[17] = {
+        0x8000,
+        0
+	};
+	apu_dir_set_prev_fir(fir_neg_one);
+	apu_dir_set_post_fir(fir_neg_one);
+	apu_voc_set_prev_fir(fir_neg_one);
+	apu_voc_set_post_fir(fir_neg_one);
+	apu_set_down_size(0, 0);
+	apu_set_delay(3, 7, 1, 340, sample_rate, 16);
+	apu_set_channel_enabled(0xff);
+	apu_set_smpl_shift(0x00);
+	apu_voc_set_saturation_limit(0x07ff,
+								 0xf800);
+	apu_set_audio_gain(1<<10);
+	apu_voc_set_direction(0);
+
+    apu_using_fft = using_fft;
+	if(using_fft){
+		apu_set_fft_shift_factor(1, 0xaa);
+	}else{
+		apu_set_fft_shift_factor(0, 0);
+	}
+
+    apu_dir_buffer = dir_buffer;
+    apu_voc_buffer = voc_buffer;
+
+	apu_set_interrupt_mask(using_dma, using_dma);
+	if(using_dir){
+		apu_dir_enable();
+	}
+	if(using_voc){
+		apu_voc_enable(1);
+	}else{
+		apu_voc_enable(0);
+	}
 }

@@ -313,6 +313,31 @@ uint32_t apu_voc_get_saturation_limit(void);
 
 void apu_print_setting(void);
 
+/*
+ * R:radius mic_num_a_circle: the num of mic per circle; center: 0: no center mic, 1:have center mic
+ */
+void apu_set_delay(
+    float R, uint8_t mic_num_a_circle, uint8_t center, 
+    float sound_speed, int sample_rate, int direction_res
+);
+
+void apu_init_default(
+	int reinit_fpioa, int sclk, int ws, int d0, int d1, int d2, int d3,
+	int reinit_plic,
+	int using_dma, int reinit_dma,
+	dmac_channel_number_t dma_dir_ch, dmac_channel_number_t dma_voc_ch,
+	int reinit_i2s, uint32_t sample_rate,
+	i2s_word_length_t word_length,  // RESOLUTION_16_BIT
+    i2s_word_select_cycles_t word_select_size,  // SCLK_CYCLES_32
+    i2s_fifo_threshold_t trigger_level,  // TRIGGER_LEVEL_4
+    i2s_work_mode_t word_mode,  // STANDARD_MODE
+	int using_fft,
+	int using_dir, int using_voc, 
+	volatile void* dir_buffer, volatile void* voc_buffer
+);
+
+int event_loop_step(plic_irq_callback_t voc_logic, plic_irq_callback_t dir_logic);
+
 #if defined(__cplusplus)
 }
 #endif

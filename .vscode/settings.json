@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "math.h": "c",
-        "sysctl.h": "c"
-    }
+        "sysctl.h": "c",
+        "syscalls.h": "c",
+        "apu.h": "c",
+        "i2s.h": "c",
+        "atomic.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
 }

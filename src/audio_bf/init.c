@@ -33,7 +33,7 @@ void init_dma(void)
 	sysctl_dma_select(SYSCTL_DMA_CHANNEL_0 + APU_VOC_DMA_CHANNEL,
 					  SYSCTL_DMA_SELECT_I2S0_BF_VOICE_REQ);
 }
-void init_dma_ch(int ch, volatile uint32_t *src_reg, void *buffer, size_t size_of_byte)
+void init_dma_ch(int ch, volatile uint32_t *src_reg, volatile void *buffer, size_t size_of_byte)
 {
 	dmac_set_single_mode(ch, src_reg, buffer, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT, DMAC_MSIZE_16, DMAC_TRANS_WIDTH_32, size_of_byte / 4);
 }
@@ -152,71 +152,6 @@ int int_apu_voc_dma(void *ctx)
 }
 #endif
 
-/*
- * R:radius mic_num_a_circle: the num of mic per circle; center: 0: no center mic, 1:have center mic
- */
-void apu_set_delay(float R, uint8_t mic_num_a_circle, uint8_t center)
-{
-	uint8_t offsets[16][8];
-	int i, j;
-	float seta[8], delay[8], hudu_jiao;
-	float cm_tick = (float)SOUND_SPEED * 100 / I2S_FS; //distance per tick (cm)
-	float min;
-
-	for (i = 0; i < mic_num_a_circle; ++i)
-	{
-		seta[i] = 360 * i / mic_num_a_circle;
-		hudu_jiao = 2 * M_PI * seta[i] / 360;
-		delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
-	}
-	if (center)
-		delay[mic_num_a_circle] = R / cm_tick;
-
-	for (i = 0; i < mic_num_a_circle + center; ++i)
-	{
-		offsets[0][i] = (int)(delay[i] + 0.5);
-	}
-	for (; i < 8; i++)
-		offsets[0][i] = 0;
-
-	for (j = 1; j < DIRECTION_RES; ++j)
-	{
-		for (i = 0; i < mic_num_a_circle; ++i)
-		{
-			seta[i] -= 360 / DIRECTION_RES;
-			hudu_jiao = 2 * M_PI * seta[i] / 360;
-			delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
-		}
-		if (center)
-			delay[mic_num_a_circle] = R / cm_tick;
-
-		min = 2 * R;
-		for (i = 0; i < mic_num_a_circle; ++i)
-		{
-			if (delay[i] < min)
-				min = delay[i];
-		}
-		if (min)
-		{
-			for (i = 0; i < mic_num_a_circle + center; ++i)
-			{
-				delay[i] = delay[i] - min;
-			}
-		}
-
-		for (i = 0; i < mic_num_a_circle + center; ++i)
-		{
-			offsets[j][i] = (int)(delay[i] + 0.5);
-		}
-		for (; i < 8; i++)
-			offsets[0][i] = 0;
-	}
-	for (size_t i = 0; i < DIRECTION_RES; i++)
-	{ //
-		apu_set_direction_delay(i, offsets[i]);
-	}
-}
-
 void init_fpioa(void)
 {
 	printk("init fpioa.\n");
@@ -230,7 +165,7 @@ void init_fpioa(void)
 	fpioa_set_function(39, FUNC_I2S0_SCLK);
 }
 
-void init_i2s(void)
+void init_i2s(uint32_t sample_rate)
 {
 	printk("init i2s.\n");
 
@@ -250,7 +185,8 @@ void init_i2s(void)
 						  RESOLUTION_16_BIT, SCLK_CYCLES_32,
 						  TRIGGER_LEVEL_4, STANDARD_MODE);
 
-	i2s_set_sample_rate(I2S_DEVICE_0, 44100);
+	sysctl_pll_set_freq(SYSCTL_PLL2, sample_rate * 1024);
+	i2s_set_sample_rate(I2S_DEVICE_0, sample_rate);
 }
 
 void init_bf(void)
@@ -342,7 +278,7 @@ void init_bf(void)
 	apu_voc_set_prev_fir(fir_neg_one);
 	apu_voc_set_post_fir(fir_neg_one);
 
-	apu_set_delay(3, 7, 1);
+	apu_set_delay(3, 7, 1, SOUND_SPEED, I2S_FS, DIRECTION_RES);
 	apu_set_smpl_shift(APU_SMPL_SHIFT);
 	apu_voc_set_saturation_limit(APU_SATURATION_VPOS_DEBUG,
 								 APU_SATURATION_VNEG_DEBUG);
@@ -368,6 +304,7 @@ void init_bf(void)
 #endif
 }
 
+
 void init_interrupt(void)
 {
 	plic_init();
@@ -386,7 +323,7 @@ void init_all(void)
 {
 	init_fpioa();
 	init_interrupt();
-	init_i2s();
+	init_i2s(44100);
 	init_bf();
 
 	if (APU_DMA_ENABLE)
