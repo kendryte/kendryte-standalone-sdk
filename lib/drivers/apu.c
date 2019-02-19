@@ -1,11 +1,12 @@
 #include <stddef.h>
 #include <stdint.h>
-#include "encoding.h"
+#include <math.h>
 #include "syscalls.h"
 #include "sysctl.h"
 #include "apu.h"
 
-#define BEAFORMING_BASE_ADDR    (0x50250200U)
+#define BEAFORMING_BASE_ADDR    (0x50250200)
+#define M_PI 3.14159265358979323846264338327950288
 
 volatile struct apu_reg_t *const apu = (volatile struct apu_reg_t *)BEAFORMING_BASE_ADDR;
 
@@ -125,6 +126,70 @@ void apu_set_direction_delay(uint8_t dir_num, uint8_t *dir_bidx)
         .dir_rd_idx2 = dir_bidx[6],
         .dir_rd_idx3 = dir_bidx[7]
     };
+}
+/*
+ * R:radius mic_num_a_circle: the num of mic per circle; center: 0: no center mic, 1:have center mic
+ */
+void apu_set_delay(float R, uint8_t mic_num_a_circle, uint8_t center)
+{
+    uint8_t offsets[16][8];
+    int i,j;
+    float seta[8], delay[8], hudu_jiao;
+    float cm_tick = (float)SOUND_SPEED * 100 / I2S_FS;//distance per tick (cm)
+    float min;
+
+    for (i = 0; i < mic_num_a_circle; ++i)
+    {
+        seta[i] = 360 * i / mic_num_a_circle;
+        hudu_jiao = 2 * M_PI * seta[i] / 360;
+        delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
+    }
+    if(center)
+        delay[mic_num_a_circle] = R / cm_tick;
+
+    for (i = 0; i < mic_num_a_circle + center; ++i)
+    {
+        offsets[0][i] = (int)(delay[i] + 0.5);
+    }
+    for(; i < 8; i++)
+        offsets[0][i] = 0;
+
+
+    for (j = 1; j < DIRECTION_RES; ++j)
+    {
+        for (i = 0; i < mic_num_a_circle; ++i)
+        {
+            seta[i] -= 360 / DIRECTION_RES;
+            hudu_jiao = 2 * M_PI * seta[i] / 360;
+            delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
+        }
+        if(center)
+            delay[mic_num_a_circle] = R / cm_tick;
+
+        min = 2 * R;
+        for (i = 0; i < mic_num_a_circle; ++i)
+        {
+            if(delay[i] < min)
+                min = delay[i];
+        }
+        if(min)
+        {
+            for (i = 0; i < mic_num_a_circle + center; ++i)
+            {
+                delay[i] = delay[i] - min;
+            }
+        }
+ 
+        for (i = 0; i < mic_num_a_circle + center; ++i)
+        {
+            offsets[j][i] = (int)(delay[i] + 0.5);
+        }
+        for(; i < 8; i++)
+            offsets[0][i] = 0;
+    }
+    for (size_t i = 0; i < DIRECTION_RES; i++) { //
+        apu_set_direction_delay(i, offsets[i]);
+    }
 }
 /*
  *
