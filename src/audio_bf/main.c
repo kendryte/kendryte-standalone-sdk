@@ -42,27 +42,6 @@ int dir_logic(void* ctx)
 {
 	static uint64_t counter = 0;
 	printk("%s %lu\n", __func__, counter++);
-	int32_t dir_sum = 0;
-	int32_t dir_max = 0;
-	uint16_t contex = 0;
-
-#if APU_FFT_ENABLE
-#else
-	// for (size_t ch = 0; ch < 16; ch++) { //
-
-	// 	for (size_t i = 0; i < 512; i++) { //
-	// 			dir_sum += (int32_t)APU_DIR_BUFFER[ch][i] * (int32_t)APU_DIR_BUFFER[ch][i];
-	// 	}
-	// 	dir_sum = dir_sum / 512;
-	// 	if(dir_sum > dir_max){
-	// 		dir_max = dir_sum;
-	// 		contex = ch;
-	// 	}
-	// 	//printf("%d	", dir_sum);
-	// }
-	// printf("   %d\n", contex);
-	// printf("\n");
-#endif
 
 	apu_dir_enable();
 	return 0;

@@ -333,7 +333,7 @@ void apu_init_default(
     i2s_work_mode_t word_mode,  // STANDARD_MODE
 	int using_fft,
 	int using_dir, int using_voc, 
-	volatile void* dir_buffer, volatile void* voc_buffer
+	void* dir_buffer, void* voc_buffer
 );
 
 int event_loop_step(plic_irq_callback_t voc_logic, plic_irq_callback_t dir_logic);

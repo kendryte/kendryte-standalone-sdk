@@ -460,26 +460,26 @@ void apu_print_setting(void)
  * R:radius mic_num_a_circle: the num of mic per circle; center: 0: no center mic, 1:have center mic
  */
 void apu_set_delay(
-    float R, uint8_t mic_num_a_circle, uint8_t center, 
-    float sound_speed, int sample_rate, int direction_res
+    float R_cm, uint8_t mic_num_a_circle, uint8_t center, 
+    float sound_speed_m, int sample_rate, int direction_res
 ){
 #ifndef M_PI
     static const double M_PI = (double)3.14159265358979323846;
 #endif
 	uint8_t offsets[16][8];
 	int i, j;
-	float seta[8], delay[8], hudu_jiao;
-	float cm_tick = (float)sound_speed * 100 / sample_rate; //distance per tick (cm)
+	float mic_angle_dleta[8], delay[8], arc_tmp;
+	float cm_tick = (float)sound_speed_m * 100 / sample_rate; //distance per tick (cm)
 	float min;
 
 	for (i = 0; i < mic_num_a_circle; ++i)
 	{
-		seta[i] = 360 * i / mic_num_a_circle;
-		hudu_jiao = 2 * M_PI * seta[i] / 360;
-		delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
+		mic_angle_dleta[i] = 360 * i / mic_num_a_circle;
+		arc_tmp = 2 * M_PI * mic_angle_dleta[i] / 360;
+		delay[i] = R_cm * (1 - cos(arc_tmp)) / cm_tick;
 	}
 	if (center)
-		delay[mic_num_a_circle] = R / cm_tick;
+		delay[mic_num_a_circle] = R_cm / cm_tick;
 
 	for (i = 0; i < mic_num_a_circle + center; ++i)
 	{
@@ -492,14 +492,14 @@ void apu_set_delay(
 	{
 		for (i = 0; i < mic_num_a_circle; ++i)
 		{
-			seta[i] -= 360 / direction_res;
-			hudu_jiao = 2 * M_PI * seta[i] / 360;
-			delay[i] = R * (1 - cos(hudu_jiao)) / cm_tick;
+			mic_angle_dleta[i] -= 360 / direction_res;
+			arc_tmp = 2 * M_PI * mic_angle_dleta[i] / 360;
+			delay[i] = R_cm * (1 - cos(arc_tmp)) / cm_tick;
 		}
 		if (center)
-			delay[mic_num_a_circle] = R / cm_tick;
+			delay[mic_num_a_circle] = R_cm / cm_tick;
 
-		min = 2 * R;
+		min = 2 * R_cm;
 		for (i = 0; i < mic_num_a_circle; ++i)
 		{
 			if (delay[i] < min)
@@ -526,7 +526,7 @@ void apu_set_delay(
 	}
 }
 
-static void init_dma_ch(int ch, volatile uint32_t *src_reg, volatile void *buffer, size_t size_of_byte)
+static void init_dma_ch(int ch, uint32_t *src_reg, void *buffer, size_t size_of_byte)
 {
 	dmac_set_single_mode(
         ch, src_reg, buffer, 
@@ -604,17 +604,17 @@ static int int_apu_dir_dma(void *ctx)
     if(apu_using_fft){
         ch = (ch + 1) % 16;
         init_dma_ch(apu_dma_dir_ch,
-            &apu->sobuf_dma_rdata,
+            (uint32_t*)&apu->sobuf_dma_rdata,
             ((uint32_t*)apu_dir_buffer) + ch * 512, 512 * 4);
     }else{
         init_dma_ch(apu_dma_dir_ch,
-            &apu->sobuf_dma_rdata, apu_dir_buffer,
+            (uint32_t*)&apu->sobuf_dma_rdata, ((uint32_t*)apu_dir_buffer),
             512 * 16 * 2);
     }
 
     if(apu_using_fft){
         if (ch == 0)
-        { //
+        {
             semaphore_signal(&apu_dir_ready, 1);
         }
     }else{
@@ -628,11 +628,11 @@ static int int_apu_voc_dma(void *ctx)
 {
     if(apu_using_fft){
         init_dma_ch(apu_dma_voc_ch,
-                    &apu->vobuf_dma_rdata, ((int16_t*)apu_voc_buffer),
+                    (uint32_t*)&apu->vobuf_dma_rdata, ((int16_t*)apu_voc_buffer),
                     512 * 4);
     }else{
         init_dma_ch(apu_dma_voc_ch,
-                    &apu->vobuf_dma_rdata, ((int16_t*)apu_voc_buffer),
+                    (uint32_t*)&apu->vobuf_dma_rdata, ((int16_t*)apu_voc_buffer),
                     512 * 2);
     }
     semaphore_signal(&apu_voc_ready, 1);
@@ -667,7 +667,7 @@ void apu_init_default(
     i2s_work_mode_t word_mode,  // STANDARD_MODE
 	int using_fft,
 	int using_dir, int using_voc, 
-	volatile void* dir_buffer, volatile void* voc_buffer
+	void* dir_buffer, void* voc_buffer
 ){
 	if(reinit_fpioa){
 		fpioa_init();
@@ -704,21 +704,20 @@ void apu_init_default(
 
 		if(using_fft){	
 			init_dma_ch(dma_dir_ch,
-					&apu->sobuf_dma_rdata,
+					(uint32_t*)&apu->sobuf_dma_rdata,
 					dir_buffer, 512 * 4);
 			init_dma_ch(dma_voc_ch,
-					&apu->vobuf_dma_rdata, voc_buffer,
+					(uint32_t*)&apu->vobuf_dma_rdata, voc_buffer,
 					512 * 4);
 		}else{
 			init_dma_ch(dma_dir_ch,
-						&apu->sobuf_dma_rdata, dir_buffer,
+						(uint32_t*)&apu->sobuf_dma_rdata, dir_buffer,
 						512 * 16 * 2);
 			init_dma_ch(dma_voc_ch,
-						&apu->vobuf_dma_rdata, voc_buffer,
+						(uint32_t*)&apu->vobuf_dma_rdata, voc_buffer,
 					    512 * 2);
 		}
 	}
-
 
 	if(reinit_i2s){
 		i2s_init(I2S_DEVICE_0, I2S_RECEIVER, 0x3);
