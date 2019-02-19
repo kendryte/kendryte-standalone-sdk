@@ -528,7 +528,11 @@ void apu_set_delay(
 
 static void init_dma_ch(int ch, volatile uint32_t *src_reg, volatile void *buffer, size_t size_of_byte)
 {
-	dmac_set_single_mode(ch, src_reg, buffer, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT, DMAC_MSIZE_16, DMAC_TRANS_WIDTH_32, size_of_byte / 4);
+	dmac_set_single_mode(
+        ch, src_reg, buffer, 
+        DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT, 
+        DMAC_MSIZE_16, DMAC_TRANS_WIDTH_32, size_of_byte / 4
+    );
 }
 
 static int int_apu(void *ctx)
@@ -600,12 +604,12 @@ static int int_apu_dir_dma(void *ctx)
     if(apu_using_fft){
         ch = (ch + 1) % 16;
         init_dma_ch(apu_dma_dir_ch,
-                    &apu->sobuf_dma_rdata,
-                    &((uint32_t*)apu_dir_buffer)[ch * 512], 512 * 4);
+            &apu->sobuf_dma_rdata,
+            ((uint32_t*)apu_dir_buffer) + ch * 512, 512 * 4);
     }else{
         init_dma_ch(apu_dma_dir_ch,
-                    &apu->sobuf_dma_rdata, apu_dir_buffer,
-                    512 * 16 * 2);
+            &apu->sobuf_dma_rdata, apu_dir_buffer,
+            512 * 16 * 2);
     }
 
     if(apu_using_fft){
@@ -636,8 +640,9 @@ static int int_apu_voc_dma(void *ctx)
 	return 0;
 }
 
-int event_loop_step(plic_irq_callback_t voc_logic, plic_irq_callback_t dir_logic)
+int event_loop_step(plic_irq_callback_t dir_logic, plic_irq_callback_t voc_logic)
 {
+	clear_csr(mie, MIP_MEIP);
     if (semaphore_count(&apu_dir_ready) > 0) {
         semaphore_wait(&apu_dir_ready, 1);
         dir_logic(NULL);
@@ -646,6 +651,7 @@ int event_loop_step(plic_irq_callback_t voc_logic, plic_irq_callback_t dir_logic
         semaphore_wait(&apu_voc_ready, 1);
         voc_logic(NULL);
     }
+	set_csr(mie, MIP_MEIP);
 	return 1;
 }
 
@@ -688,12 +694,18 @@ void apu_init_default(
 		dmac_init();
 	}
 	if(using_dma){
+        sysctl_dma_select(SYSCTL_DMA_CHANNEL_0 + dma_dir_ch,
+                SYSCTL_DMA_SELECT_I2S0_BF_DIR_REQ);
+        sysctl_dma_select(SYSCTL_DMA_CHANNEL_0 + dma_voc_ch,
+                SYSCTL_DMA_SELECT_I2S0_BF_VOICE_REQ);
+
         apu_dma_dir_ch = dma_dir_ch;
         apu_dma_voc_ch = dma_voc_ch;
+
 		if(using_fft){	
 			init_dma_ch(dma_dir_ch,
 					&apu->sobuf_dma_rdata,
-					dir_buffer, 512 * 16 * 4);
+					dir_buffer, 512 * 4);
 			init_dma_ch(dma_voc_ch,
 					&apu->vobuf_dma_rdata, voc_buffer,
 					512 * 4);
@@ -703,7 +715,7 @@ void apu_init_default(
 						512 * 16 * 2);
 			init_dma_ch(dma_voc_ch,
 						&apu->vobuf_dma_rdata, voc_buffer,
-						512 * 2);
+					    512 * 2);
 		}
 	}
 
@@ -741,8 +753,7 @@ void apu_init_default(
 	apu_set_delay(3, 7, 1, 340, sample_rate, 16);
 	apu_set_channel_enabled(0xff);
 	apu_set_smpl_shift(0x00);
-	apu_voc_set_saturation_limit(0x07ff,
-								 0xf800);
+	apu_voc_set_saturation_limit(0x07ff, 0xf800);
 	apu_set_audio_gain(1<<10);
 	apu_voc_set_direction(0);
 
