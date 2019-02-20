@@ -228,6 +228,7 @@ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${_CXX_FLAGS}")
 ##### Main Section #####
 message("======== PROJECT ========")
 project(${PROJECT_NAME})
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
 ## add include from self and dependency
 include_directories(
   "${CMAKE_CURRENT_LIST_DIR}/lib/drivers/include"
@@ -260,11 +261,14 @@ FILE(GLOB_RECURSE ASSEMBLY_FILES
 
 SET_PROPERTY(SOURCE ${ASSEMBLY_FILES} PROPERTY LANGUAGE C)
 SET_SOURCE_FILES_PROPERTIES(${ASSEMBLY_FILES} PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp -D __riscv64")
-SET_TARGET_PROPERTIES(${PROEJCT_NAME} PROPERTIES LINKER_LANGUAGE C)
+#SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 
 ##### include(asm.cmake) END #####
 ## final create executable or library
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+set_property(GLOBAL PROPERTY JOB_POOLS single_debug=1)
+set_property(TARGET ${PROJECT_NAME} PROPERTY JOB_POOL_COMPILE single_debug)
+set_property(TARGET ${PROJECT_NAME} PROPERTY JOB_POOL_LINK single_debug)
 ## set properties
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE "C")
 ## no definitions
@@ -274,6 +278,8 @@ target_link_libraries(${PROJECT_NAME}
   -Wl,--start-group
   -Wl,--end-group
 )
+link_directories("${CMAKE_CURRENT_LIST_DIR}/src/audio_bf/")
+target_link_libraries(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/src/audio_bf/libspeex.a)
 ##### include(afterProject) #####
 removeDuplicateSubstring("${CMAKE_C_FLAGS}" CMAKE_C_FLAGS)
 removeDuplicateSubstring("${CMAKE_CXX_FLAGS}" CMAKE_CXX_FLAGS)
@@ -325,3 +331,7 @@ message("  CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}")
 message("Makefile created.")
 message("")
 message("")
+
+
+message("")
+message("  ${PROJECT_NAME} :: SOURCE_FILES=${SOURCE_FILES}")

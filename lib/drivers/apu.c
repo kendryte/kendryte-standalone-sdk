@@ -739,6 +739,7 @@ void apu_init_default(
 		i2s_set_sample_rate(I2S_DEVICE_0, sample_rate);
 	}
 
+	printk("init\n");
 
 	uint16_t fir_neg_one[17] = {
         0x8000,
