@@ -23,11 +23,11 @@
 
 extern const int16_t test_pcm[1223019];
 #define PCM_LEN (sizeof(test_pcm)/2)
-#define FRAME_LEN   512
+#define FRAME_LEN  256
 uint32_t pcm_buf[FRAME_LEN * 4];
 uint32_t echo_buf[FRAME_LEN * 4];
+int16_t aec_buf[FRAME_LEN * 4];
 int16_t echo_data[PCM_LEN];
-//uint32_t aec_buf[PCM_LEN];
 uint32_t g_index;
 
 void io_mux_init(){
@@ -40,6 +40,13 @@ void io_mux_init(){
     fpioa_set_function(35, FUNC_I2S2_SCLK);
     fpioa_set_function(34, FUNC_I2S2_WS);
 }
+
+#include "speex/speex_echo.h"
+#include "speex/speex_preprocess.h"
+
+#define NN FRAME_LEN
+#define TAIL 2048
+// 1024
 
 int main(void)
 {
@@ -66,6 +73,14 @@ int main(void)
         );
 
 
+	SpeexEchoState *st;
+	SpeexPreprocessState *den;
+	int sampleRate = 44100;
+
+    st = speex_echo_state_init(NN, TAIL);
+	den = speex_preprocess_state_init(NN, sampleRate);
+	speex_echo_ctl(st, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
+	speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, st);
 
     while (1)
     {
@@ -76,17 +91,24 @@ int main(void)
             g_index = 0;
         }
         uint32_t ring_buffer_pos = 2*(g_index%(FRAME_LEN*2));
-        i2s_receive_data_dma(I2S_DEVICE_1, &echo_buf[FRAME_LEN*2-ring_buffer_pos], FRAME_LEN * 2, DMAC_CHANNEL1);
         i2s_send_data_dma(I2S_DEVICE_2, &pcm_buf[FRAME_LEN*2-ring_buffer_pos], FRAME_LEN*2, DMAC_CHANNEL0);
-
+        i2s_receive_data_dma(I2S_DEVICE_1, &echo_buf[FRAME_LEN*2-ring_buffer_pos], FRAME_LEN * 2, DMAC_CHANNEL1);
+        
+        
         for(int i=0; i<FRAME_LEN; i++){
             echo_data[g_index+i] = (int32_t)echo_buf[ring_buffer_pos+i*2+1];
         }
+		speex_echo_cancellation(st, &echo_data[g_index], &test_pcm[g_index], &aec_buf[ring_buffer_pos]);
+		speex_preprocess_run(den, &aec_buf[ring_buffer_pos]);
+
         for(int i=0; i<FRAME_LEN; i++){
             pcm_buf[ring_buffer_pos+i*2] = (int32_t)test_pcm[g_index+i];
-            pcm_buf[ring_buffer_pos+i*2+1] = (int32_t)echo_data[g_index+i];
+            pcm_buf[ring_buffer_pos+i*2+1] = (int32_t)aec_buf[ring_buffer_pos+i];//echo_data[g_index+i];
         }
     }
+
+    speex_echo_state_destroy(st);
+    speex_preprocess_state_destroy(den);
 
     return 0;
 }
