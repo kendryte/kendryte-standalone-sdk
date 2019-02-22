@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <printf.h>
 #include "i2s.h"
 #include "sysctl.h"
 #include "fpioa.h"
@@ -23,7 +24,7 @@
 
 extern const int16_t test_pcm[1223019];
 #define PCM_LEN (sizeof(test_pcm)/2)
-#define FRAME_LEN  256
+#define FRAME_LEN  2048
 uint32_t pcm_buf[FRAME_LEN * 4];
 uint32_t echo_buf[FRAME_LEN * 4];
 int16_t aec_buf[FRAME_LEN * 4];
@@ -45,8 +46,15 @@ void io_mux_init(){
 #include "speex/speex_preprocess.h"
 
 #define NN FRAME_LEN
-#define TAIL 2048
+#define TAIL NN*7
 // 1024
+
+int32_t imin(int32_t a, int32_t b){
+    return a<=b ? a : b;
+}
+int32_t imax(int32_t a, int32_t b){
+    return a<=b ? b : a;
+}
 
 int main(void)
 {
@@ -103,9 +111,18 @@ int main(void)
 
         for(int i=0; i<FRAME_LEN; i++){
             pcm_buf[ring_buffer_pos+i*2] = (int32_t)test_pcm[g_index+i];
-            pcm_buf[ring_buffer_pos+i*2+1] = (int32_t)aec_buf[ring_buffer_pos+i];//echo_data[g_index+i];
+            pcm_buf[ring_buffer_pos+i*2+1] = 8*(int32_t)aec_buf[ring_buffer_pos+i];//echo_data[g_index+i];
         }
-    }
+
+        // int32_t cmin=1<<30, cmax=-(1<<30), emin=1<<30, emax=-(1<<30);
+        // for(int i=0; i<FRAME_LEN; i++){
+        //     cmin = imin(cmin, aec_buf[ring_buffer_pos+i]);
+        //     cmax = imax(cmax, aec_buf[ring_buffer_pos+i]);
+        //     emin = imin(emin, echo_buf[ring_buffer_pos+i*2+1]);
+        //     emax = imax(emax, echo_buf[ring_buffer_pos+i*2+1]);
+        // }
+        // printf("%d\t%d\t%d\t%d\n", cmin, cmax, emin, emax);
+    }   
 
     speex_echo_state_destroy(st);
     speex_preprocess_state_destroy(den);

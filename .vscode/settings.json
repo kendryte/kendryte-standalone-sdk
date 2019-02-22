@@ -5,7 +5,9 @@
         "syscalls.h": "c",
         "apu.h": "c",
         "i2s.h": "c",
-        "atomic.h": "c"
+        "atomic.h": "c",
+        "stdio.h": "c",
+        "limits": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

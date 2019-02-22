@@ -82,33 +82,6 @@ int voc_logic(void* ctx)
 }
 
 
-#include "speex/speex_echo.h"
-#include "speex/speex_preprocess.h"
-
-#define NN 128
-#define TAIL 1024
-
-int main2(void){
-	short echo_buf[NN], ref_buf[NN], e_buf[NN];
-	SpeexEchoState *st;
-	SpeexPreprocessState *den;
-	int sampleRate = 8000;
-
-	st = speex_echo_state_init(NN, TAIL);
-	den = speex_preprocess_state_init(NN, sampleRate);
-	speex_echo_ctl(st, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
-	speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, st);
-
-
-		speex_echo_cancellation(st, ref_buf, echo_buf, e_buf);
-		speex_preprocess_run(den, e_buf);
-
-   speex_echo_state_destroy(st);
-   speex_preprocess_state_destroy(den);
-
-	return 0;
-}
-
 
 int main1(void)
 {
