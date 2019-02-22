@@ -279,7 +279,7 @@ target_link_libraries(${PROJECT_NAME}
   -Wl,--end-group
 )
 link_directories("${CMAKE_CURRENT_LIST_DIR}/src/audio_bf/")
-target_link_libraries(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/src/audio_bf/libspeex.a)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/src/audio_bf/libspeex_strip.a)
 ##### include(afterProject) #####
 removeDuplicateSubstring("${CMAKE_C_FLAGS}" CMAKE_C_FLAGS)
 removeDuplicateSubstring("${CMAKE_CXX_FLAGS}" CMAKE_CXX_FLAGS)
