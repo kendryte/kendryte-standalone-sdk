@@ -261,7 +261,7 @@ FILE(GLOB_RECURSE ASSEMBLY_FILES
 
 SET_PROPERTY(SOURCE ${ASSEMBLY_FILES} PROPERTY LANGUAGE C)
 SET_SOURCE_FILES_PROPERTIES(${ASSEMBLY_FILES} PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp -D __riscv64")
-#SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
+
 
 ##### include(asm.cmake) END #####
 ## final create executable or library
@@ -278,8 +278,6 @@ target_link_libraries(${PROJECT_NAME}
   -Wl,--start-group
   -Wl,--end-group
 )
-link_directories("${CMAKE_CURRENT_LIST_DIR}/src/audio_bf/")
-target_link_libraries(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/src/audio_bf/libspeex_strip.a)
 ##### include(afterProject) #####
 removeDuplicateSubstring("${CMAKE_C_FLAGS}" CMAKE_C_FLAGS)
 removeDuplicateSubstring("${CMAKE_CXX_FLAGS}" CMAKE_CXX_FLAGS)
