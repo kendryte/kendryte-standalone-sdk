@@ -25,7 +25,7 @@
 #define NRE             ((FDNDLP_K/2)+1)    // number of process subbands
 #define FDNDLP_N        (256)               // time shift
 #define FDNDLP_D        (1)                 // prediction delay:seperate early and late delay
-#define LOG2_NUMMIC     (1)                 // log2(FDNDLP_MIC)
+#define LOG2_NUMMIC     (0)                 // log2(FDNDLP_MIC)
 #define FDNDLP_MIC      (1<<(LOG2_NUMMIC))  // Number of microphone
 #define FDNDLP_LC       (10)                // order of frames
 #define FDNDLP_EPS      (((1e-4)*((INT64)1<<(BITWIDTH-1))))              // lower bound of rho2

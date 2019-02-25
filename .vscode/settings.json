@@ -7,7 +7,9 @@
         "i2s.h": "c",
         "atomic.h": "c",
         "stdio.h": "c",
-        "limits": "c"
+        "limits": "c",
+        "fft.h": "c",
+        "platform.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }
