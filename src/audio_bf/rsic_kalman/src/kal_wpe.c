@@ -330,8 +330,10 @@ void kalman_wpe(INT16 FreqDataRe[NRE][FDNDLP_MIC],
             filter_update(&KalBufStr->FiltTapsRe[iRe][0][0], &KalBufStr->FiltTapsIm[iRe][0][0], KalBufStr->KalRe, KalBufStr->KalIm, \
                 KalBufStr->PredRe, KalBufStr->PredIm, KalBufStr->TmpInvRe, KalBufStr->TmpInvIm);
             // kalman-wpe output
-            FreqDataRe[iRe][iMic] = KalBufStr->PredRe[iMic] >> 16;
-            FreqDataIm[iRe][iMic] = KalBufStr->PredIm[iMic] >> 16;
+            for(iMic=0; iMic<FDNDLP_MIC; iMic++){
+                FreqDataRe[iRe][iMic] = KalBufStr->PredRe[iMic] >> 16;
+                FreqDataIm[iRe][iMic] = KalBufStr->PredIm[iMic] >> 16;
+            }
         }
     }
 

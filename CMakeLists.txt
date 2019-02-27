@@ -38,13 +38,19 @@ macro(header_directories parent)
     include_directories(${dir_list})
 endmacro()
 
+string(SUBSTRING ${CMAKE_BINARY_DIR} 0 1 CMAKE_BINARY_DIR_L)
+string(TOUPPER ${CMAKE_BINARY_DIR_L} CMAKE_BINARY_DIR_L)
+string(SUBSTRING ${CMAKE_BINARY_DIR} 1 -1 CMAKE_BINARY_DIR_R)
+set(CMAKE_BINARY_DIRX "${CMAKE_BINARY_DIR_L}${CMAKE_BINARY_DIR_R}")
+
 macro(add_source_files)
     file(GLOB_RECURSE newlist ${ARGN})
 
     foreach (filepath ${newlist})
-        string(FIND ${filepath} ${CMAKE_BINARY_DIR} found)
-        if (NOT found EQUAL 0)
-			list(APPEND SOURCE_FILES ${filepath})
+        string(FIND ${filepath} ${CMAKE_BINARY_DIRX} found1)
+        string(FIND ${filepath} "${CMAKE_CURRENT_LIST_DIR}/kendryte_libraries" found2)
+        if ((NOT found1 EQUAL 0) AND (NOT found2 EQUAL 0))
+            list(APPEND SOURCE_FILES ${filepath})
         endif ()
     endforeach ()
     set("SOURCE_FILES_${PROJECT_NAME}" "${SOURCE_FILES}" CACHE STRING "Dump files to compile for '${PROJECT_NAME}'. Not used by program.")
@@ -264,7 +270,7 @@ SET_SOURCE_FILES_PROPERTIES(${ASSEMBLY_FILES} PROPERTIES COMPILE_FLAGS "-x assem
 
 
 ##### include(asm.cmake) END #####
-## final create executable or library
+## final create kendryte-standalone-sdk executable
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 set_property(GLOBAL PROPERTY JOB_POOLS single_debug=1)
 set_property(TARGET ${PROJECT_NAME} PROPERTY JOB_POOL_COMPILE single_debug)
@@ -272,9 +278,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY JOB_POOL_LINK single_debug)
 ## set properties
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE "C")
 ## no definitions
-target_link_libraries(${PROJECT_NAME} -Wl,--start-group gcc m c -Wl,--end-group)
+target_link_libraries(${PROJECT_NAME} PUBLIC -Wl,--start-group gcc m c -Wl,--end-group)
 ## dependencies link
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PUBLIC
   -Wl,--start-group
   -Wl,--end-group
 )

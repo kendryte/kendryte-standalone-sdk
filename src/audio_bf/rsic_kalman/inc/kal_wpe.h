@@ -17,6 +17,7 @@
 #include "fxp_define.h"
 #include "complex_matrix_math.h"
 #include <malloc.h>
+#include <stdint.h>
 #define BITWIDTH        (32)                // bit width
 #define KALMAN_FWL      (25)                // fwl of kalman
 #define INV_FWL         (28)                // fwl of inv matrix
@@ -27,12 +28,12 @@
 #define FDNDLP_D        (1)                 // prediction delay:seperate early and late delay
 #define LOG2_NUMMIC     (0)                 // log2(FDNDLP_MIC)
 #define FDNDLP_MIC      (1<<(LOG2_NUMMIC))  // Number of microphone
-#define FDNDLP_LC       (10)                // order of frames
-#define FDNDLP_EPS      (((1e-4)*((INT64)1<<(BITWIDTH-1))))              // lower bound of rho2
-#define FDNDLP_ITER     (2)                 // number of iteration
+#define FDNDLP_LC       (4)                // order of frames
+#define FDNDLP_EPS      (((1e-4f)*((INT64)1<<(BITWIDTH-1))))              // lower bound of rho2
+#define FDNDLP_ITER     (1)                 // number of iteration
 #define FDNDLP_FRAME    (100)               // number of frames
 #define FDNDLP_WINFLAG  (1)                 // 0:without hanning window, 1:with hanning window
-#define FDNDLP_ALPHA    ((0.99)*( (INT64) 1<<(BITWIDTH-1)))    // alpha factor of kalman
+#define FDNDLP_ALPHA    ((0.99f)*((INT64)1<<(BITWIDTH-1)))    // alpha factor of kalman
 #define ALPHA_REC       (0x014afd6a)        // fractional part of 1/alpha
 #define FXPONE          (((long long)1<<(INV_FWL)))// 1 with config bit width
 // total samples of a channel
@@ -74,4 +75,7 @@ typedef struct
 KAL_BUF_STR * kal_state_init();
 void kalman_wpe(INT16 FreqDataRe[NRE][FDNDLP_MIC],      INT16 FreqDataIm[NRE][FDNDLP_MIC], KAL_BUF_STR *KalBufStr);
 void kal_state_destroy(KAL_BUF_STR *KalBufStr);
+
+
+
 #endif /* INC_KAL_WPE_H_ */
