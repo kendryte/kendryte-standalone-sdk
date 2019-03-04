@@ -19,6 +19,13 @@
 #include "sysctl.h"
 #include <stddef.h>
 #include <stdlib.h>
+typedef struct _spi_slave_context
+{
+    size_t data_bit_length;
+    const spi_slave_handler_t *handler;
+} spi_slave_context_t;
+
+static spi_slave_context_t spi_slave_context;
 
 volatile spi_t *const spi[4] =
 {
@@ -70,17 +77,15 @@ static int spi_clk_init(uint8_t spi_num)
 
 static void spi_set_tmod(uint8_t spi_num, uint32_t tmod)
 {
-    configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
+    configASSERT(spi_num < SPI_DEVICE_MAX);
     volatile spi_t *spi_handle = spi[spi_num];
     uint8_t tmod_offset = 0;
     switch(spi_num)
     {
         case 0:
         case 1:
-            tmod_offset = 8;
-            break;
         case 2:
-            configASSERT(!"Spi Bus 2 Not Support!");
+            tmod_offset = 8;
             break;
         case 3:
         default:
@@ -143,6 +148,66 @@ void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_for
     spi_adapter->ctrlr0 = (work_mode << work_mode_offset) | (frame_format << frf_offset) | ((data_bit_length - 1) << dfs_offset);
     spi_adapter->spi_ctrlr0 = 0;
     spi_adapter->endian = endian;
+}
+
+int spi_slave_irq(void *userdata)
+{
+    spi_slave_context_t *context = (spi_slave_context_t *)userdata;
+    volatile spi_t *spi_adapter = spi[2];
+    uint8_t isr = spi_adapter->isr;
+    uint32_t data;
+    uint32_t transmit_data;
+    uint8_t dfs_offset = 16, slv_oe = 10, work_mode_offset = 6;
+    if (isr & 0x10)
+    {
+        data = spi_adapter->dr[0];
+        if(context->handler->on_event(data) == SPI_EV_RECV)
+        {
+            context->handler->on_receive(data);
+        }
+        if(context->handler->on_event(data) == SPI_EV_TRANS)
+        {
+            transmit_data = context->handler->on_transmit(data);
+            spi_adapter->ssienr = 0x00;
+            spi_adapter->ctrlr0 = (0x0 << work_mode_offset) | (0x0 << slv_oe) | ((context->data_bit_length - 1) << dfs_offset);
+            spi_set_tmod(2, SPI_TMOD_TRANS);
+            spi_adapter->ssienr = 0x01;
+            spi_adapter->dr[0] = transmit_data;
+            spi_adapter->dr[0] = transmit_data;
+            spi_adapter->imr = 0x00000001;
+        }
+    }
+    if (isr & 0x01)
+    {
+        spi_adapter->ssienr = 0x00;
+        spi_adapter->ctrlr0 = (0x0 << work_mode_offset) | (0x1 << slv_oe) | ((context->data_bit_length - 1) << dfs_offset);
+        spi_set_tmod(2, SPI_TMOD_RECV);
+        spi_adapter->imr = 0x00000010;
+        spi_adapter->ssienr = 0x01;
+    }
+    return 0;
+}
+
+void spi_slave_config(size_t data_bit_length, const spi_slave_handler_t *handler)
+{
+    sysctl_reset(SYSCTL_RESET_SPI2);
+    sysctl_clock_enable(SYSCTL_CLOCK_SPI2);
+    sysctl_clock_set_threshold(SYSCTL_THRESHOLD_SPI2, 0);
+
+    spi_slave_context.data_bit_length = data_bit_length;
+    spi_slave_context.handler = handler;
+    uint8_t dfs_offset = 16, slv_oe = 10, work_mode_offset = 6;
+    
+    volatile spi_t *spi_adapter = spi[2];
+    spi_adapter->ssienr = 0x00;
+    spi_adapter->ctrlr0 = (0x0 << work_mode_offset) | (0x1 << slv_oe) | ((data_bit_length - 1) << dfs_offset);
+    spi_adapter->txftlr = 0x00000000;
+    spi_adapter->rxftlr = 0x00000000;
+    spi_adapter->imr = 0x00000010;
+    spi_adapter->ssienr = 0x01;
+    plic_set_priority(IRQN_SPI_SLAVE_INTERRUPT, 1);
+    plic_irq_enable(IRQN_SPI_SLAVE_INTERRUPT);
+    plic_irq_register(IRQN_SPI_SLAVE_INTERRUPT, spi_slave_irq, &spi_slave_context);
 }
 
 void spi_init_non_standard(spi_device_num_t spi_num, uint32_t instruction_length, uint32_t address_length,

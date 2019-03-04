@@ -157,6 +157,18 @@ typedef enum _spi_chip_select
     SPI_CHIP_SELECT_MAX,
 } spi_chip_select_t;
 
+typedef enum _spi_slave_event
+{
+    SPI_EV_TRANS,
+    SPI_EV_RECV,
+} spi_slave_event_t;
+
+typedef struct _spi_slave_handler
+{
+    void (*on_receive)(uint32_t data);
+    uint32_t (*on_transmit)(uint32_t data);
+    spi_slave_event_t (*on_event)(uint32_t data);
+} spi_slave_handler_t;
 
 extern volatile spi_t *const spi[4];
 
@@ -169,12 +181,20 @@ extern volatile spi_t *const spi[4];
  * @param[in]   data_bit_length     Spi data bit length
  * @param[in]   endian              0:little-endian 1:big-endian
  *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
+ * @return      Void
  */
 void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format,
               size_t data_bit_length, uint32_t endian);
+
+/**
+ * @brief       Set spi slave configuration
+ *
+ * @param[in]   data_bit_length     Spi data bit length
+ * @param[in]   handler             Handle of spi slave interrupt function.
+ *
+ * @return      Void
+ */
+void spi_slave_config(size_t data_bit_length, const spi_slave_handler_t *handler);
 
 /**
  * @brief       Set multiline configuration
