@@ -5,10 +5,6 @@
 extern “C” {
 #endif
 
-#define DIRECTION_RES 16
-#define I2S_FS 44100
-#define SOUND_SPEED 340
-
 extern volatile struct apu_reg_t *const apu;
 
 enum en_bf_dir
@@ -289,8 +285,6 @@ void apu_set_smpl_shift(uint8_t smpl_shift);
 uint8_t apu_get_smpl_shift(void);
 void apu_set_channel_enabled(uint8_t channel_bit);
 void apu_set_direction_delay(uint8_t dir_num, uint8_t *dir_bidx);
-void apu_set_delay(float R, uint8_t mic_num_a_circle, uint8_t center);
-
 void apu_set_fft_shift_factor(uint8_t enable_flag, uint16_t shift_factor);
 void apu_set_down_size(uint8_t dir_dwn_siz, uint8_t voc_dwn_siz); //split to 2 functions
 void apu_set_interrupt_mask(uint8_t dir_int_mask, uint8_t voc_int_mask); //split to 2 functions
