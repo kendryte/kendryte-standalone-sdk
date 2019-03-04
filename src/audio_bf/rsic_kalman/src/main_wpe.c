@@ -21,7 +21,7 @@
 #include "../inc/kal_wpe_float.h"
 
 #define FRAME_LEN  512
-#define FRAME_SHIFT  256
+#define FRAME_SHIFT 512// 256
 #define DMA_CH_I2S_RX DMAC_CHANNEL0
 #define DMA_CH_I2S_TX DMAC_CHANNEL1
 #define DMA_CH_FFT_RX DMAC_CHANNEL2
@@ -717,12 +717,12 @@ int main(void)
             frame_rx[FRAME_LEN-FRAME_SHIFT+i] = (int32_t)mic_buf_ab[ping_pong][i*2+1];
         }
 
-        // add window
-        for(int i=0; i<FRAME_LEN; i++){
-            frame_rx_win[i] = ((int32_t)frame_rx[i] * (int32_t)hanning_512[i])>>16;
-        }
+        // // add window func
+        // for(int i=0; i<FRAME_LEN; i++){
+        //     frame_rx_win[i] = ((int32_t)frame_rx[i] * (int32_t)hanning_512[i])>>16;
+        // }
 
-        process_frame_float(frame_rx_win, frame_tx, KalBufStr);
+        process_frame_float(frame_rx, frame_tx, KalBufStr);
 
         // output frame
         for(int i=0; i<FRAME_SHIFT; i++){
@@ -732,7 +732,7 @@ int main(void)
         for(int i=0; i<FRAME_LEN-FRAME_SHIFT; i++){
             frame_tx[i] = frame_tx[FRAME_SHIFT+i];
         }
-        for(int i=FRAME_SHIFT; i<FRAME_LEN; i++){
+        for(int i=FRAME_LEN-FRAME_SHIFT; i<FRAME_LEN; i++){
             frame_tx[i] = 0;
         }
 

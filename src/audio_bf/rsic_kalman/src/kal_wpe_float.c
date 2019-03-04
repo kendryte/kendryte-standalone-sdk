@@ -32,15 +32,11 @@ void kalman_wpe_float(z_t data[NRE]){
         float eng = 0;
         for(int i=0; i<WPE_L; i++){
             eng += z_eng(cs->y_hist[i]);
-            printf("eng[%d] %f %f\n", i, eng, z_eng(cs->y_hist[i]));
         }
         eng = ((eng<(1e-4f)) ? (1e-4f) : eng);
-        printf("eng %f \n", eng);
-        printf("eng %f \n", eng);
-        printf("eng %f \n", eng);
         // z_t y_est = data[f] - H(W) * y_hist // todo: W or H(W)
         data[f] = z_sub(data[f], z_vec_dot_conj(cs->y_hist, cs->W, WPE_L));
-        printf("data[%d] %f %f\n", f, data[f].re, data[f].im);
+        // printf("data[%d] %f %f\n", f, data[f].re, data[f].im);
 
         // y_hist_H = H(y_hist)
         z_t y_hist_H[WPE_L];
@@ -48,22 +44,21 @@ void kalman_wpe_float(z_t data[NRE]){
             y_hist_H[i] = z_conj(cs->y_hist[i]);
         }
 
-        printf("eng %f \n", eng);
         // z_t[] K = (R1 * y_hist)/(a*eng + H(y_hist)*R1*y_hist)
         // nmtr = R1 * y_hist
         z_t nmtr[WPE_L];
         z_mat_mul(cs->R1, cs->y_hist, nmtr, WPE_L, WPE_L, 1);
         // dnmt2 = H(y_hist)*R1*y_hist = H(y_hist)*nmtr
         z_t dnmt2 = z_vec_dot(nmtr, y_hist_H, WPE_L);
-        z_t dnmt = z_add((z_t){.re=KAL_ALPHA*eng, .im=0}, dnmt2);
-        z_t inv_dnmt = (z_t){.re=1/dnmt.re, .im=1/dnmt.im};
+        z_t inv_dnmt = z_inv(z_add((z_t){.re=KAL_ALPHA*eng, .im=0}, dnmt2));
         // K = nmtr*inv_dnmt
         for(int i=0; i<WPE_L; i++){
             cs->K[i] = z_mul(nmtr[i], inv_dnmt);
         }
-        printf("nmtr %f %f\n", nmtr[4].re, nmtr[4].im);
-        printf("dnmt %f %f  eng %f\n", dnmt.re, dnmt.im, eng);
-        printf("K %f %f\n", cs->K[4].re, cs->K[4].im);
+        // printf("nmtr %f %f\n", nmtr[4].re, nmtr[4].im);
+        // z_t dnmt = z_add((z_t){.re=KAL_ALPHA*eng, .im=0}, dnmt2);
+        // printf("dnmt %f %f  eng %f\n", dnmt.re, dnmt.im, eng);
+        // printf("K %f %f\n", cs->K[4].re, cs->K[4].im);
 
         // z_t[][] R1 = 1/a*(R1-K*H(y_hist)*R1)
         // z_t[] mat_mul_tmp = H(y_hist)*R1
@@ -75,13 +70,13 @@ void kalman_wpe_float(z_t data[NRE]){
         for(int i=0; i<WPE_L*WPE_L; i++){
             cs->R1[i] = z_sub(cs->R1[i], z_scale(mat_mul_tmp2[i], KAL_ALPHA));
         }
-        printf("R1 %f %f\n", cs->R1[4].re, cs->R1[4].im);
+        // printf("R1 %f %f\n", cs->R1[4].re, cs->R1[4].im);
 
         // z_t[] W = W + K*H(y_est)
         for(int i=0; i<WPE_L; i++){
             cs->W[i] = z_add(cs->W[i], z_mul(cs->K[i], data[f]));
         }
-        printf("w %f %f\n", cs->W[4].re, cs->W[4].im);
+        // printf("w %f %f\n", cs->W[4].re, cs->W[4].im);
 
         // y_hist.push(y)
         for(int i=1; i<WPE_L; i++){

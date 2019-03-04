@@ -1,7 +1,7 @@
 
 #define FRAME_LEN  512
 #define NRE 257
-#define WPE_L  10
+#define WPE_L  16
 #define KAL_ALPHA  0.99f
 
 typedef float f_t;
@@ -24,6 +24,10 @@ static inline z_t z_mul(z_t a, z_t b){
 }
 static inline float z_eng(z_t a){
     return (a.re*a.re) + (a.im*a.im);
+}
+static inline z_t z_inv(z_t a){
+    float denm = (a.re*a.re) + (a.im*a.im);
+    return (z_t){.re=a.re/denm, .im=-a.im/denm};
 }
 static inline z_t z_mat_mul(z_t* a, z_t* b, z_t* ret, int rol, int mid, int col){
     for(int i=0; i<rol; i++){
