@@ -273,7 +273,7 @@ void mat_scale_q15(INT16 *src, INT16 scale, INT32 shift, INT16 *dst, UINT32 row,
 }
 
 /** 
-* @brief:            matrix scale for INT32
+* @brief:            matrix scale for INT32 // M*a
 * @param[in/out]     INT32 *src   
 * @param[in/out]     INT32 scale  
 * @param[in/out]     INT32 shift  

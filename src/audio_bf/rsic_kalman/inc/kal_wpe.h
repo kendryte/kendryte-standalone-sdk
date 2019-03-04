@@ -73,7 +73,9 @@ typedef struct
 
 
 KAL_BUF_STR * kal_state_init();
-void kalman_wpe(INT16 FreqDataRe[NRE][FDNDLP_MIC],      INT16 FreqDataIm[NRE][FDNDLP_MIC], KAL_BUF_STR *KalBufStr);
+void kalman_wpe(INT16 FreqDataRe[NRE][FDNDLP_MIC],
+                  INT16 FreqDataIm[NRE][FDNDLP_MIC],
+                  KAL_BUF_STR *KalBufStr);
 void kal_state_destroy(KAL_BUF_STR *KalBufStr);
 
 

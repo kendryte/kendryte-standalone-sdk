@@ -9,7 +9,8 @@
         "stdio.h": "c",
         "limits": "c",
         "fft.h": "c",
-        "platform.h": "c"
+        "platform.h": "c",
+        "kal_wpe_float.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

@@ -18,6 +18,7 @@
 #include <string.h>
 #include <fft.h>
 #include "../inc/kal_wpe.h"
+#include "../inc/kal_wpe_float.h"
 
 #define FRAME_LEN  512
 #define FRAME_SHIFT  256
@@ -596,6 +597,48 @@ int init_system(){
 //     }
 // }
 
+
+void process_frame_float(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LEN], KAL_BUF_STR* KalBufStr){
+    z_t data[NRE];
+    for(int i=0; i<FRAME_LEN/2; i++){
+        uint32_t idx = i*2;
+        fft_buf_tx[i].I1 = 0;
+        fft_buf_tx[i].R1 = (int16_t)frame_in[idx];
+        fft_buf_tx[i].I2 = 0;
+        fft_buf_tx[i].R2 = (int16_t)frame_in[idx+1];
+    }
+    fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x4a, FFT_DIR_FORWARD, fft_buf_tx, 512, fft_buf_rx);
+    for(int i=0; i<128; i++){
+        data[i*2].im = fft_buf_rx[i].I1;
+        data[i*2].re = fft_buf_rx[i].R1;
+        data[i*2+1].im = fft_buf_rx[i].I2;
+        data[i*2+1].re = fft_buf_rx[i].R2;
+    }
+    data[256].im = fft_buf_rx[128].I1;
+    data[256].re = fft_buf_rx[128].R1;
+
+    kalman_wpe_float(data);
+
+    for(int i=0; i<128; i++){
+        fft_buf_tx[i].I1 = data[i*2].im;
+        fft_buf_tx[i].R1 = data[i*2].re;
+        fft_buf_tx[i].I2 = data[i*2+1].im;
+        fft_buf_tx[i].R2 = data[i*2+1].re;
+        fft_buf_tx[255-i].I1 = -data[i*2+2].im;
+        fft_buf_tx[255-i].R1 = data[i*2+2].re;
+        fft_buf_tx[255-i].I2 = -data[i*2+1].im;
+        fft_buf_tx[255-i].R2 = data[i*2+1].re;
+    }
+
+    fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x4a, FFT_DIR_BACKWARD, fft_buf_tx, 512, fft_buf_rx);
+    for(int i=0; i<FRAME_LEN/2; i++){
+        uint32_t idx = i*2;
+        frame_acc[idx] += (int32_t)fft_buf_rx[i].R1;
+        frame_acc[idx+1] += (int32_t)fft_buf_rx[i].R2;
+    }
+}
+
+
 void process_frame(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LEN], KAL_BUF_STR* KalBufStr){
     INT16 FreqDataRe[NRE][FDNDLP_MIC];
 	INT16 FreqDataIm[NRE][FDNDLP_MIC];
@@ -607,7 +650,7 @@ void process_frame(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LEN], KA
             fft_buf_tx[i].I2 = 0;
             fft_buf_tx[i].R2 = (int16_t)frame_in[idx+1];
         }
-        fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x4a, FFT_DIR_FORWARD, fft_buf_tx, 512, fft_buf_rx);
+        fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x1aa, FFT_DIR_FORWARD, fft_buf_tx, 512, fft_buf_rx);
         for(int i=0; i<128; i++){
             FreqDataIm[i*2][0] = fft_buf_rx[i].I1;
             FreqDataRe[i*2][0] = fft_buf_rx[i].R1;
@@ -633,7 +676,7 @@ void process_frame(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LEN], KA
         // for(int i=0; i<FRAME_LEN/2; i++){
         //     fft_buf_tx[i] = fft_buf_rx[i];
         // }
-        fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x4a, FFT_DIR_BACKWARD, fft_buf_tx, 512, fft_buf_rx);
+        fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x1aa, FFT_DIR_BACKWARD, fft_buf_tx, 512, fft_buf_rx);
         for(int i=0; i<FRAME_LEN/2; i++){
             uint32_t idx = i*2;
             frame_acc[idx] += (int32_t)fft_buf_rx[i].R1;
@@ -649,6 +692,7 @@ int main(void)
     init_system();
     // init state
     KalBufStr = kal_state_init();
+    kalman_wpe_float_init();
 
 
     uint64_t last_cycle=0, current_cycle, base_cycle;
@@ -678,7 +722,7 @@ int main(void)
             frame_rx_win[i] = ((int32_t)frame_rx[i] * (int32_t)hanning_512[i])>>16;
         }
 
-        process_frame(frame_rx_win, frame_tx, KalBufStr);
+        process_frame_float(frame_rx_win, frame_tx, KalBufStr);
 
         // output frame
         for(int i=0; i<FRAME_SHIFT; i++){

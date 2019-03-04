@@ -10,6 +10,18 @@
 
 #define VC_VER  0   /* 1: for window, 0: for unix or linux */
 
+#define FLOAT_AS_INT 1
+
+#if FLOAT_AS_INT
+// typedef char                    INT8;
+typedef short int               INT16;
+typedef int                     INT32;
+typedef long long               INT64;
+typedef unsigned char           UINT8;
+typedef unsigned short int      UINT16;
+typedef unsigned int            UINT32;
+typedef unsigned long long      UINT64;
+#else
 #if  VC_VER
 typedef char                    INT8;
 typedef short int               INT16;
@@ -30,6 +42,7 @@ typedef unsigned short int      UINT16;
 typedef unsigned int            UINT32;
 typedef unsigned long long      UINT64;
 #endif
+#endif
 
 typedef struct {
         int Re;
@@ -47,6 +60,7 @@ typedef struct {
 #define MAX_U64                                 ((UINT64)0xFFFFFFFFFFFFFFFF)
 #define MIN_U                                   (0)
 #define SAT(a, max, min)                        ((a) > (max) ? (max) : ((a) < (min) ? (min) : (a)))
+// #define SAT(a, max, min) a
 #define SAT_US(a, max)                          ((a) > (max) ? (max) : (a))
 #define OVER_FLOW(a, max, min, sign)            (((sign)==0) ? ((a)&(max)) : ((a)|(min)) )
 #define OVER_FLOW_US(a, max)                    (((a)>(max)) ? ((a)&(max)) : (a))
