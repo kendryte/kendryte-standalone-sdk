@@ -1,8 +1,4 @@
-
-#define FRAME_LEN  512
-#define NRE 257
-#define WPE_L  16
-#define KAL_ALPHA  0.99f
+#include "../config.h"
 
 typedef float f_t;
 typedef struct _z_t{f_t re, im;} z_t;
@@ -29,7 +25,7 @@ static inline z_t z_inv(z_t a){
     float denm = (a.re*a.re) + (a.im*a.im);
     return (z_t){.re=a.re/denm, .im=-a.im/denm};
 }
-static inline z_t z_mat_mul(z_t* a, z_t* b, z_t* ret, int rol, int mid, int col){
+static inline void z_mat_mul(z_t* a, z_t* b, z_t* ret, int rol, int mid, int col){
     for(int i=0; i<rol; i++){
         for(int j=0; j<col; j++){
             z_t acc = (z_t){.re=0, .im=0};
@@ -61,4 +57,5 @@ static inline void z_vec_scale_real(z_t* a, float s, int len){
 }
 
 void kalman_wpe_float_init();
-void kalman_wpe_float(z_t data[NRE]);
+void kalman_wpe_float(z_t data[KAL_NRE]);
+void process_frame_float(int16_t frame_in[KAL_FRAME_LEN], int16_t frame_acc[KAL_FRAME_LEN]);

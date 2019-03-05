@@ -243,6 +243,7 @@ include_directories(
   "${CMAKE_CURRENT_LIST_DIR}/lib/freertos/include"
   "${CMAKE_CURRENT_LIST_DIR}/lib/freertos/conf"
   "${CMAKE_CURRENT_LIST_DIR}/lib/freertos/portable"
+  "${CMAKE_CURRENT_LIST_DIR}/kendryte_libraries/kendryte_speex/include"
 )
 ## there is no headers
 ## add source from config json
@@ -259,6 +260,7 @@ add_source_files(
   "${CMAKE_CURRENT_LIST_DIR}/lib/*.s"
   "${CMAKE_CURRENT_LIST_DIR}/lib/*.S"
 )
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/kendryte_libraries/kendryte_speex" "kendryte_speex")
 ##### include(asm.cmake) #####
 FILE(GLOB_RECURSE ASSEMBLY_FILES
         "${CMAKE_CURRENT_LIST_DIR}/*.s"
@@ -282,6 +284,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC -Wl,--start-group gcc m c -Wl,--end
 ## dependencies link
 target_link_libraries(${PROJECT_NAME} PUBLIC
   -Wl,--start-group
+    "kendryte_speex"
   -Wl,--end-group
 )
 ##### include(afterProject) #####
