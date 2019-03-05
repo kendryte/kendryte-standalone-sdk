@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fft.h>
-#include "../inc/kal_wpe.h"
 #include "../inc/kal_wpe_float.h"
 
 #define FRAME_LEN  512
@@ -598,7 +597,7 @@ int init_system(){
 // }
 
 
-void process_frame_float(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LEN], KAL_BUF_STR* KalBufStr){
+void process_frame_float(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LEN]){
     z_t data[NRE];
     for(int i=0; i<FRAME_LEN/2; i++){
         uint32_t idx = i*2;
@@ -639,59 +638,10 @@ void process_frame_float(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LE
 }
 
 
-void process_frame(int16_t frame_in[FRAME_LEN], int16_t frame_acc[FRAME_LEN], KAL_BUF_STR* KalBufStr){
-    INT16 FreqDataRe[NRE][FDNDLP_MIC];
-	INT16 FreqDataIm[NRE][FDNDLP_MIC];
-
-    for(int i=0; i<FRAME_LEN/2; i++){
-            uint32_t idx = i*2;
-            fft_buf_tx[i].I1 = 0;
-            fft_buf_tx[i].R1 = (int16_t)frame_in[idx];
-            fft_buf_tx[i].I2 = 0;
-            fft_buf_tx[i].R2 = (int16_t)frame_in[idx+1];
-        }
-        fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x1aa, FFT_DIR_FORWARD, fft_buf_tx, 512, fft_buf_rx);
-        for(int i=0; i<128; i++){
-            FreqDataIm[i*2][0] = fft_buf_rx[i].I1;
-            FreqDataRe[i*2][0] = fft_buf_rx[i].R1;
-            FreqDataIm[i*2+1][0] = fft_buf_rx[i].I2;
-            FreqDataRe[i*2+1][0] = fft_buf_rx[i].R2;
-        }
-        FreqDataIm[256][0] = fft_buf_rx[128].I1;
-        FreqDataRe[256][0] = fft_buf_rx[128].R1;
-
-        kalman_wpe(FreqDataRe, FreqDataIm, KalBufStr);
-
-        for(int i=0; i<128; i++){
-            fft_buf_tx[i].I1 = FreqDataIm[i*2][0];
-            fft_buf_tx[i].R1 = FreqDataRe[i*2][0];
-            fft_buf_tx[i].I2 = FreqDataIm[i*2+1][0];
-            fft_buf_tx[i].R2 = FreqDataRe[i*2+1][0];
-            fft_buf_tx[255-i].I1 = -FreqDataIm[i*2+2][0];
-            fft_buf_tx[255-i].R1 = FreqDataRe[i*2+2][0];
-            fft_buf_tx[255-i].I2 = -FreqDataIm[i*2+1][0];
-            fft_buf_tx[255-i].R2 = FreqDataRe[i*2+1][0];
-        }
-
-        // for(int i=0; i<FRAME_LEN/2; i++){
-        //     fft_buf_tx[i] = fft_buf_rx[i];
-        // }
-        fft_complex_uint16_dma(DMA_CH_FFT_TX, DMA_CH_FFT_RX, 0x1aa, FFT_DIR_BACKWARD, fft_buf_tx, 512, fft_buf_rx);
-        for(int i=0; i<FRAME_LEN/2; i++){
-            uint32_t idx = i*2;
-            frame_acc[idx] += (int32_t)fft_buf_rx[i].R1;
-            frame_acc[idx+1] += (int32_t)fft_buf_rx[i].R2;
-        }
-}
-
 int main(void)
 {
-    INT16 FreqDataRe[NRE][FDNDLP_MIC];
-	INT16 FreqDataIm[NRE][FDNDLP_MIC];
-    KAL_BUF_STR *KalBufStr;
     init_system();
     // init state
-    KalBufStr = kal_state_init();
     kalman_wpe_float_init();
 
 
@@ -722,7 +672,7 @@ int main(void)
         //     frame_rx_win[i] = ((int32_t)frame_rx[i] * (int32_t)hanning_512[i])>>16;
         // }
 
-        process_frame_float(frame_rx, frame_tx, KalBufStr);
+        process_frame_float(frame_rx, frame_tx);
 
         // output frame
         for(int i=0; i<FRAME_SHIFT; i++){
@@ -737,9 +687,6 @@ int main(void)
         }
 
     }
-
-    // destroy state
-    kal_state_destroy(KalBufStr);
 
 	return 0;
 }
