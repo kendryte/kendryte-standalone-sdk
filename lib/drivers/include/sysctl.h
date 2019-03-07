@@ -1025,6 +1025,15 @@ uint32_t sysctl_set_spi0_dvp_data(uint8_t en);
 void sysctl_set_power_mode(sysctl_power_bank_t power_bank, sysctl_io_power_mode_t io_power_mode);
 
 /**
+ * @brief       register callback to freq changed
+ *
+ * @param[in]   callback            callback function point
+ * 
+ * @return      The frequency of CPU
+ */
+uint32_t sysctl_cpu_get_freq(void);
+
+/**
  * @brief       Set frequency of CPU
  * @param[in]   freq       The desired frequency in Hz
  *
