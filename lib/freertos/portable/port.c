@@ -65,8 +65,6 @@ automatically be set to 0 when the first task is started. */
 static UBaseType_t uxCriticalNesting[portNUM_PROCESSORS] = {[0 ... portNUM_PROCESSORS - 1] = 0xaaaaaaaa};
 PRIVILEGED_DATA static corelock_t xCoreLock = CORELOCK_INIT;
 
-UBaseType_t uxCPUClockRate = 390000000;
-
 /* Contains context when starting scheduler, save all 31 registers */
 #ifdef __gracefulExit
 #error Not ported
@@ -206,5 +204,5 @@ void vPortFatal(const char* file, int line, const char* message)
 
 UBaseType_t uxPortGetCPUClock()
 {
-    return uxCPUClockRate;
+    return (UBaseType_t)sysctl_cpu_get_freq();
 }
