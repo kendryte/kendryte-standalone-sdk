@@ -161,6 +161,11 @@ void plic_irq_unregister(plic_irq_t irq)
 
 void __attribute__((weak, alias("plic_irq_unregister"))) plic_irq_deregister(plic_irq_t irq);
 
+plic_instance_t * plic_get_instance(void)
+{
+    return plic_instance;
+}
+
 /*Entry Point for PLIC Interrupt Handler*/
 uintptr_t __attribute__((weak))
 handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
