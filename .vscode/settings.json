@@ -10,7 +10,9 @@
         "limits": "c",
         "fft.h": "c",
         "platform.h": "c",
-        "kal_wpe_float.h": "c"
+        "kal_wpe_float.h": "c",
+        "printf.h": "c",
+        "io.h": "c"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

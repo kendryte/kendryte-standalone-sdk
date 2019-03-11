@@ -7,12 +7,12 @@
 #define SAMPLE_RATE 44100UL
 
 // aec
-#define AEC_FRAME_LEN  2048UL
-#define AEC_TAIL AEC_FRAME_LEN*4UL  // *7
+#define AEC_FRAME_LEN  4096UL
+#define AEC_TAIL AEC_FRAME_LEN*7UL  // *7
 
 // devererberation
 #define KAL_FRAME_LEN  512UL
 #define KAL_FRAME_SHIFT 512UL  // 256
 #define KAL_NRE 257UL
-#define KAL_WPE_L 6UL  // 16
+#define KAL_WPE_L 10UL  // 16
 #define KAL_ALPHA  0.98f

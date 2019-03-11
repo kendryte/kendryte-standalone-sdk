@@ -19,6 +19,8 @@
 #include <string.h>
 #include <printf.h>
 #include <i2s.h>
+#include <bsp.h>
+#include <atomic.h>
 #include <sysctl.h>
 #include <fpioa.h>
 #include <uarths.h>
@@ -26,14 +28,15 @@
 #include "aec/speex_preprocess.h"
 #include "dereverberation/kal_wpe_float.h"
 
-extern const int16_t test_pcm[1223019];
+extern const int16_t test_pcm[409600];
 #define TEST_PCM_LEN (sizeof(test_pcm)/2)
 
-uint32_t pcm_buf[AEC_FRAME_LEN * 4];
-uint32_t echo_buf[AEC_FRAME_LEN * 4];
-int16_t aec_buf[AEC_FRAME_LEN];
-int16_t echo_data[AEC_FRAME_LEN];
-uint32_t g_index;
+volatile uint32_t ping_pong = 0;
+volatile uint32_t pcm_buf[2][AEC_FRAME_LEN * 2];
+volatile uint32_t echo_buf[2][AEC_FRAME_LEN * 2];
+volatile int16_t aec_buf[2][AEC_FRAME_LEN];
+volatile int16_t echo_data[AEC_FRAME_LEN];
+volatile uint32_t g_index;
 
 void io_mux_init(){
 
@@ -53,6 +56,25 @@ int32_t imin(int32_t a, int32_t b){
 }
 int32_t imax(int32_t a, int32_t b){
     return a<=b ? b : a;
+}
+
+
+volatile semaphore_t kal_enter;
+volatile semaphore_t kal_exit;
+volatile spinlock_t main_loop = SPINLOCK_INIT;
+
+int core1_kal(void *ctx){
+    while(1){
+        // printk("ke-");
+        semaphore_wait(&kal_enter, 1);
+        // printk("ke+");
+        for(int i=0; i<AEC_FRAME_LEN/KAL_FRAME_LEN; i++){
+            process_frame_float(&aec_buf[1-ping_pong][i*KAL_FRAME_LEN], &aec_buf[1-ping_pong][i*KAL_FRAME_LEN]);
+        }
+        // printk("kx");
+        semaphore_signal(&kal_exit, 1);
+    }
+    return 0;
 }
 
 int main(void)
@@ -96,37 +118,58 @@ int main(void)
 	speex_echo_ctl(st, SPEEX_ECHO_SET_SAMPLING_RATE, &sampleRate);
 	speex_preprocess_ctl(den, SPEEX_PREPROCESS_SET_ECHO_STATE, st);
 
-    uint64_t last_cycle=0, current_cycle, base_cycle;
+    // reinit lock
+    kal_enter = (semaphore_t){0};
+    kal_exit = (semaphore_t){0};
+    main_loop = (spinlock_t)SPINLOCK_INIT;
+
+    // init kal thread
+    register_core1(core1_kal, NULL);
+
+    uint64_t cycle_last=0, cycle_current, cycle_i2s_start, cycle_i2s_end, cycle_wait_kal_start, cycle_wait_kal_end;
     while (1)
     {
+        spinlock_lock(&main_loop);
         g_index += AEC_FRAME_LEN;
         if(g_index >= TEST_PCM_LEN)
         {
             // while(1);
             g_index = 0;
         }
-        uint32_t ring_buffer_pos = 2*(g_index%(AEC_FRAME_LEN*2));
+        ping_pong = 1-ping_pong;
+        // printk("ke");
+        semaphore_signal(&kal_enter, 1);
 
-        base_cycle = read_csr(mcycle);
-        i2s_send_data_dma(I2S_DEVICE_2, &pcm_buf[AEC_FRAME_LEN*2-ring_buffer_pos], AEC_FRAME_LEN * 2, DMAC_CHANNEL0);
-        i2s_receive_data_dma(I2S_DEVICE_1, &echo_buf[AEC_FRAME_LEN*2-ring_buffer_pos], AEC_FRAME_LEN * 2, DMAC_CHANNEL1);
-        current_cycle = read_csr(mcycle);
-        printk("%lu %lu\n", current_cycle-last_cycle, current_cycle-base_cycle);
-        last_cycle = current_cycle;
+        cycle_i2s_start = read_csr(mcycle);
+        i2s_send_data_dma(I2S_DEVICE_2, &pcm_buf[1-ping_pong], AEC_FRAME_LEN * 2, DMAC_CHANNEL0);
+        i2s_receive_data_dma(I2S_DEVICE_1, &echo_buf[1-ping_pong], AEC_FRAME_LEN * 2, DMAC_CHANNEL1);
+        cycle_i2s_end = read_csr(mcycle);
         
-        
-        for(int i=0; i<AEC_FRAME_LEN; i++){
-            echo_data[i] = (int32_t)echo_buf[ring_buffer_pos+i*2+1];
-        }
-		speex_echo_cancellation(st, echo_data, &test_pcm[g_index], aec_buf);
-		speex_preprocess_run(den, aec_buf);
-        for(int i=0; i<AEC_FRAME_LEN/KAL_FRAME_LEN; i++){
-            process_frame_float(&aec_buf[i*KAL_FRAME_LEN], &aec_buf[i*KAL_FRAME_LEN]);
-        }
 
         for(int i=0; i<AEC_FRAME_LEN; i++){
-            pcm_buf[ring_buffer_pos+i*2] = (int32_t)test_pcm[g_index+i];
-            pcm_buf[ring_buffer_pos+i*2+1] = (int32_t)aec_buf[i];//echo_data[g_index+i];
+            echo_data[i] = (int32_t)echo_buf[ping_pong][i*2+1];
+        }
+		speex_echo_cancellation(st, echo_data, &test_pcm[g_index], aec_buf[ping_pong]);
+		speex_preprocess_run(den, aec_buf[ping_pong]);
+
+        cycle_wait_kal_start = read_csr(mcycle);
+        // printk("kx-");
+        semaphore_wait(&kal_exit, 1);
+        // printk("kx+");
+        cycle_wait_kal_end = read_csr(mcycle);
+
+
+        // // thread<
+        // for(int i=0; i<AEC_FRAME_LEN/KAL_FRAME_LEN; i++){
+        //     process_frame_float(&aec_buf[1-ping_pong][i*KAL_FRAME_LEN], &aec_buf[1-ping_pong][i*KAL_FRAME_LEN]);
+        // }
+        // semaphore_signal(&kal_s, 1);
+        // // >
+
+
+        for(int i=0; i<AEC_FRAME_LEN; i++){
+            pcm_buf[ping_pong][i*2] = (int32_t)test_pcm[g_index+i];
+            pcm_buf[ping_pong][i*2+1] = (int32_t)aec_buf[1-ping_pong][i];//echo_data[g_index+i];
         }
 
         // int32_t cmin=1<<30, cmax=-(1<<30), emin=1<<30, emax=-(1<<30);
@@ -137,6 +180,16 @@ int main(void)
         //     emax = imax(emax, echo_buf[ring_buffer_pos+i*2+1]);
         // }
         // printf("%d\t%d\t%d\t%d\n", cmin, cmax, emin, emax);
+        
+        cycle_current = read_csr(mcycle);
+        printk("i2s:%lu core1:%lu /%lu\n", 
+            cycle_i2s_end-cycle_i2s_start, 
+            cycle_wait_kal_end-cycle_wait_kal_start, 
+            cycle_current-cycle_last
+        );
+        cycle_last = cycle_current;
+
+        spinlock_unlock(&main_loop);
     }   
 
     speex_echo_state_destroy(st);

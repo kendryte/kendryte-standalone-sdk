@@ -1,6 +1,7 @@
 #include "../config.h"
 #include <fft.h>
 #include <stdio.h>
+#include <printf.h>
 #include "kal_wpe_float.h"
 
 typedef struct {

@@ -15,7 +15,7 @@
             "cwd": "${workspaceRoot}/build",
             "internalConsoleOptions": "openOnSessionStart",
             "env": {
-                "PATH": "/data/KendryteIDE/LocalPackage/cmake/bin:/data/KendryteIDE/LocalPackage/toolchain/bin:/home/pl/.local/bin:/home/pl/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+                "PATH": "/data/KendryteIDE/LocalPackage/cmake/bin:/data/KendryteIDE/LocalPackage/toolchain/bin:/home/pl/.local/bin:/home/pl/bin:/home/pl/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
                 "PYTHONPATH": ":/usr/lib/python2.7/:/usr/lib/python2/:/lib/python2.7/:/lib/python2/:/data/KendryteIDE/LocalPackage/toolchain/share/gdb/python",
                 "PYTHONDONTWRITEBYTECODE": "yes"
             },

@@ -85,6 +85,11 @@ static inline void spinlock_lock(spinlock_t *lock)
     while (spinlock_trylock(lock));
 }
 
+static inline void spinlock_lock1(spinlock_t *lock)
+{
+    while (spinlock_trylock(lock)) asm("nop");
+}
+
 static inline void spinlock_unlock(spinlock_t *lock)
 {
     /* Use memory barrier to keep coherency */
@@ -105,7 +110,7 @@ static inline void semaphore_wait(semaphore_t *semaphore, int i)
     atomic_add(&(semaphore->waiting), 1);
     while (1)
     {
-        spinlock_lock(&(semaphore->lock));
+        spinlock_lock1(&(semaphore->lock));
         if (semaphore->count >= i)
         {
             semaphore->count -= i;
