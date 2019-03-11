@@ -466,6 +466,13 @@ void plic_irq_deregister(plic_irq_t irq);
  */
 void plic_irq_unregister(plic_irq_t irq);
 
+/**
+ * @brief       Get IRQ table
+ *
+ * @return      the point of IRQ table
+ */
+plic_instance_t * plic_get_instance(void);
+
 /* For c++ compatibility */
 #ifdef __cplusplus
 }
