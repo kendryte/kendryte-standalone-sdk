@@ -5303,6 +5303,38 @@ int fpioa_set_io_driving(int number, fpioa_driving_t driving)
     return 0;
 }
 
+int fpioa_set_sl(int number, uint8_t sl_value)
+{
+    /* Check parameters */
+    if (number < 0 || number >= FPIOA_NUM_IO)
+        return -1;
+
+    /* Atomic read register */
+    fpioa_io_config_t cfg = fpioa->io[number];
+    /* Set IO driving */
+    cfg.sl = sl_value;
+    /* Atomic write register */
+    fpioa->io[number] = cfg;
+    return 0;
+}
+
+
+int fpioa_set_st(int number, uint8_t st_value)
+{
+    /* Check parameters */
+    if (number < 0 || number >= FPIOA_NUM_IO)
+        return -1;
+
+    /* Atomic read register */
+    fpioa_io_config_t cfg = fpioa->io[number];
+    /* Set IO driving */
+    cfg.sl = st_value;
+    /* Atomic write register */
+    fpioa->io[number] = cfg;
+    return 0;
+}
+
+
 int fpioa_get_io_driving(int number)
 {
     /* Check parameters */

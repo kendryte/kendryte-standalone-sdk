@@ -992,6 +992,8 @@ int fpioa_get_io_driving(int number);
  */
 int fpioa_get_io_by_function(fpioa_function_t function);
 
+int fpioa_set_sl(int number, uint8_t sl_value);
+int fpioa_set_st(int number, uint8_t st_value);
 
 #ifdef __cplusplus
 }
