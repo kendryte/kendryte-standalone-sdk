@@ -21,12 +21,6 @@
 
 volatile plic_t* const plic = (volatile plic_t*)PLIC_BASE_ADDR;
 
-typedef struct _plic_instance_t
-{
-    plic_irq_callback_t callback;
-    void *ctx;
-} plic_instance_t;
-
 static plic_instance_t plic_instance[PLIC_NUM_CORES][IRQN_MAX];
 
 void plic_init(void)

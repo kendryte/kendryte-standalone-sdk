@@ -263,6 +263,15 @@ typedef struct _plic_pending_bits
 } __attribute__((packed, aligned(4))) plic_pending_bits_t;
 
 /**
+ * @brief       plic callback instance
+ */
+typedef struct _plic_instance_t
+{
+    plic_irq_callback_t callback;
+    void *ctx;
+} plic_instance_t;
+
+/**
  * @brief       Target Interrupt Enables
  *
  *              For each interrupt target, each device’s interrupt can be
