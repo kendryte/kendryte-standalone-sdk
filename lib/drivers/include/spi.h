@@ -419,13 +419,6 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
                                spi_device_num_t spi_num, spi_chip_select_t chip_select,
                                const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len);
 
-void spi_set_dmardlr(spi_device_num_t spi_num, uint32_t value);
-
-void spi_receive_data_multiple_dma_zzx(dmac_channel_number_t dma_send_channel_num,
-                                  dmac_channel_number_t dma_receive_channel_num,
-                                  spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff,
-                                  size_t cmd_len, uint8_t *rx_buff, size_t rx_len, dmac_burst_trans_length_t burst_num);
-
 #ifdef __cplusplus
 }
 #endif
