@@ -39,6 +39,7 @@ before_install:
   fi
 install:
 - export PATH=$TRAVIS_BUILD_DIR/cache/kendryte-toolchain/bin:$PATH
+- export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/cache/kendryte-toolchain/bin:$LD_LIBRARY_PATH
 - |
   cd $TRAVIS_BUILD_DIR
   export BRANCH=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo $TRAVIS_BRANCH; else echo "develop"; fi)
