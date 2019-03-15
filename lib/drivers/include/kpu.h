@@ -333,10 +333,292 @@ typedef struct
 {
     uint32_t version;
     uint32_t flags;
+    uint32_t arch;
+    uint32_t layers_length;
+    uint32_t max_start_address;
+    uint32_t main_mem_usage;
+    uint32_t output_count;
+} kpu_kmodel_header_t;
+
+typedef struct
+{
+    uint32_t version;
+    uint32_t flags;
     uint32_t layers_length;
     uint32_t max_start_address;
     uint32_t layers_argument_start;
 } kpu_model_header_t;
+
+typedef struct
+{
+    uint32_t address;
+    uint32_t size;
+} kpu_model_output_t;
+
+typedef enum
+{
+    KL_INVALID = 0,
+    KL_ADD,
+    KL_QUANTIZED_ADD,
+    KL_GLOBAL_MAX_POOL2D,
+    KL_QUANTIZED_GLOBAL_MAX_POOL2D,
+    KL_GLOBAL_AVERAGE_POOL2D,
+    KL_QUANTIZED_GLOBAL_AVERAGE_POOL2D,
+    KL_MAX_POOL2D,
+    KL_QUANTIZED_MAX_POOL2D,
+    KL_AVERAGE_POOL2D,
+    KL_QUANTIZED_AVERAGE_POOL2D,
+    KL_QUANTIZE,
+    KL_DEQUANTIZE,
+    KL_REQUANTIZE,
+    KL_L2_NORMALIZATION,
+    KL_SOFTMAX,
+    KL_CONCAT,
+    KL_QUANTIZED_CONCAT,
+    KL_FULLY_CONNECTED,
+    KL_QUANTIZED_FULLY_CONNECTED,
+    KL_TENSORFLOW_FLATTEN,
+    KL_QUANTIZED_TENSORFLOW_FLATTEN,
+    KL_K210_CONV = 10240,
+    KL_K210_ADD_PADDING,
+    KL_K210_REMOVE_PADDING,
+    KL_K210_UPLOAD
+} kpu_model_layer_type_t;
+
+typedef struct
+{
+    uint32_t type;
+    uint32_t body_size;
+} kpu_model_layer_header_t;
+
+typedef enum
+{
+    KLF_NONE = 0,
+    KLF_MAIN_MEM_OUT = 1
+} kpu_model_layer_flags_t;
+
+typedef enum
+{
+    KLP_SAME = 0,
+    KLP_VALID = 1
+} kpu_model_padding_t;
+
+typedef enum
+{
+    KLA_LINEAR = 0,
+    KLA_RELU = 1,
+    KLA_RELU6 = 2
+} kpu_model_activation_t;
+
+typedef struct
+{
+    float scale;
+	float bias;
+} kpu_model_quant_param_t;
+
+typedef struct
+{
+    uint32_t width;
+    uint32_t height;
+    uint32_t channels;
+} kpu_model_shape_t;
+
+typedef struct
+{
+    uint32_t start;
+    uint32_t size;
+} kpu_model_memory_range_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_out_address;
+    uint32_t layer_offset;
+    uint32_t weights_offset;
+    uint32_t bn_offset;
+    uint32_t act_offset;
+} kpu_model_conv_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_a_address;
+    uint32_t main_mem_in_b_address;
+    uint32_t main_mem_out_address;
+    uint32_t count;
+} kpu_model_add_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_a_address;
+    uint32_t main_mem_in_b_address;
+    uint32_t main_mem_out_address;
+    uint32_t count;
+    int32_t in_a_offset;
+    int32_t in_a_mul;
+    int32_t in_a_shift;
+    int32_t in_b_offset;
+    int32_t in_b_mul;
+    int32_t in_b_shift;
+    int32_t out_offset;
+    int32_t out_mul;
+    int32_t out_shift;
+} kpu_model_quant_add_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t kernel_size;
+    uint32_t channels;
+} kpu_model_gap2d_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    kpu_model_shape_t in_shape;
+    kpu_model_shape_t out_shape;
+    uint32_t kernel_width;
+    uint32_t kernel_height;
+    uint32_t stride_width;
+    uint32_t stride_height;
+    uint32_t padding_width;
+    uint32_t padding_height;
+} kpu_model_quant_max_pool2d_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    kpu_model_shape_t in_shape;
+    kpu_model_shape_t out_shape;
+    uint32_t kernel_width;
+    uint32_t kernel_height;
+    uint32_t stride_width;
+    uint32_t stride_height;
+    uint32_t padding_width;
+    uint32_t padding_height;
+    kpu_model_activation_t act;
+} kpu_model_ave_pool2d_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t mem_out_address;
+    uint32_t count;
+    kpu_model_quant_param_t quant_param;
+} kpu_model_quantize_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t count;
+    kpu_model_quant_param_t quant_param;
+} kpu_model_dequantize_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t count;
+    uint8_t table[256];
+} kpu_model_requantize_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t kpu_mem_out_address;
+    uint32_t channels;
+} kpu_model_add_padding_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t channels;
+} kpu_model_remove_padding_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t kpu_mem_out_address;
+    uint32_t width;
+    uint32_t height;
+    uint32_t channels;
+} kpu_model_upload_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t channels;
+} kpu_model_l2_norm_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t channels;
+} kpu_model_softmax_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_out_address;
+    uint32_t input_count;
+    kpu_model_memory_range_t inputs_mem[0];
+} kpu_model_concat_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t in_channels;
+    uint32_t out_channels;
+    kpu_model_activation_t act;
+    float weights[0];
+} kpu_model_fully_connected_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    kpu_model_shape_t shape;
+} kpu_model_tf_flatten_layer_argument_t;
+
+typedef void(*kpu_done_callback_t)(void* userdata);
+
+typedef struct
+{
+    const uint8_t *model_buffer;
+    uint8_t *main_buffer;
+    uint32_t output_count;
+    const kpu_model_output_t *outputs;
+    const kpu_model_layer_header_t *layer_headers;
+    const uint8_t *body_start;
+    uint32_t layers_length;
+    volatile uint32_t current_layer;
+    const uint8_t * volatile current_body;
+    dmac_channel_number_t dma_ch;
+    kpu_done_callback_t done_callback;
+    void *userdata;
+} kpu_model_context_t;
 
 typedef struct
 {
@@ -464,7 +746,7 @@ void kpu_init(int eight_bit_mode, plic_irq_callback_t callback, void *userdata);
  * @param[in]   userdata                Data of callback
  *
  */
-void kpu_input_dma(kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata);
+void kpu_input_dma(const kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata);
 
 /**
  * @brief       Kpu input data by cpu
@@ -557,5 +839,10 @@ void kpu_matmul_end(const uint8_t *src, int channels, float *dest, const quantiz
  *
  */
 void kpu_dequantize(const uint8_t *src, const quantize_param_t *src_param, size_t count, float *dest);
+
+int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer);
+void kpu_model_free(kpu_model_context_t *ctx);
+int kpu_get_output(kpu_model_context_t *ctx, uint32_t index, uint8_t **data, size_t *size);
+int kpu_run_kmodel(kpu_model_context_t *ctx, const uint8_t *src, dmac_channel_number_t dma_ch, kpu_done_callback_t done_callback, void *userdata);
 
 #endif
