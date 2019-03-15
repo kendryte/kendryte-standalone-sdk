@@ -57,7 +57,12 @@ script:
   do
     echo "[MAKE]" $TRAVIS_BUILD_DIR/src/$DIR
     cd $TRAVIS_BUILD_DIR/src/$DIR
-    mkdir build && cd build
-    cmake -DPROJ=$DIR -DTOOLCHAIN=$TRAVIS_BUILD_DIR/cache/kendryte-toolchain/bin ../../../ || exit -1
-    make || exit -1
+    if [ ! -f "$Makefile" ]; then
+      mkdir build && cd build
+      cmake -DPROJ=$DIR -DTOOLCHAIN=$TRAVIS_BUILD_DIR/cache/kendryte-toolchain/bin ../../../ || exit -1
+      make || exit -1
+    else
+      make || exit -1
+    fi
   done
+
