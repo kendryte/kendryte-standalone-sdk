@@ -9,9 +9,7 @@ extern “C” {
 #define I2S_FS 44100
 #define SOUND_SPEED 340
 
-extern volatile struct apu_reg_t *const apu;
-
-enum en_bf_dir
+typedef enum en_bf_dir
 {
     APU_DIR0 = 0,
     APU_DIR1,
@@ -29,9 +27,9 @@ enum en_bf_dir
     APU_DIR13,
     APU_DIR14,
     APU_DIR15,
-};
+} en_bf_dir_t;
 
-struct apu_ch_cfg_t
+typedef struct _apu_ch_cfg
 {
     /**
      * BF unit sound channel enable control bits.
@@ -91,9 +89,9 @@ struct apu_ch_cfg_t
      * 0x1: allowing updates made to 'data_src_mode'.
      */
     uint32_t we_data_src_mode : 1;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_ch_cfg_t;
 
-struct apu_ctl_t
+typedef struct _apu_ctl_t
 {
     /**
      * Sound direction searching enable bit.
@@ -139,9 +137,9 @@ struct apu_ctl_t
     uint32_t we_update_voice_dir : 1;
     uint32_t reserved2 : 19;
 
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_ctl_t;
 
-struct apu_dir_bidx_t
+typedef struct _apu_dir_bidx
 {
     uint32_t dir_rd_idx0 : 6;
     uint32_t reserved : 2;
@@ -151,15 +149,15 @@ struct apu_dir_bidx_t
     uint32_t reserved2 : 2;
     uint32_t dir_rd_idx3 : 6;
     uint32_t reserved3 : 2;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_dir_bidx_t;
 
-struct apu_fir_coef_t
+typedef struct _apu_fir_coef
 {
     uint32_t fir_tap0 : 16;
     uint32_t fir_tap1 : 16;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_fir_coef_t;
 
-struct apu_dwsz_cfg_t
+typedef struct _apu_dwsz_cfg
 {
     /**
      * TThe down-sizing ratio used for direction searching.
@@ -191,19 +189,19 @@ struct apu_dwsz_cfg_t
      */
     uint32_t smpl_shift_bits : 5;
     uint32_t reserved : 19;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_dwsz_cfg_t;
 
-//0x31c
-struct apu_fft_cfg_t
+/*0x31c*/
+typedef struct _apu_fft_cfg
 {
     uint32_t fft_shift_factor : 9;
     uint32_t reserved1 : 3;
     uint32_t fft_enable : 1;
     uint32_t reserved2 : 19;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_fft_cfg_t;
 
-//0x328
-struct apu_int_stat_t
+/*0x328*/
+typedef struct _apu_int_stat
 {
     /**
      * sound direction searching data ready interrupt event.
@@ -220,11 +218,10 @@ struct apu_int_stat_t
      */
     uint32_t voc_buf_data_rdy : 1;
     uint32_t reserved : 30;
-} __attribute__((packed, aligned(4)));
-/*
- */
-//0x32c
-struct apu_int_mask_t
+} __attribute__((packed, aligned(4))) apu_int_stat_t;
+
+/*0x32c*/
+typedef struct _apu_int_mask
 {
     /**
      * This is the interrupt mask to dir searching data ready interrupt.
@@ -238,28 +235,28 @@ struct apu_int_mask_t
      */
     uint32_t voc_buf_rdy_msk : 1;
     uint32_t reserved : 30;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_int_mask_t;
 
-struct apu_reg_t
+typedef struct _apu_reg
 {
     //0x200
-    struct apu_ch_cfg_t     bf_ch_cfg_reg;
+    apu_ch_cfg_t     bf_ch_cfg_reg;
     //0x204
-    struct apu_ctl_t            bf_ctl_reg;
+    apu_ctl_t            bf_ctl_reg;
     //0x208
-    struct apu_dir_bidx_t       bf_dir_bidx[16][2];
+    apu_dir_bidx_t       bf_dir_bidx[16][2];
     //0x288
-    struct apu_fir_coef_t       bf_pre_fir0_coef[9];
+    apu_fir_coef_t       bf_pre_fir0_coef[9];
     //0x2ac
-    struct apu_fir_coef_t       bf_post_fir0_coef[9];
+    apu_fir_coef_t       bf_post_fir0_coef[9];
     //0x2d0
-    struct apu_fir_coef_t       bf_pre_fir1_coef[9];
+    apu_fir_coef_t       bf_pre_fir1_coef[9];
     //0x2f4
-    struct apu_fir_coef_t       bf_post_fir1_coef[9];
+    apu_fir_coef_t       bf_post_fir1_coef[9];
     //0x318
-    struct apu_dwsz_cfg_t       bf_dwsz_cfg_reg;
+    apu_dwsz_cfg_t       bf_dwsz_cfg_reg;
     //0x31c
-    struct apu_fft_cfg_t        bf_fft_cfg_reg;
+    apu_fft_cfg_t        bf_fft_cfg_reg;
     // 0x320
     /**
      * This is the read register for system DMA to read data stored in
@@ -274,27 +271,28 @@ struct apu_reg_t
      * Each data contains two sound samples.
      */
     volatile uint32_t           vobuf_dma_rdata;
-    //0x328
-    struct apu_int_stat_t       bf_int_stat_reg;
-    //0x32c
-    struct apu_int_mask_t       bf_int_mask_reg;
-    //0x330
+    /*0x328*/
+    apu_int_stat_t       bf_int_stat_reg;
+    /*0x32c*/
+    apu_int_mask_t       bf_int_mask_reg;
+    /*0x330*/
     uint32_t                saturation_counter;
-    //0x334
+    /*0x334*/
     uint32_t                saturation_limits;
-} __attribute__((packed, aligned(4)));
+} __attribute__((packed, aligned(4))) apu_reg_t;
+
+extern volatile apu_reg_t *const apu;
 
 void apu_set_audio_gain(uint16_t gain);
 void apu_set_smpl_shift(uint8_t smpl_shift);
 uint8_t apu_get_smpl_shift(void);
 void apu_set_channel_enabled(uint8_t channel_bit);
 void apu_set_direction_delay(uint8_t dir_num, uint8_t *dir_bidx);
-void apu_set_delay(float R, uint8_t mic_num_a_circle, uint8_t center);
+void apu_set_delay(float radius, uint8_t mic_num_a_circle, uint8_t center);
 
 void apu_set_fft_shift_factor(uint8_t enable_flag, uint16_t shift_factor);
-void apu_set_down_size(uint8_t dir_dwn_siz, uint8_t voc_dwn_siz); //split to 2 functions
-void apu_set_interrupt_mask(uint8_t dir_int_mask, uint8_t voc_int_mask); //split to 2 functions
-
+void apu_set_down_size(uint8_t dir_dwn_siz, uint8_t voc_dwn_siz); /*split to 2 functions*/
+void apu_set_interrupt_mask(uint8_t dir_int_mask, uint8_t voc_int_mask); /*split to 2 functions*/
 
 void apu_dir_enable(void);
 void apu_dir_reset(void);
@@ -306,7 +304,7 @@ void apu_dir_clear_int_state(void);
 
 void apu_voc_enable(uint8_t enable_flag);
 void apu_voc_reset(void);
-void apu_voc_set_direction(enum en_bf_dir direction);
+void apu_voc_set_direction(en_bf_dir_t direction);
 void apu_voc_set_prev_fir(uint16_t *fir_coef);
 void apu_voc_set_post_fir(uint16_t *fir_coef);
 void apu_voc_set_down_size(uint8_t voc_dwn_size);
