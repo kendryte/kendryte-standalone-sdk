@@ -58,9 +58,14 @@ script:
     echo "[MAKE]" $TRAVIS_BUILD_DIR/src/$DIR
     cd $TRAVIS_BUILD_DIR/src/$DIR
     if [ ! -f "Makefile" ]; then
-      mkdir build && cd build
-      cmake -DPROJ=$DIR -DTOOLCHAIN=$TRAVIS_BUILD_DIR/cache/kendryte-toolchain/bin ../../../ || exit -1
-      make || exit -1
+      COUNT=$(expr $(ls -1 *.c 2>/dev/null | wc -l) + $(ls -1 *.cpp 2>/dev/null | wc -l) + $(ls -1 *.S 2>/dev/null | wc -l))
+      if [ $COUNT -gt 0 ]; then
+        mkdir build && cd build
+        cmake -DPROJ=$DIR -DTOOLCHAIN=$TRAVIS_BUILD_DIR/cache/kendryte-toolchain/bin ../../../ || exit -1
+        make || exit -1
+      then
+        echo "[IGNORE]" $TRAVIS_BUILD_DIR/src/$DIR
+      fi
     else
       make || exit -1
     fi
