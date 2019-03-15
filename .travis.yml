@@ -63,7 +63,7 @@ script:
         mkdir build && cd build
         cmake -DPROJ=$DIR -DTOOLCHAIN=$TRAVIS_BUILD_DIR/cache/kendryte-toolchain/bin ../../../ || exit -1
         make || exit -1
-      then
+      else
         echo "[IGNORE]" $TRAVIS_BUILD_DIR/src/$DIR
       fi
     else
