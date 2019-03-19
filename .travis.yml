@@ -52,6 +52,7 @@ script:
 - |
   cd $TRAVIS_BUILD_DIR/src
   cp -rf $TRAVIS_BUILD_DIR/kendryte-standalone-demo/* .
+  mv $TRAVIS_BUILD_DIR/kendryte-standalone-demo ~/demo
 ## Check example code
 - |
   for DIR in $(ls $TRAVIS_BUILD_DIR/src)
@@ -71,4 +72,3 @@ script:
       make || exit -1
     fi
   done
-
