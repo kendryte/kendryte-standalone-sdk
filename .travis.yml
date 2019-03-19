@@ -44,6 +44,7 @@ install:
   cd $TRAVIS_BUILD_DIR
   export BRANCH=$(if [ "$TRAVIS_BRANCH" == "master" ]; then echo $TRAVIS_BRANCH; else echo "develop"; fi)
   git clone --single-branch --branch $BRANCH https://github.com/kendryte/kendryte-standalone-demo.git
+  echo "Build branch $BRANCH"
 
 script:
 - export BUILD_DATE=$(date +%Y%m%d)
