@@ -977,7 +977,7 @@ static int spi_slave_irq(void *ctx)
     volatile spi_t *spi_handle = spi[2];
 
     spi_handle->imr = 0x00;
-    *(volatile uint32_t *)(spi_handle->icr);
+    *(volatile uint32_t *)((uintptr_t)spi_handle->icr);
     if (g_instance.status == IDLE)
         g_instance.status = COMMAND;
     return 0;
@@ -1098,19 +1098,19 @@ static void spi_slave_command_mode(void)
         case SPI_TRANS_INT:
             for (uint32_t i = 0; i < g_instance.command.len / 4; i++)
             {
-                spi_handle->dr[0] = ((uint32_t *)g_instance.command.addr)[i];
+                spi_handle->dr[0] = ((uint32_t *)(uintptr_t)g_instance.command.addr)[i];
             }
             break;
         case SPI_TRANS_SHORT:
             for (uint32_t i = 0; i < g_instance.command.len / 2; i++)
             {
-                spi_handle->dr[0] = ((uint16_t *)g_instance.command.addr)[i];
+                spi_handle->dr[0] = ((uint16_t *)(uintptr_t)g_instance.command.addr)[i];
             }
             break;
         default:
             for (uint32_t i = 0; i < g_instance.command.len; i++)
             {
-                spi_handle->dr[0] = ((uint8_t *)g_instance.command.addr)[i];
+                spi_handle->dr[0] = ((uint8_t *)(uintptr_t)g_instance.command.addr)[i];
             }
             break;
         }
@@ -1125,7 +1125,7 @@ static void spi_slave_command_mode(void)
 
         sysctl_dma_select(g_instance.dmac_channel, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_num * 2);
 
-        dmac_set_single_mode(g_instance.dmac_channel, (void *)(&spi_handle->dr[0]), (void *)(g_instance.command.addr & 0xFFFFFFF0), DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+        dmac_set_single_mode(g_instance.dmac_channel, (void *)(&spi_handle->dr[0]), (void *)((uintptr_t)g_instance.command.addr & 0xFFFFFFF0), DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
                             DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, g_instance.command.len * 4);
     }
     else if (g_instance.command.cmd == READ_DATA_BLOCK) 
@@ -1137,7 +1137,7 @@ static void spi_slave_command_mode(void)
         spi_handle->ssienr = 0x01;
 
         sysctl_dma_select(g_instance.dmac_channel, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
-        dmac_set_single_mode(g_instance.dmac_channel, (void *)(g_instance.command.addr & 0xFFFFFFF0), (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
+        dmac_set_single_mode(g_instance.dmac_channel, (void *)((uintptr_t)g_instance.command.addr & 0xFFFFFFF0), (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                             DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, g_instance.command.len * 4);
     }
     else
@@ -1220,19 +1220,19 @@ static void spi_slave_transfer_mode(void)
             case SPI_TRANS_INT:
                 for (uint32_t i = 0; i < command_len; i++)
                 {
-                    ((uint32_t *)g_instance.command.addr)[i] = spi_handle->dr[0];
+                    ((uint32_t *)(uintptr_t)g_instance.command.addr)[i] = spi_handle->dr[0];
                 }
                 break;
             case SPI_TRANS_SHORT:
                 for (uint32_t i = 0; i < command_len; i++)
                 {
-                    ((uint16_t *)g_instance.command.addr)[i] = spi_handle->dr[0];
+                    ((uint16_t *)(uintptr_t)g_instance.command.addr)[i] = spi_handle->dr[0];
                 }
                 break;
             default:
                 for (uint32_t i = 0; i < command_len; i++)
                 {
-                    ((uint8_t *)g_instance.command.addr)[i] = spi_handle->dr[0];
+                    ((uint8_t *)(uintptr_t)g_instance.command.addr)[i] = spi_handle->dr[0];
                 }
                 break;
             }
