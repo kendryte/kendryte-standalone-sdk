@@ -280,7 +280,7 @@ static void kpu_data_input(kpu_task_t *task)
     }
     dmac_irq_register(task->dma_ch, kpu_data_ready, task, 1);
     kpu_layer_argument_t *layer = &task->layers[0];
-    dmac_set_single_mode(task->dma_ch, task->src, (void *)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(task->dma_ch, task->src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, task->src_length);
 }
 
@@ -587,7 +587,7 @@ void kpu_dequantize(const uint8_t *src, const quantize_param_t *src_param, size_
 
 void kpu_input_with_padding(kpu_layer_argument_t *layer, const uint8_t *src, int width, int height, int channels)
 {
-    uint8_t *dest = (uint8_t *)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64);
+    uint8_t *dest = (uint8_t *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64);
     size_t oc, y, x;
 
     uint32_t row_padding;
@@ -650,7 +650,7 @@ static void kpu_flush_cache(uint32_t addr, size_t lines)
 
 static void kpu_upload_core(size_t width, size_t height, size_t channels, const uint8_t *src, uint32_t kpu_addr)
 {
-    uint8_t *dest = AI_IO_BASE_ADDR + kpu_addr * 64;
+    uint8_t *dest = (uint8_t *)(uintptr_t)(AI_IO_BASE_ADDR + kpu_addr * 64);
     size_t oc, y, x;
     uint32_t row_padding;
     uint32_t row_group;
@@ -682,14 +682,14 @@ static void kpu_upload_core(size_t width, size_t height, size_t channels, const 
         uint8_t* channel_origin = dest + oc / row_group * row_length * height * 64 + oc % row_group * row_padding;   \
         for (y = 0; y < height; y++)                                                                                 \
         {                                                                                                            \
-            uint64_t* y_origin = channel_origin + y * row_length * 64;                                               \
+            uint64_t* y_origin = (uint64_t*)(channel_origin + y * row_length * 64);                                               \
 
 #define UPLOAD_END() \
         }            \
     }
 
         width /= 8;
-        const uint64_t *u64_src = src;
+        const uint64_t *u64_src = (const uint64_t *)src;
         if (width == 1)
         {
             UPLOAD_BEGIN()
@@ -831,40 +831,51 @@ static void kpu_quantized_add(const kpu_model_quant_add_layer_argument_t *arg, k
     }
     else
     {
+#undef QADD_UNROLL_1
 #define QADD_UNROLL_1(x)     \
     int64_t a##x = *src_a++; \
     int64_t b##x = *src_b++;
-
+    
+#undef QADD_UNROLL_2
 #define QADD_UNROLL_2(x) \
     a##x += off_a; \
     b##x += off_b;
 
+#undef QADD_UNROLL_3
 #define QADD_UNROLL_3(x) \
     a##x *= mul_a; \
     b##x *= mul_b;
 
+#undef QADD_UNROLL_4
 #define QADD_UNROLL_4(x) \
     a##x >>= sh_a; \
     b##x >>= sh_b;
 
+#undef QADD_UNROLL_5
 #define QADD_UNROLL_5(x) \
     int64_t v##x = a##x + b##x;
 
+#undef QADD_UNROLL_6
 #define QADD_UNROLL_6(x) \
     v##x *= mul_o;
 
+#undef QADD_UNROLL_7
 #define QADD_UNROLL_7(x) \
     v##x >>= sh_o;
 
+#undef QADD_UNROLL_8
 #define QADD_UNROLL_8(x) \
     v##x += off_o;
 
+#undef QADD_UNROLL_9
 #define QADD_UNROLL_9(x) \
     v##x = min(0xFF, max(0, v##x));
 
+#undef QADD_UNROLL_10
 #define QADD_UNROLL_10(x) \
     *dest++ = v##x;
 
+#undef QADD_UNROLL_S
 #define QADD_UNROLL_S(x) \
     QADD_UNROLL_##x(0) \
     QADD_UNROLL_##x(1) \
@@ -1103,7 +1114,7 @@ static void kpu_kmodel_fully_connected(const kpu_model_fully_connected_layer_arg
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     uint32_t in_channels = arg->in_channels, out_channels = arg->out_channels, ic, oc;
-    float *weights = arg->weights, *bias = arg->weights + in_channels * out_channels;
+    const float *weights = arg->weights, *bias = arg->weights + in_channels * out_channels;
 
     for (oc = 0; oc < out_channels; oc++)
     {
@@ -1157,7 +1168,7 @@ static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_conte
         if (ctx->current_layer != ctx->layers_length)
             dmac_set_irq(dma_ch, ai_step, ctx, 1);
         else
-            dmac_set_irq(dma_ch, kpu_kmodel_done, ctx, 1);
+            dmac_set_irq(dma_ch, (plic_irq_callback_t)kpu_kmodel_done, ctx, 1);
         dmac_set_single_mode(dma_ch, (void *)(&kpu->fifo_data_out), dest, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
             DMAC_MSIZE_8, DMAC_TRANS_WIDTH_64, (layer.dma_parameter.data.dma_total_byte + 8) / 8);
     }
@@ -1187,16 +1198,16 @@ static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_conte
 #endif
     }
 
-    kpu_send_layer(&layer);
+    kpu_send_layer((const kpu_layer_argument_t *)&layer);
 }
 
 static void kpu_add_padding(const kpu_model_add_padding_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
 #if USE_CACHED_AI_RAM
-	uint8_t *dest = AI_RAM_BASE_ADDR + arg->kpu_mem_out_address * 64;
+	uint8_t *dest = (uint8_t *)(uintptr_t)(AI_RAM_BASE_ADDR + arg->kpu_mem_out_address * 64);
 #else
-	uint8_t *dest = AI_IO_BASE_ADDR + arg->kpu_mem_out_address * 64;
+	uint8_t *dest = (uint8_t *)(uintptr_t)(AI_IO_BASE_ADDR + arg->kpu_mem_out_address * 64);
 #endif
 
     uint32_t row_padding = 16;
