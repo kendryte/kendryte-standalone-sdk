@@ -21,6 +21,10 @@ target_link_libraries(${PROJECT_NAME}
         -Wl,--no-whole-archive
         -Wl,--end-group
         )
+        
+if (EXISTS ${SDK_ROOT}/src/${PROJ}/project.cmake)
+    include(${SDK_ROOT}/src/${PROJ}/project.cmake)
+endif ()
 
 IF(SUFFIX)
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SUFFIX ${SUFFIX})
