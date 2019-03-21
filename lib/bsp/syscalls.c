@@ -105,7 +105,7 @@ void __attribute__((noreturn)) sys_exit(int code)
     /* Read core id */
     unsigned long core_id = current_coreid();
     /* First print some diagnostic information. */
-    LOGW(TAG, "sys_exit called by core %ld with 0x%lx\n", core_id, (uint64_t)code);
+    LOGW(TAG, "sys_exit called by core %ld with 0x%lx\r\n", core_id, (uint64_t)code);
     while (1)
         continue;
 }
@@ -116,7 +116,7 @@ static int sys_nosys(long a0, long a1, long a2, long a3, long a4, long a5, unsig
     UNUSED(a4);
     UNUSED(a5);
 
-    LOGE(TAG, "Unsupported syscall %ld: a0=%lx, a1=%lx, a2=%lx!\n", n, a0, a1, a2);
+    LOGE(TAG, "Unsupported syscall %ld: a0=%lx, a1=%lx, a2=%lx!\r\n", n, a0, a1, a2);
     while (1)
         continue;
     return -ENOSYS;
@@ -162,7 +162,7 @@ static size_t sys_brk(size_t pos)
         if ((uintptr_t)pos > (uintptr_t)&_heap_end[0])
         {
             /* Memory out, return -ENOMEM */
-            LOGE(TAG, "Out of memory\n");
+            LOGE(TAG, "Out of memory\r\n");
             res = -ENOMEM;
         }
         else

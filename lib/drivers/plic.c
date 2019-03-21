@@ -21,12 +21,6 @@
 
 volatile plic_t* const plic = (volatile plic_t*)PLIC_BASE_ADDR;
 
-typedef struct _plic_instance_t
-{
-    plic_irq_callback_t callback;
-    void *ctx;
-} plic_instance_t;
-
 static plic_instance_t plic_instance[PLIC_NUM_CORES][IRQN_MAX];
 
 void plic_init(void)
@@ -160,6 +154,11 @@ void plic_irq_unregister(plic_irq_t irq)
 }
 
 void __attribute__((weak, alias("plic_irq_unregister"))) plic_irq_deregister(plic_irq_t irq);
+
+plic_instance_t (*plic_get_instance(void))[IRQN_MAX]
+{
+    return plic_instance;
+}
 
 /*Entry Point for PLIC Interrupt Handler*/
 uintptr_t __attribute__((weak))

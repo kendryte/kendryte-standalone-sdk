@@ -157,6 +157,48 @@ typedef enum _spi_chip_select
     SPI_CHIP_SELECT_MAX,
 } spi_chip_select_t;
 
+typedef enum
+{
+    WRITE_CONFIG,
+    READ_CONFIG,
+    WRITE_DATA_BYTE,
+    READ_DATA_BYTE,
+    WRITE_DATA_BLOCK,
+    READ_DATA_BLOCK,
+} spi_slave_command_e;
+
+typedef struct
+{
+    uint8_t cmd;
+    uint8_t err;
+    uint32_t addr;
+    uint32_t len;
+} spi_slave_command_t;
+
+typedef enum
+{
+    IDLE,
+    COMMAND,
+    TRANSFER,
+} spi_slave_status_e;
+
+typedef int (*spi_slave_receive_callback_t)(void *ctx);
+
+typedef struct _spi_slave_instance
+{
+    uint8_t int_pin;
+    uint8_t ready_pin;
+    dmac_channel_number_t dmac_channel;
+    uint8_t dfs;
+    uint8_t slv_oe;
+    uint8_t work_mode;
+    size_t data_bit_length;
+    volatile spi_slave_status_e status;
+    volatile spi_slave_command_t command;
+    volatile uint8_t *config_ptr;
+    uint32_t config_len;
+    spi_slave_receive_callback_t callback;
+} spi_slave_instance_t;
 
 extern volatile spi_t *const spi[4];
 
@@ -169,9 +211,7 @@ extern volatile spi_t *const spi[4];
  * @param[in]   data_bit_length     Spi data bit length
  * @param[in]   endian              0:little-endian 1:big-endian
  *
- * @return      Result
- *     - 0      Success
- *     - Other  Fail
+ * @return      Void
  */
 void spi_init(spi_device_num_t spi_num, spi_work_mode_t work_mode, spi_frame_format_t frame_format,
               size_t data_bit_length, uint32_t endian);
@@ -398,6 +438,21 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
                                dmac_channel_number_t dma_receive_channel_num,
                                spi_device_num_t spi_num, spi_chip_select_t chip_select,
                                const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len);
+
+/**
+ * @brief       Set spi slave configuration
+ *
+ * @param[in]   int_pin             SPI master starts sending data interrupt.
+ * @param[in]   ready_pin           SPI slave ready.
+ * @param[in]   dmac_channel        Dmac channel number for block.
+ * @param[in]   data_bit_length     Spi data bit length
+ * @param[in]   data                SPI slave device data buffer.
+ * @param[in]   len                 The length of SPI slave device data buffer.
+ * @param[in]   callback            Callback of spi slave.
+ *
+ * @return      Void
+ */
+void spi_slave_config(uint8_t int_pin, uint8_t ready_pin, dmac_channel_number_t dmac_channel, size_t data_bit_length, uint8_t *data, uint32_t len, spi_slave_receive_callback_t callback);
 
 #ifdef __cplusplus
 }

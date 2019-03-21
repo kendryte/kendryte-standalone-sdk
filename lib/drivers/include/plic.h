@@ -359,6 +359,15 @@ extern volatile plic_t *const plic;
 typedef int (*plic_irq_callback_t)(void *ctx);
 
 /**
+ * @brief       Definitions for IRQ table instance
+ */
+typedef struct _plic_instance_t
+{
+    plic_irq_callback_t callback;
+    void *ctx;
+} plic_instance_t;
+
+/**
  * @brief       Initialize PLIC external interrupt
  *
  * @note        This function will set MIP_MEIP. The MSTATUS_MIE must set by user.
@@ -465,6 +474,15 @@ void plic_irq_deregister(plic_irq_t irq);
  *     - Other  Fail
  */
 void plic_irq_unregister(plic_irq_t irq);
+
+/**
+ * @brief       Get IRQ table, Usage:
+ *              plic_instance_t (*plic_instance)[IRQN_MAX] = plic_get_instance();
+ *              ... plic_instance[x][y] ...;
+ *
+ * @return      the point of IRQ table
+ */
+plic_instance_t (*plic_get_instance(void))[IRQN_MAX];
 
 /* For c++ compatibility */
 #ifdef __cplusplus

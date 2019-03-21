@@ -15,6 +15,8 @@ add_compile_flags(LD
 # C Flags Settings
 add_compile_flags(BOTH
         -mcmodel=medany
+        -mabi=lp64f
+        -march=rv64imafc
         -fno-common
         -ffunction-sections
         -fdata-sections
@@ -46,6 +48,11 @@ if (BUILDING_SDK)
             -Wno-strict-aliasing
             -Wno-implicit-fallthrough
             -Wno-missing-field-initializers
+            -Wno-int-to-pointer-cast
+            -Wno-error=comment
+            -Wno-error=logical-not-parentheses
+            -Wno-error=duplicate-decl-specifier
+            -Wno-error=parentheses
             )
 
     add_compile_flags(C -Wno-old-style-declaration)

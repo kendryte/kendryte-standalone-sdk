@@ -74,7 +74,7 @@ extern "C" {
         code;                                                                                     \
         _c += read_cycle(), _i += read_csr(minstret);                                         \
         if (cid == 0)                                                                             \
-            printf("\n%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\n",                        \
+            printf("\r\n%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\r\n",                        \
                 stringify(code), _c, _c / iter, 10 * _c / iter % 10, _c / _i, 10 * _c / _i % 10); \
     } while (0)
 
@@ -100,7 +100,7 @@ static void printArray(const char name[], int n, const int arr[])
     printf(" %10s :", name);
     for (i = 0; i < n; i++)
         printf(" %3d ", arr[i]);
-    printf("\n");
+    printf("\r\n");
 #endif
 }
 
@@ -112,7 +112,7 @@ static void printDoubleArray(const char name[], int n, const double arr[])
     printf(" %10s :", name);
     for (i = 0; i < n; i++)
         printf(" %g ", arr[i]);
-    printf("\n");
+    printf("\r\n");
 #endif
 }
 

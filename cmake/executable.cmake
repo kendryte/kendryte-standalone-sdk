@@ -1,7 +1,12 @@
 if (NOT BUILDING_SDK)
-    add_library(kendryte STATIC IMPORTED)
-    set_property(TARGET kendryte PROPERTY IMPORTED_LOCATION ${SDK_ROOT}/libkendryte.a)
-    include_directories(${SDK_ROOT}/include/)
+    if(EXISTS ${SDK_ROOT}/libkendryte.a)
+        add_library(kendryte STATIC IMPORTED)
+        set_property(TARGET kendryte PROPERTY IMPORTED_LOCATION ${SDK_ROOT}/libkendryte.a)
+        include_directories(${SDK_ROOT}/include/)
+    else()
+        header_directories(${SDK_ROOT}/lib)
+        add_subdirectory(${SDK_ROOT}/lib)
+    endif()
 endif ()
 
 removeDuplicateSubstring(${CMAKE_C_FLAGS} CMAKE_C_FLAGS)
@@ -21,6 +26,10 @@ target_link_libraries(${PROJECT_NAME}
         -Wl,--no-whole-archive
         -Wl,--end-group
         )
+        
+if (EXISTS ${SDK_ROOT}/src/${PROJ}/project.cmake)
+    include(${SDK_ROOT}/src/${PROJ}/project.cmake)
+endif ()
 
 IF(SUFFIX)
     SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SUFFIX ${SUFFIX})

@@ -92,3 +92,18 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
   - Fix uarths stopbit problem
   - Fix core1 stack problem
   - Fix core1 interrupt problem
+  
+## 0.5.4
+- Major change
+  - Modify KPU driver for NNCASE
+  - Add APU driver
+  - Add support for new toolchain
+  - UART use shadow regs
+  - Add spi slave driver
+  - Add travis CI script
+
+- Non-breaking bug fixes
+  - Fix float issues
+
+- Breaking change
+  - Fix bus reset problem
