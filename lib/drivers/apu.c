@@ -1,3 +1,17 @@
+/* Copyright 2018 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <stddef.h>
 #include <stdint.h>
 #include <math.h>
@@ -18,7 +32,7 @@ the average value of samples from different channels is required, this right shi
 is used to perform division.
 0x0: no right shift;               0x1: right shift by 1-bit;
  . . . . . .
-0xF: right shift by 14-bit.
+0xF: right shift by 15-bit.
 */
 void apu_set_audio_gain(uint16_t gain)
 {
@@ -40,6 +54,7 @@ void apu_set_smpl_shift(uint8_t smpl_shift)
     tmp.smpl_shift_bits = smpl_shift;
     apu->bf_dwsz_cfg_reg = tmp;
 }
+
 /*get sampling shift*/
 uint8_t apu_get_smpl_shift(void)
 {
@@ -49,13 +64,13 @@ uint8_t apu_get_smpl_shift(void)
 }
 
 /*
- * BF unit sound channel enable control bits.  Bit 'x' corresponds to enable bit for sound
- * channel 'x' (x = 0, 1, 2, . . ., 7).  BF sound channels are related with I2S host RX channels.
- * BF sound channel 0/1 correspond to the left/right channel of I2S RX0; BF channel 2/3 correspond
+ * APU unit sound channel enable control bits.  Bit 'x' corresponds to enable bit for sound
+ * channel 'x' (x = 0, 1, 2, . . ., 7).  APU sound channels are related with I2S host RX channels.
+ * APU sound channel 0/1 correspond to the left/right channel of I2S RX0; APU channel 2/3 correspond
  * to left/right channels of I2S RX1; and things like that.  Software write '1' to enable a sound
  * channel and hardware automatically clear the bit after the sample buffers used for direction
  * searching is filled full.
- * 0x1: writing '1' to enable the corresponding BF sound channel.
+ * 0x1: writing '1' to enable the corresponding APU sound channel.
  */
 void apu_set_channel_enabled(uint8_t channel_bit)
 {
@@ -69,13 +84,13 @@ void apu_set_channel_enabled(uint8_t channel_bit)
 }
 
 /*
- * BF unit sound channel enable control bits.  Bit 'x' corresponds to enable bit for sound
- * channel 'x' (x = 0, 1, 2, . . ., 7).  BF sound channels are related with I2S host RX channels.
- * BF sound channel 0/1 correspond to the left/right channel of I2S RX0; BF channel 2/3 correspond
+ * APU unit sound channel enable control bits.  Bit 'x' corresponds to enable bit for sound
+ * channel 'x' (x = 0, 1, 2, . . ., 7).  APU sound channels are related with I2S host RX channels.
+ * APU sound channel 0/1 correspond to the left/right channel of I2S RX0; APU channel 2/3 correspond
  * to left/right channels of I2S RX1; and things like that.  Software write '1' to enable a sound
  * channel and hardware automatically clear the bit after the sample buffers used for direction
  * searching is filled full.
- * 0x1: writing '1' to enable the corresponding BF sound channel.
+ * 0x1: writing '1' to enable the corresponding APU sound channel.
  */
 void apu_channel_enable(uint8_t channel_bit)
 {
@@ -267,7 +282,6 @@ void apu_voc_set_direction(en_bf_dir_t direction)
     apu->bf_ctl_reg = bf_en_tmp;
 }
 
-
 /*
  *I2S host beam-forming Filter FIR16 Coefficient Register
  */
@@ -283,6 +297,7 @@ void apu_dir_set_prev_fir(uint16_t *fir_coef)
         };
     }
 }
+
 void apu_dir_set_post_fir(uint16_t *fir_coef)
 {
     uint8_t i = 0;
@@ -295,6 +310,7 @@ void apu_dir_set_post_fir(uint16_t *fir_coef)
         };
     }
 }
+
 void apu_voc_set_prev_fir(uint16_t *fir_coef)
 {
     uint8_t i = 0;
@@ -307,6 +323,7 @@ void apu_voc_set_prev_fir(uint16_t *fir_coef)
         };
     }
 }
+
 void apu_voc_set_post_fir(uint16_t *fir_coef)
 {
     uint8_t i = 0;
@@ -366,7 +383,6 @@ void apu_voc_set_interrupt_mask(uint8_t voc_int_mask)
     tmp.voc_buf_rdy_msk = voc_int_mask;
     apu->bf_int_mask_reg = tmp;
 }
-
 
 void apu_set_down_size(uint8_t dir_dwn_size, uint8_t voc_dwn_size)
 {

@@ -1,3 +1,17 @@
+/* Copyright 2018 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #ifndef _apu_H_
 #define _apu_H_
 
@@ -160,7 +174,7 @@ typedef struct _apu_fir_coef
 typedef struct _apu_dwsz_cfg
 {
     /**
-     * TThe down-sizing ratio used for direction searching.
+     * The down-sizing ratio used for direction searching.
      * 0x0: no down-sizing;
      * 0x1: 1/2 down sizing;
      * 0x2: 1/3 down sizing;
@@ -283,38 +297,237 @@ typedef struct _apu_reg
 
 extern volatile apu_reg_t *const apu;
 
+/**
+ * @brief       Voice strength average value right shift factor.  When performing sound direction detect,
+ *              the average value of samples from different channels is required, this right shift factor
+ *              is used to perform division.
+ *
+ * @param[in]   gain            value of audio gain.
+ *                              0x0: no right shift;
+ *                              0x1: right shift by 1-bit;
+ *                              . . . . . .
+ *                              0xF: right shift by 15-bit.
+ *
+ */
 void apu_set_audio_gain(uint16_t gain);
+
+/**
+ * @brief       Set sampling shift.
+ *
+ * @param[in]   smpl_shift             vlaue of sampling shift
+ *
+ */
 void apu_set_smpl_shift(uint8_t smpl_shift);
+
+/**
+ * @brief       Get sampling shift
+ *
+ * @return      vlaue of sampling shift
+ */
 uint8_t apu_get_smpl_shift(void);
+
+/**
+ * @brief       APU unit sound channel enable control bits.  Bit 'x' corresponds to enable bit for sound
+ *              channel 'x' (x = 0, 1, 2, . . ., 7).  APU sound channels are related with I2S host RX channels.
+ *              APU sound channel 0/1 correspond to the left/right channel of I2S RX0; APU channel 2/3 correspond
+ *              to left/right channels of I2S RX1; and things like that.  Software write '1' to enable a sound
+ *              channel and hardware automatically clear the bit after the sample buffers used for direction
+ *              searching is filled full.
+ *
+ *
+ * @param[in]   channel_bit         APU sound channel.0x1: writing
+ *                                  '1' to enable the corresponding APU sound channel.
+ *
+ */
 void apu_set_channel_enabled(uint8_t channel_bit);
+
+/**
+ * @brief       I2S host beam-forming direction sample ibuffer read index configure register
+ *
+ * @param[in]   dir_num          the direction of index
+ * @param[in]   dir_bidx
+ *
+ */
 void apu_set_direction_delay(uint8_t dir_num, uint8_t *dir_bidx);
+
+/**
+ * @brief       I2S host beam-forming direction sample ibuffer read index configure register
+ *
+ * @param[in]   radius               radius
+ * @param[in]   mic_num_a_circle     the num of mic per circle
+ * @param[in]   center               0: no center mic, 1:have center mic
+ *
+ */
 void apu_set_delay(float radius, uint8_t mic_num_a_circle, uint8_t center);
 
+/**
+ * @brief       Set ffp shift factor
+ *
+ * @param[in]   enable_flag               enable fft
+ * @param[in]   shift_factor              shift factor
+ *
+ */
 void apu_set_fft_shift_factor(uint8_t enable_flag, uint16_t shift_factor);
-void apu_set_down_size(uint8_t dir_dwn_siz, uint8_t voc_dwn_siz); /*split to 2 functions*/
-void apu_set_interrupt_mask(uint8_t dir_int_mask, uint8_t voc_int_mask); /*split to 2 functions*/
 
+/**
+ * @brief       Set down-sizing ratio used for voice direction searching and voice stream generation.
+ *
+ * @param[in]   dir_dwn_siz               down-sizing ratio used for voice direction searching
+ *                                        0x0: no down-sizing
+ *                                        0x1: 1/2 down sizing
+ *                                        0x2: 1/3 down sizing
+ *                                        . . . . . .
+ *                                        0xF: 1/16 down sizing
+ * @param[in]   voc_dwn_siz               down-sizing ratio used for voice stream generation
+ *                                        0x0: no down-sizing
+ *                                        0x1: 1/2 down sizing
+ *                                        0x2: 1/3 down sizing
+ *                                        . . . . . .
+ *                                        0xF: 1/16 down sizing
+ */
+void apu_set_down_size(uint8_t dir_dwn_siz, uint8_t voc_dwn_siz);
+
+/**
+ * @brief       Set direction and voice interrupt mask
+ *
+ * @param[in]   dir_int_mask                direction interrupt mask
+ * @param[in]   voc_int_mask                voice interrupt mask
+ *
+ */
+void apu_set_interrupt_mask(uint8_t dir_int_mask, uint8_t voc_int_mask);
+
+/**
+ * @brief       Enable direction searching.
+ *
+ */
 void apu_dir_enable(void);
+
+/**
+ * @brief       Reset direction searching.
+ *
+ */
 void apu_dir_reset(void);
+
 void apu_dir_set_prev_fir(uint16_t *fir_coef);
+
 void apu_dir_set_post_fir(uint16_t *fir_coef);
+
+/**
+ * @brief       Set down-sizing ratio used for voice direction searching
+ *
+ * @param[in]   dir_dwn_siz               down-sizing ratio used for voice direction searching
+ *                                        0x0: no down-sizing
+ *                                        0x1: 1/2 down sizing
+ *                                        0x2: 1/3 down sizing
+ *                                        . . . . . .
+ *                                        0xF: 1/16 down sizing
+ */
 void apu_dir_set_down_size(uint8_t dir_dwn_size);
+
+/**
+ * @brief       Set direction searching interrupt mask
+ *
+ * @param[in]   dir_int_mask                direction interrupt mask
+ *
+ */
 void apu_dir_set_interrupt_mask(uint8_t dir_int_mask);
+
+/**
+ * @brief       Clear direction interrupt
+ *
+ */
 void apu_dir_clear_int_state(void);
 
+/**
+ * @brief        Valid voice sample stream generation enable bit.  After sound direction searching is done, software can
+ *               configure this bit to generate a stream of voice samples for voice recognition.
+ *
+ * @param[in]   enable_flag                0x1: enable output of voice sample stream. 0x0: stop the voice samlpe stream output.
+ *
+ */
 void apu_voc_enable(uint8_t enable_flag);
+
+/**
+ * @brief       Reset voice sample
+ *
+ */
 void apu_voc_reset(void);
+
+/**
+ * @brief        Target direction select for valid voice output.  When the source voice direaction searching
+ *               is done, software can use this field to select one from 16 sound directions for the following
+ *               voice recognition
+ *
+ * @param[in]   direction                0x0: select sound direction 0;
+ *                                       0x1: select sound direction 1;
+ *                                       . . . . . .
+ *                                       0xF: select sound direction 15.
+ */
 void apu_voc_set_direction(en_bf_dir_t direction);
+
 void apu_voc_set_prev_fir(uint16_t *fir_coef);
+
 void apu_voc_set_post_fir(uint16_t *fir_coef);
+
+/**
+ * @brief       Set down-sizing ratio used for voice stream generation.
+ *
+ * @param[in]   voc_dwn_siz               down-sizing ratio used for voice stream generation
+ *                                        0x0: no down-sizing
+ *                                        0x1: 1/2 down sizing
+ *                                        0x2: 1/3 down sizing
+ *                                        . . . . . .
+ *                                        0xF: 1/16 down sizing
+ */
 void apu_voc_set_down_size(uint8_t voc_dwn_size);
+
+/**
+ * @brief       Set voice stream generation interrupt mask
+ *
+ * @param[in]   voc_int_mask                voice interrupt mask
+ *
+ */
 void apu_voc_set_interrupt_mask(uint8_t voc_int_mask);
+
+/**
+ * @brief       Clear voice interrupt
+ *
+ */
 void apu_voc_clear_int_state(void);
+
+/**
+ * @brief       Reset saturation_counter
+ *
+ */
 void apu_voc_reset_saturation_counter(void);
+
+/**
+ * @brief       Get saturation counter
+ *
+ * @return      vlaue of saturation counter.heigh 16 bit is counter, low 16 bit is total
+ */
 uint32_t apu_voc_get_saturation_counter(void);
+
+/**
+ * @brief        set saturation limit
+ *
+ * @param[in]    upper                  heigh 16 bit is counter
+ * @param[in]    bottom                 low 16 bit is total
+ *
+ */
 void apu_voc_set_saturation_limit(uint16_t upper, uint16_t bottom);
+
+/**
+ * @brief       Get saturation limit
+ *
+ * @return      vlaue of saturation limit.heigh 16 bit is counter, low 16 bit is total
+ */
 uint32_t apu_voc_get_saturation_limit(void);
 
+/**
+ * @brief       Print apu setting for debug
+ *
+ */
 void apu_print_setting(void);
 
 #if defined(__cplusplus)

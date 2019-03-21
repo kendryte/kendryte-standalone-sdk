@@ -425,11 +425,11 @@ int i2c_recv_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
  *
  * @param[in]   dma_send_channel_num        send dma channel
  * @param[in]   dma_receive_channel_num     receive dma channel
- * @param[in]   i2c_num         i2c number
- * @param[in]   send_buf            send data address
- * @param[in]   send_buf_len        length of send buf
- * @param[in]   receive_buf         receive buf address
- * @param[in]   receive_buf_len     length of receive buf
+ * @param[in]   i2c_num                     i2c number
+ * @param[in]   send_buf                    send data address
+ * @param[in]   send_buf_len                length of send buf
+ * @param[in]   receive_buf                 receive buf address
+ * @param[in]   receive_buf_len             length of receive buf
  *
  * @return      result
  *     - 0      Success

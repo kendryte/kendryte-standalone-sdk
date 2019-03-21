@@ -1,3 +1,17 @@
+/* Copyright 2018 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #ifndef _KPU_H
 #define _KPU_H
 
@@ -840,9 +854,53 @@ void kpu_matmul_end(const uint8_t *src, int channels, float *dest, const quantiz
  */
 void kpu_dequantize(const uint8_t *src, const quantize_param_t *src_param, size_t count, float *dest);
 
+/**
+ * @brief       Kpu load kmodel
+ *
+ * @param[in]   ctx                                 Kmodel object
+ * @param[in]   buffer                              Kmodel buffer
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail.
+ */
 int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer);
+
+/**
+ * @brief       Kpu free kmodel buffer
+ *
+ * @param[in]   ctx                                 kmodel object
+ *
+ */
 void kpu_model_free(kpu_model_context_t *ctx);
+
+/**
+ * @brief       Kpu load kmodel
+ *
+ * @param[in]   ctx                                 Kmodel object
+ * @param[in]   index                               Output index
+ * @param[in]   data                                Output data
+ * @param[in]   size                                Output data size
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail.
+ */
 int kpu_get_output(kpu_model_context_t *ctx, uint32_t index, uint8_t **data, size_t *size);
+
+/**
+ * @brief       Kpu run kmodel
+ *
+ * @param[in]   ctx                                 Kmodel object
+ * @param[in]   src                                 Source data
+ * @param[in]   dma_ch                              Dma channel
+ * @param[in]   done_callback                       Kpu complete callback
+ * @param[in]   userdata                            Data of callback
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail.
+ */
 int kpu_run_kmodel(kpu_model_context_t *ctx, const uint8_t *src, dmac_channel_number_t dma_ch, kpu_done_callback_t done_callback, void *userdata);
 
 #endif
