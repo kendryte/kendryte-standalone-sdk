@@ -397,7 +397,6 @@ int sysctl_clock_disable(sysctl_clock_t clock)
 {
     if (clock >= SYSCTL_CLOCK_MAX)
         return -1;
-    sysctl_clock_bus_en(clock, 0);
     sysctl_clock_device_en(clock, 0);
     return 0;
 }

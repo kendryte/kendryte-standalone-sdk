@@ -1522,12 +1522,3 @@ int kpu_run_kmodel(kpu_model_context_t *ctx, const uint8_t *src, dmac_channel_nu
     return 0;
 }
 
-
-
-
-
-
-
-
-
-
