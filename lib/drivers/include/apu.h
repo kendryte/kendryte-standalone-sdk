@@ -408,8 +408,20 @@ void apu_dir_enable(void);
  */
 void apu_dir_reset(void);
 
+/**
+ * @brief       I2S host beam-forming Filter FIR16 Coefficient Register
+ *
+ * @param[in]   fir_coef                direction prev FIR
+ *
+ */
 void apu_dir_set_prev_fir(uint16_t *fir_coef);
 
+/**
+ * @brief       I2S host beam-forming Filter FIR16 Coefficient Register
+ *
+ * @param[in]   fir_coef                direction post FIR
+ *
+ */
 void apu_dir_set_post_fir(uint16_t *fir_coef);
 
 /**
@@ -465,8 +477,20 @@ void apu_voc_reset(void);
  */
 void apu_voc_set_direction(en_bf_dir_t direction);
 
+/**
+ * @brief       I2S host beam-forming Filter FIR16 Coefficient Register
+ *
+ * @param[in]   fir_coef                voice prev FIR
+ *
+ */
 void apu_voc_set_prev_fir(uint16_t *fir_coef);
 
+/**
+ * @brief       I2S host beam-forming Filter FIR16 Coefficient Register
+ *
+ * @param[in]   fir_coef                voice post FIR
+ *
+ */
 void apu_voc_set_post_fir(uint16_t *fir_coef);
 
 /**
