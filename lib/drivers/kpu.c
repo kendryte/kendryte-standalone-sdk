@@ -13,6 +13,16 @@
 
 #define LAYER_BURST_SIZE 12
 
+#define KPU_DEBUG 0
+#define USE_CACHED_AI_RAM 0
+
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define ALIGN_UP(x, align) ((x + (align - 1)) & (~(align - 1)))
+
+static int ai_step(void *userdata);
+static int kpu_kmodel_done(kpu_model_context_t *ctx);
+
 volatile kpu_config_t *const kpu = (volatile kpu_config_t *)AI_BASE_ADDR;
 static volatile uint32_t kpu_status;
 
@@ -624,17 +634,7 @@ void kpu_input_with_padding(kpu_layer_argument_t *layer, const uint8_t *src, int
         }
     }
 }
-
-#define KPU_DEBUG 0
-#define USE_CACHED_AI_RAM 0
-
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#define ALIGN_UP(x, align) ((x + (align - 1)) & (~(align - 1)))
-
-static int ai_step(void *userdata);
-static int kpu_kmodel_done(kpu_model_context_t *ctx);
-
+#if USE_CACHED_AI_RAM
 static void kpu_flush_cache(uint32_t addr, size_t lines)
 {
     size_t line;
@@ -647,6 +647,7 @@ static void kpu_flush_cache(uint32_t addr, size_t lines)
             dest[i] = src[i];
     }
 }
+#endif
 
 static void kpu_upload_core(size_t width, size_t height, size_t channels, const uint8_t *src, uint32_t kpu_addr)
 {
@@ -835,7 +836,7 @@ static void kpu_quantized_add(const kpu_model_quant_add_layer_argument_t *arg, k
 #define QADD_UNROLL_1(x)     \
     int64_t a##x = *src_a++; \
     int64_t b##x = *src_b++;
-    
+
 #undef QADD_UNROLL_2
 #define QADD_UNROLL_2(x) \
     a##x += off_a; \
