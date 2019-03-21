@@ -5303,7 +5303,7 @@ int fpioa_set_io_driving(int number, fpioa_driving_t driving)
     return 0;
 }
 
-int fpioa_set_sl(int number, uint8_t sl_value)
+int fpioa_set_sl(int number, uint8_t sl_enable)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO)
@@ -5311,15 +5311,14 @@ int fpioa_set_sl(int number, uint8_t sl_value)
 
     /* Atomic read register */
     fpioa_io_config_t cfg = fpioa->io[number];
-    /* Set IO driving */
-    cfg.sl = sl_value;
+    /* Set IO slew rate */
+    cfg.sl = sl_enable;
     /* Atomic write register */
     fpioa->io[number] = cfg;
     return 0;
 }
 
-
-int fpioa_set_st(int number, uint8_t st_value)
+int fpioa_set_st(int number, uint8_t st_enable)
 {
     /* Check parameters */
     if (number < 0 || number >= FPIOA_NUM_IO)
@@ -5327,8 +5326,8 @@ int fpioa_set_st(int number, uint8_t st_value)
 
     /* Atomic read register */
     fpioa_io_config_t cfg = fpioa->io[number];
-    /* Set IO driving */
-    cfg.sl = st_value;
+    /* Set IO schmitt trigger */
+    cfg.st = st_enable;
     /* Atomic write register */
     fpioa->io[number] = cfg;
     return 0;

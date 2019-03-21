@@ -992,8 +992,29 @@ int fpioa_get_io_driving(int number);
  */
 int fpioa_get_io_by_function(fpioa_function_t function);
 
-int fpioa_set_sl(int number, uint8_t sl_value);
-int fpioa_set_st(int number, uint8_t st_value);
+/**
+ * @brief       Set IO slew rate control
+ *
+ * @param[in]   number      The IO number
+ * @param[in]   sl_value    Enable slew rate. 0: disable 1:enable
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int fpioa_set_sl(int number, uint8_t sl_enable);
+
+/**
+ * @brief       Set IO slew rate
+ *
+ * @param[in]   number       The IO number
+ * @param[in]   st_enable    Enable schmitt trigger. 0: disable 1:enable
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int fpioa_set_st(int number, uint8_t st_enable);
 
 #ifdef __cplusplus
 }
