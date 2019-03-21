@@ -157,7 +157,8 @@ typedef enum _spi_chip_select
     SPI_CHIP_SELECT_MAX,
 } spi_chip_select_t;
 
-typedef enum {
+typedef enum
+{
     WRITE_CONFIG,
     READ_CONFIG,
     WRITE_DATA_BYTE,
