@@ -1181,7 +1181,7 @@ static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_conte
             .layer_cfg_almost_empty_int = 1,
             .layer_cfg_almost_full_int = 1
         };
-#if KPU_DEBUG
+#if 1
         kpu->interrupt_mask.data = (kpu_config_interrupt_t)
         {
             .calc_done_int = 0,
