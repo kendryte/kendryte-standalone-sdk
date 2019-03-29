@@ -748,7 +748,7 @@ static void prvAddNewTaskToReadyList( UBaseType_t xProcessorId, TCB_t *pxNewTCB 
 
 #if( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 
-	BaseType_t xTaskCreateAtProcessor(UBaseType_t uxProcessor, 
+	BaseType_t xTaskCreateAtProcessor(UBaseType_t uxProcessor,
 							TaskFunction_t pxTaskCode,
 							const char * const pcName,		/*lint !e971 Unqualified char types are allowed for strings and single characters only. */
 							const configSTACK_DEPTH_TYPE usStackDepth,
@@ -4218,6 +4218,7 @@ UBaseType_t uxPsrId = uxPortGetProcessorId();
 		{
 			mtCOVERAGE_TEST_MARKER();
 		}
+		portENABLE_INTERRUPTS();
 	}
 
 #endif /* portCRITICAL_NESTING_IN_TCB */
