@@ -147,6 +147,7 @@ void uart_receive_data_dma(uart_device_number_t uart_channel, dmac_channel_numbe
     {
         buffer[i] = (uint8_t)(v_recv_buf[i] & 0xff);
     }
+    free(v_recv_buf);
 }
 
 void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel,
