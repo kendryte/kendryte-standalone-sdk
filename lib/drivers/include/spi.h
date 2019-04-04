@@ -200,6 +200,18 @@ typedef struct _spi_slave_instance
     spi_slave_receive_callback_t callback;
 } spi_slave_instance_t;
 
+typedef struct _spi_data_t
+{
+    dmac_channel_number_t tx_channel;
+    dmac_channel_number_t rx_channel;
+    uint32_t *tx_buf;
+    size_t tx_len;
+    uint32_t *rx_buf;
+    size_t rx_len;
+    spi_transfer_mode_t transfer_mode;
+    bool fill_mode;
+} spi_data_t;
+
 extern volatile spi_t *const spi[4];
 
 /**
@@ -476,6 +488,8 @@ void spi_send_data_multiple_dma_irq(dmac_channel_number_t channel_num, spi_devic
                                 spi_chip_select_t chip_select,
                                 const uint32_t *cmd_buff, size_t cmd_len, const uint8_t *tx_buff, size_t tx_len,
                                 plic_irq_callback_t callback, void *ctx, uint32_t priority);
+
+void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select, spi_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus
 }

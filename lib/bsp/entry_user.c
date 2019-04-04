@@ -81,6 +81,10 @@ void _init_bsp(int core_id, int number_of_cores)
         __libc_init_array();
         /* Get reset status */
         sysctl_get_reset_status();
+        /* Init plic */
+        plic_init();
+        /* Enable global interrupt */
+        sysctl_enable_irq();
     }
 
     int ret = 0;
@@ -92,6 +96,8 @@ void _init_bsp(int core_id, int number_of_cores)
     }
     else
     {
+        plic_init();
+        sysctl_enable_irq();
         thread_entry(core_id);
         if(core1_instance.callback == NULL)
             asm volatile ("wfi");

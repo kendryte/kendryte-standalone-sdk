@@ -367,6 +367,13 @@ typedef struct _plic_instance_t
     void *ctx;
 } plic_instance_t;
 
+typedef struct _plic_callback_t
+{
+    plic_irq_callback_t callback;
+    void *ctx;
+    uint32_t priority;
+} plic_interrupt_t;
+
 /**
  * @brief       Initialize PLIC external interrupt
  *
