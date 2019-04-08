@@ -31,11 +31,11 @@ volatile spi_t *const spi[4] =
     (volatile spi_t *)SPI3_BASE_ADDR
 };
 
-typedef struct _spi_interrupt_instance
-{
-    plic_irq_callback_t callback;
-    void *ctx;
-} spi_interrupt_instance_t;
+//typedef struct _spi_interrupt_instance
+//{
+//    plic_irq_callback_t callback;
+//    void *ctx;
+//} spi_interrupt_instance_t;
 
 typedef struct _spi_dma_context
 {
@@ -45,7 +45,7 @@ typedef struct _spi_dma_context
     spi_transfer_mode_t int_mode;
     dmac_channel_number_t dmac_channel;
     spi_device_num_t spi_num;
-    spi_interrupt_instance_t spi_int_instance;
+    plic_instance_t spi_int_instance;
 } spi_dma_context_t;
 
 spi_dma_context_t spi_dma_context[4];
@@ -55,7 +55,7 @@ typedef struct _spi_instance_t
     spi_device_num_t spi_num;
     spi_transfer_mode_t transfer_mode;
     dmac_channel_number_t dmac_channel;
-    spi_interrupt_instance_t spi_int_instance;
+    plic_instance_t spi_int_instance;
     spinlock_t lock;
 } spi_instance_t;
 
@@ -128,51 +128,6 @@ static int spi_irq_callback(void *ctx)
     {
         v_instance->spi_int_instance.callback(v_instance->spi_int_instance.ctx);
     }
-    return 0;
-}
-
-static int spi_dma_callback(void *ctx)
-{
-    spi_dma_context_t *v_spi_dma_context = (spi_dma_context_t *)ctx;
-    volatile spi_t *spi_handle = spi[v_spi_dma_context->spi_num];
-
-    dmac_channel_number_t dmac_channel = v_spi_dma_context->dmac_channel;
-    dmac_irq_unregister(dmac_channel);
-
-    spi_transfer_width_t frame_width = spi_get_frame_length(v_spi_dma_context->spi_num);
-
-    if(v_spi_dma_context->int_mode == SPI_TMOD_RECV)
-    {
-        size_t v_buf_len = v_spi_dma_context->buf_len;
-        uint8_t *v_buffer = v_spi_dma_context->buffer;
-        uint32_t *v_recv_buffer = v_spi_dma_context->malloc_buffer;
-
-        for(size_t i = 0; i < v_buf_len; i++)
-        {
-            switch(frame_width)
-            {
-               case SPI_TRANS_INT:
-                   break;
-               case SPI_TRANS_SHORT:
-                   ((uint16_t *)v_buffer)[i] = v_recv_buffer[i];
-                   break;
-               default:
-                   v_buffer[i] = v_recv_buffer[i];
-                   break;
-            }
-        }
-    }
-    else
-    {
-        while ((spi_handle->sr & 0x05) != 0x04);
-    }
-    if(v_spi_dma_context->malloc_buffer != NULL)
-        free(v_spi_dma_context->malloc_buffer);
-    spi_handle->ser = 0x00;
-    spi_handle->ssienr = 0x00;
-
-    if(v_spi_dma_context->spi_int_instance.callback)
-        v_spi_dma_context->spi_int_instance.callback(v_spi_dma_context->spi_int_instance.ctx);
     return 0;
 }
 
