@@ -115,12 +115,12 @@ static spi_transfer_width_t spi_get_frame_length(spi_device_num_t spi_num)
     return spi_get_frame_size(data_bit_length);
 }
 
-static int spi_irq_callback(void *ctx)
+static int spi_dma_irq(void *ctx)
 {
     spi_instance_t *v_instance = (spi_instance_t *)ctx;
     volatile spi_t *spi_handle = spi[v_instance->spi_num];
     dmac_irq_unregister(v_instance->dmac_channel);
-    while ((spi_handle->sr & 0x0D) != 0x04);
+    while ((spi_handle->sr & 0x05) != 0x04);
     spi_handle->ser = 0x00;
     spi_handle->ssienr = 0x00;
     spinlock_unlock(&v_instance->lock);
@@ -1431,7 +1431,7 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
                 spi_handle->dr[0] = 0xffffffff;
             if(cb)
             {
-                dmac_irq_register(data.rx_channel, spi_irq_callback, &g_spi_instance[spi_num], cb->priority);
+                dmac_irq_register(data.rx_channel, spi_dma_irq, &g_spi_instance[spi_num], cb->priority);
                 g_spi_instance[spi_num].dmac_channel = data.rx_channel;
             }
             sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_num * 2);
@@ -1448,7 +1448,7 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
 
             if(cb)
             {
-                dmac_irq_register(data.tx_channel, spi_irq_callback, &g_spi_instance[spi_num], cb->priority);
+                dmac_irq_register(data.tx_channel, spi_dma_irq, &g_spi_instance[spi_num], cb->priority);
                 g_spi_instance[spi_num].dmac_channel = data.tx_channel;
             }
             sysctl_dma_select(data.tx_channel, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
@@ -1460,7 +1460,11 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
                                        DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
             spi_handle->ser = 1U << chip_select;
             if(!cb)
+            {
                 dmac_wait_idle(data.tx_channel);
+                while ((spi_handle->sr & 0x05) != 0x04)
+                    ;
+            }
             break;
         case SPI_TMOD_EEROM:
             spi_set_tmod(spi_num, SPI_TMOD_EEROM);
@@ -1478,7 +1482,7 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
                                DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
             if(cb)
             {
-                dmac_irq_register(data.rx_channel, spi_irq_callback, &g_spi_instance[spi_num], cb->priority);
+                dmac_irq_register(data.rx_channel, spi_dma_irq, &g_spi_instance[spi_num], cb->priority);
                 g_spi_instance[spi_num].dmac_channel = data.rx_channel;
             }
             sysctl_dma_select(data.rx_channel, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_num * 2);
@@ -1497,12 +1501,12 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
             {
                 if(data.tx_len > data.rx_len)
                 {
-                    dmac_irq_register(data.tx_channel, spi_irq_callback, &g_spi_instance[spi_num], cb->priority);
+                    dmac_irq_register(data.tx_channel, spi_dma_irq, &g_spi_instance[spi_num], cb->priority);
                     g_spi_instance[spi_num].dmac_channel = data.tx_channel;
                 }
                 else
                 {
-                    dmac_irq_register(data.rx_channel, spi_irq_callback, &g_spi_instance[spi_num], cb->priority);
+                    dmac_irq_register(data.rx_channel, spi_dma_irq, &g_spi_instance[spi_num], cb->priority);
                     g_spi_instance[spi_num].dmac_channel = data.rx_channel;
                 }
             }
@@ -1528,6 +1532,10 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
             break;
     }
     if(!cb)
+    {
         spinlock_unlock(&g_spi_instance[spi_num].lock);
+        spi_handle->ser = 0x00;
+        spi_handle->ssienr = 0x00;
+    }
 }
 

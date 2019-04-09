@@ -302,7 +302,11 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
 
         i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
         if(cb)
+        {
+            g_i2c_instance[i2c_num].dmac_channel = data.tx_channel;
+            g_i2c_instance[i2c_num].transfer_mode = I2C_SEND;
             dmac_irq_register(data.tx_channel, i2c_dma_irq, &g_i2c_instance[i2c_num], cb->priority);
+        }
         sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
         dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
             DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
@@ -319,8 +323,14 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
     else
     {
         configASSERT(data.rx_buf && data.rx_len);
+        if(data.tx_len)
+            configASSERT(data.tx_buf);
         if(cb)
+        {
+            g_i2c_instance[i2c_num].dmac_channel = data.rx_channel;
+            g_i2c_instance[i2c_num].transfer_mode = I2C_RECEIVE;
             dmac_irq_register(data.rx_channel, i2c_dma_irq, &g_i2c_instance[i2c_num], cb->priority);
+        }
         sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2C0_RX_REQ + i2c_num * 2);
         dmac_set_single_mode(data.rx_channel, (void *)(&i2c_adapter->data_cmd), data.rx_buf, DMAC_ADDR_NOCHANGE,
              DMAC_ADDR_INCREMENT,DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);

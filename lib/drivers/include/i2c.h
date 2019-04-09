@@ -369,7 +369,6 @@ typedef struct _i2c_data_t
     uint32_t *rx_buf;
     size_t rx_len;
     i2c_transfer_mode_t transfer_mode;
-    bool fill_mode;
 } i2c_data_t;
 
 /**
