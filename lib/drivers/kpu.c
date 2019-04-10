@@ -634,7 +634,7 @@ void kpu_input_with_padding(kpu_layer_argument_t *layer, const uint8_t *src, int
         }
     }
 }
-#if USE_CACHED_AI_RAM
+
 static void kpu_flush_cache(uint32_t addr, size_t lines)
 {
     size_t line;
@@ -647,8 +647,27 @@ static void kpu_flush_cache(uint32_t addr, size_t lines)
             dest[i] = src[i];
     }
 }
-#endif
 
+static int64_t kpu_carry_shift(int64_t value, uint32_t shift)
+{
+    if (shift > 0)
+    {
+        value >>= shift - 1;
+        if (value & 0x1)
+        {
+            if (value < 0)
+                value = (value >> 1) - 1;
+            else
+                value = (value >> 1) + 1;
+        }
+        else
+        {
+            value >>= 1;
+        }
+    }
+
+    return value;
+}
 static void kpu_upload_core(size_t width, size_t height, size_t channels, const uint8_t *src, uint32_t kpu_addr)
 {
     uint8_t *dest = (uint8_t *)(uintptr_t)(AI_IO_BASE_ADDR + kpu_addr * 64);
@@ -795,7 +814,7 @@ static void kpu_quantized_add(const kpu_model_quant_add_layer_argument_t *arg, k
     v##x *= mul_o;
 
 #define QADD_UNROLL_7(x) \
-    v##x >>= sh_o;
+    v##x = kpu_carry_shift(v##x, sh_o);
 
 #define QADD_UNROLL_8(x) \
     v##x += off_o;
@@ -1037,6 +1056,21 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
 		dest[oc] = *src++ * q.scale + q.bias;
 }
 
+static void kpu_kmodel_channelwise_dequantize(const kpu_model_channelwise_dequant_argument_t *arg, kpu_model_context_t *ctx)
+{
+    const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
+    float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
+    size_t oc, i, channels = arg->channels, count = arg->channel_size;
+
+	for (oc = 0; oc < channels; oc++)
+    {
+        const kpu_model_quant_param_t q = arg->quant_params[oc];
+
+	    for (i = 0; i < count; i++)
+		    *dest++ = *src++ * q.scale + q.bias;
+    }
+}
+
 static void kpu_requantize(const kpu_model_requantize_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
@@ -1117,14 +1151,51 @@ static void kpu_kmodel_fully_connected(const kpu_model_fully_connected_layer_arg
     uint32_t in_channels = arg->in_channels, out_channels = arg->out_channels, ic, oc;
     const float *weights = arg->weights, *bias = arg->weights + in_channels * out_channels;
 
-    for (oc = 0; oc < out_channels; oc++)
+    if (in_channels % 8 == 0)
     {
-        const float *c_weights = weights + oc * in_channels;
+#define FC_UNROLL_1(x)        \
+    float i##x = *c_src++;    \
+    float w##x = *c_weights++;
 
-        float sum = 0.0f;
-        for (ic = 0; ic < in_channels; ic++)
-            sum += src[ic] * c_weights[ic];
-        dest[oc] = sum + bias[oc];
+#define FC_UNROLL_2(x)        \
+    sum += i##x * w##x;
+
+#define FC_UNROLL_S(x) \
+    FC_UNROLL_##x(0) \
+    FC_UNROLL_##x(1) \
+    FC_UNROLL_##x(2) \
+    FC_UNROLL_##x(3) \
+    FC_UNROLL_##x(4) \
+    FC_UNROLL_##x(5) \
+    FC_UNROLL_##x(6) \
+    FC_UNROLL_##x(7)
+
+        for (oc = 0; oc < out_channels; oc++)
+        {
+            const float *c_src = src;
+            const float *c_weights = weights + oc * in_channels;
+
+            float sum = 0.0f;
+            for (ic = 0; ic < in_channels / 8; ic++)
+            {
+                FC_UNROLL_S(1);
+                FC_UNROLL_S(2);
+            }
+
+            dest[oc] = sum + bias[oc];
+        }
+    }
+    else
+    {
+        for (oc = 0; oc < out_channels; oc++)
+        {
+            const float *c_weights = weights + oc * in_channels;
+
+            float sum = 0.0f;
+            for (ic = 0; ic < in_channels; ic++)
+                sum += src[ic] * c_weights[ic];
+            dest[oc] = sum + bias[oc];
+        }
     }
 }
 
@@ -1139,6 +1210,33 @@ static void kpu_tf_flatten(const kpu_model_tf_flatten_layer_argument_t *arg, kpu
         for (ox = 0; ox < in_shape.width; ox++)
             for (oc = 0; oc < in_shape.channels; oc++)
                 *dest++ = src[(oc * in_shape.height + oy) * in_shape.width + ox];
+}
+
+static void kpu_resize_nearest_neighbor(const kpu_model_resize_nearest_neighbor_layer_argument_t *arg, kpu_model_context_t *ctx)
+{
+    const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
+    float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
+    kpu_model_shape_t in_shape = arg->in_shape;
+    uint32_t out_width = arg->out_width, out_height = arg->out_height;
+    uint32_t oc, oy, ox;
+
+    float height_scale = (float)in_shape.height / out_height;
+    float width_scale = (float)in_shape.width / out_width;
+
+    for (oc = 0; oc < in_shape.channels; oc++)
+    {
+        const float *channel_src = src + in_shape.width * in_shape.height * oc;
+        for (oy = 0; oy <out_height; oy++)
+        {
+            uint32_t in_y = (uint32_t)min(floorf(oy * height_scale), in_shape.height - 1);
+            const float *y_origin = channel_src + in_y * in_shape.width;
+            for (ox = 0; ox < out_width; ox++)
+            {
+                uint32_t in_x = (uint32_t)min(floorf(ox * width_scale), in_shape.width - 1);
+                *dest++ = y_origin[in_x];
+            }
+        }
+    }
 }
 
 static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_context_t *ctx)
@@ -1298,6 +1396,7 @@ void kpu_model_free(kpu_model_context_t *ctx)
 #if KPU_DEBUG
 static uint64_t last_time;
 static uint64_t total_time;
+static uint64_t kpu_time;
 static uint32_t last_layer_type;
 
 static const char *str_layer_type(uint32_t type)
@@ -1332,6 +1431,10 @@ static const char *str_layer_type(uint32_t type)
             return "FullyConnected";
         case KL_TENSORFLOW_FLATTEN:
             return "TFFlatten";
+        case KL_RESIZE_NEAREST_NEIGHBOR:
+            return "ResizeNearestNeighbor";
+        case KL_CHANNELWISE_DEQUANTIZE:
+            return "ChannelwiseDequantize";
         case KL_K210_CONV:
             return "K210Conv";
         case KL_K210_ADD_PADDING:
@@ -1368,8 +1471,12 @@ static int kpu_kmodel_done(kpu_model_context_t *ctx)
         uint64_t layer_time = time - last_time;
         printf("layer %d [%s]: %f ms\n", cnt_layer_id, str_layer_type(last_layer_type), layer_time / 1000.0);
         total_time += layer_time;
+        if (last_layer_type == KL_K210_CONV)
+            kpu_time += layer_time;
     }
 
+    printf("KPU: %f ms\n", kpu_time / 1000.0);
+    printf("CPU: %f ms\n", (total_time - kpu_time) / 1000.0);
     printf("Model: %f ms\n", total_time / 1000.0);
 #endif
     ctx->done_callback(ctx->userdata);
@@ -1392,6 +1499,8 @@ static int ai_step(void *userdata)
         uint64_t layer_time = time - last_time;
         printf("layer %d [%s]: %f ms\n", cnt_layer_id - 1, str_layer_type(last_layer_type), layer_time / 1000.0);
         total_time += layer_time;
+        if (last_layer_type == KL_K210_CONV)
+            kpu_time += layer_time;
     }
 
     last_layer_type = cnt_layer_header->type;
@@ -1440,6 +1549,12 @@ static int ai_step(void *userdata)
         case KL_TENSORFLOW_FLATTEN:
             kpu_tf_flatten((const kpu_model_tf_flatten_layer_argument_t *)layer_body, ctx);
             break;
+        case KL_RESIZE_NEAREST_NEIGHBOR:
+            kpu_resize_nearest_neighbor((const kpu_model_resize_nearest_neighbor_layer_argument_t *)layer_body, ctx);
+            break;
+        case KL_CHANNELWISE_DEQUANTIZE:
+            kpu_kmodel_channelwise_dequantize((const kpu_model_channelwise_dequant_argument_t *)layer_body, ctx);
+            break;
         case KL_K210_CONV:
             kpu_conv((const kpu_model_conv_layer_argument_t *)layer_body, ctx);
             return 0;
@@ -1480,6 +1595,7 @@ int kpu_run_kmodel(kpu_model_context_t *ctx, const uint8_t *src, dmac_channel_nu
 #if KPU_DEBUG
     last_time = 0;
     total_time = 0;
+    kpu_time = 0;
 #endif
 
     kpu_kmodel_header_t *header = (kpu_kmodel_header_t *)ctx->model_buffer;

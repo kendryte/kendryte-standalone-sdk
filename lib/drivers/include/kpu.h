@@ -393,6 +393,9 @@ typedef enum
     KL_QUANTIZED_FULLY_CONNECTED,
     KL_TENSORFLOW_FLATTEN,
     KL_QUANTIZED_TENSORFLOW_FLATTEN,
+    KL_RESIZE_NEAREST_NEIGHBOR,
+    KL_QUANTIZED_RESIZE_NEAREST_NEIGHBOR,
+    KL_CHANNELWISE_DEQUANTIZE,
     KL_K210_CONV = 10240,
     KL_K210_ADD_PADDING,
     KL_K210_REMOVE_PADDING,
@@ -615,6 +618,27 @@ typedef struct
     uint32_t main_mem_out_address;
     kpu_model_shape_t shape;
 } kpu_model_tf_flatten_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    kpu_model_shape_t in_shape;
+    uint32_t out_width;
+    uint32_t out_height;
+    uint32_t align_corners;
+} kpu_model_resize_nearest_neighbor_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t channels;
+    uint32_t channel_size;
+    kpu_model_quant_param_t quant_params[0];
+} kpu_model_channelwise_dequant_argument_t;
 
 typedef void(*kpu_done_callback_t)(void* userdata);
 
