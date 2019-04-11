@@ -9,11 +9,34 @@ If you have any questions, please be free to contact us.
 
 If you want to start a new project, for instance, `hello_world`, you only need to:
 
+- Linux and OSX
+
 `mkdir` your project in `src/`, `cd src && mkdir hello_world`, then put your codes in it, enter SDK root directory and build it.
 
 ```bash
 mkdir build && cd build
 cmake .. -DPROJ=<ProjectName> -DTOOLCHAIN=/opt/riscv-toolchain/bin && make
+```
+
+- Windows
+
+Download and install latest CMake.
+
+[Download cmake-3.14.1-win64-x64.msi](https://github.com/Kitware/CMake/releases/download/v3.14.1/cmake-3.14.1-win64-x64.msi)
+
+Download and install latest toolchain.
+
+[Download kendryte-toolchain-win-i386-8.2.0-20190409.tar.x](https://github.com/kendryte/kendryte-gnu-toolchain/releases/download/v8.2.0-20190409/kendryte-toolchain-win-i386-8.2.0-20190409.tar.xz)
+
+Open a Windows Powershell, cd to Project directory.
+
+```powershell
+$env:Path="E:\kendryte-toolchain\bin;C:\Program Files\CMak
+e\bin" +  $env:Path
+
+mkdir build && cd build
+cmake -G "MinGW Makefiles" ../../../..
+make
 ```
 
 You will get 2 key files, `hello_world` and `hello_world.bin`.
