@@ -1,6 +1,7 @@
 # Kendryte K210 standalone SDK
 
 [![Build Status](https://travis-ci.org/kendryte/kendryte-standalone-sdk.svg)](https://travis-ci.org/kendryte/kendryte-standalone-sdk)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This SDK is for Kendryte K210 without OS support.
 If you have any questions, please be free to contact us.
