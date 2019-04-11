@@ -30,6 +30,8 @@ Download and install latest toolchain.
 
 Open a Windows Powershell, cd to Project directory.
 
+`mkdir` your project in `src/`, `cd src && mkdir hello_world`, then put your codes in it, and build it.
+
 ```powershell
 $env:Path="E:\kendryte-toolchain\bin;C:\Program Files\CMak
 e\bin" +  $env:Path
