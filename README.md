@@ -26,7 +26,7 @@ Download and install latest CMake.
 
 Download and install latest toolchain.
 
-[Download kendryte-toolchain-win-i386-8.2.0-20190409.tar.x](https://github.com/kendryte/kendryte-gnu-toolchain/releases/download/v8.2.0-20190409/kendryte-toolchain-win-i386-8.2.0-20190409.tar.xz)
+[Download kendryte-toolchain-win-i386-8.2.0-20190409.tar.xz](https://github.com/kendryte/kendryte-gnu-toolchain/releases/download/v8.2.0-20190409/kendryte-toolchain-win-i386-8.2.0-20190409.tar.xz)
 
 Open a Windows Powershell, cd to Project directory.
 
