@@ -142,8 +142,9 @@ static void kpu_run_dma_input(uint32_t dma_ch, const void* src, plic_irq_callbac
     kpu_task_t* task = _task;
     kpu_layer_argument_t* first_layer = &task->layers[0];
     uint64_t input_size = first_layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (first_layer->image_channel_num.data.i_ch_num+1);
+    void *v_src = ((uintptr_t)src > 0x80000000 && (uintptr_t)src < 0x80600000) ? (void *)(src - 0x40000000) : (void *)src;
     dmac_irq_register(dma_ch, cb, _task, 1);
-    dmac_set_single_mode(dma_ch, (void *)src, (void *)(AI_IO_BASE_ADDR), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(dma_ch, (void *)v_src, (void *)(AI_IO_BASE_ADDR), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
 }
 
@@ -288,9 +289,10 @@ static void kpu_data_input(kpu_task_t *task)
         kpu_data_ready(task);
         return;
     }
+    void *v_src = ((uintptr_t)task->src > 0x80000000 && (uintptr_t)task->src < 0x80600000) ? (void *)((void *)task->src - 0x40000000) : (void *)task->src;
     dmac_irq_register(task->dma_ch, kpu_data_ready, task, 1);
     kpu_layer_argument_t *layer = &task->layers[0];
-    dmac_set_single_mode(task->dma_ch, task->src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(task->dma_ch, v_src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, task->src_length);
 }
 
@@ -408,9 +410,9 @@ void kpu_input_dma(kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel
 void kpu_input_dma(const kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata)
 {
     uint64_t input_size = layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (layer->image_channel_num.data.i_ch_num + 1);
-
+    void *v_src = ((uintptr_t)src > 0x80000000 && (uintptr_t)src < 0x80600000) ? (void *)(src - 0x40000000) : (void *)src;
     dmac_set_irq(dma_ch, callback, userdata, 1);
-    dmac_set_single_mode(dma_ch, (void *)src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(dma_ch, (void *)v_src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
 }
 
@@ -634,7 +636,7 @@ void kpu_input_with_padding(kpu_layer_argument_t *layer, const uint8_t *src, int
         }
     }
 }
-
+#if USE_CACHED_AI_RAM
 static void kpu_flush_cache(uint32_t addr, size_t lines)
 {
     size_t line;
@@ -647,7 +649,7 @@ static void kpu_flush_cache(uint32_t addr, size_t lines)
             dest[i] = src[i];
     }
 }
-
+#endif
 static int64_t kpu_carry_shift(int64_t value, uint32_t shift)
 {
     if (shift > 0)
