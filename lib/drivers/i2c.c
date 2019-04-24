@@ -185,7 +185,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
     {
         if (i2c_adapter->tx_abrt_source != 0)
-            configASSERT(!"source abort");
+            return;
     }
 }
 
@@ -272,7 +272,10 @@ static int i2c_dma_irq(void *ctx)
         while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
         {
             if (i2c_adapter->tx_abrt_source != 0)
-                configASSERT(!"source abort");
+            {
+                spinlock_unlock(&v_instance->lock);
+                return -1;
+            }
         }
     }
     spinlock_unlock(&v_instance->lock);
