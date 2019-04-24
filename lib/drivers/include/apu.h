@@ -16,7 +16,7 @@
 #define _apu_H_
 
 #if defined(__cplusplus)
-extern “C” {
+extern "C" {
 #endif
 
 #define DIRECTION_RES 16
