@@ -1281,7 +1281,7 @@ static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_conte
             .layer_cfg_almost_empty_int = 1,
             .layer_cfg_almost_full_int = 1
         };
-#if 1
+
         kpu->interrupt_mask.data = (kpu_config_interrupt_t)
         {
             .calc_done_int = 0,
@@ -1289,14 +1289,6 @@ static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_conte
             .layer_cfg_almost_full_int = 1
         };
         layer.interrupt_enabe.data.int_en = 1;
-#else
-        kpu->interrupt_mask.data = (kpu_config_interrupt_t)
-        {
-            .calc_done_int = 1,
-            .layer_cfg_almost_empty_int = 0,
-            .layer_cfg_almost_full_int = 1
-        };
-#endif
     }
 
     kpu_send_layer((const kpu_layer_argument_t *)&layer);

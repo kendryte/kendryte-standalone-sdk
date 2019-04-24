@@ -31,12 +31,6 @@ volatile spi_t *const spi[4] =
     (volatile spi_t *)SPI3_BASE_ADDR
 };
 
-//typedef struct _spi_interrupt_instance
-//{
-//    plic_irq_callback_t callback;
-//    void *ctx;
-//} spi_interrupt_instance_t;
-
 typedef struct _spi_dma_context
 {
     uint8_t *buffer;

@@ -19,7 +19,6 @@ typedef struct
 
 reculock_t reculock[LOCK_MAX_NUM];
 
-#if 0
 void show_error(void)
 {
     register unsigned long a7 asm("a7") = 93;
@@ -31,12 +30,6 @@ void show_error(void)
                  : "+r"(a0)
                  : "r"(a1), "r"(a2), "r"(a7));
 }
-#else
-void show_error(void)
-{
-    while(1);
-}
-#endif
 
 static inline long lock_trylock(_lock_t *lock)
 {
