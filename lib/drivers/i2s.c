@@ -655,9 +655,9 @@ int i2s_dmac_irq(void *ctx)
     return 0;
 }
 
-void i2s_handle_data_dma(i2s_device_number_t i2s_num, i2s_data_t data, plic_interrupt_t *cb)
+void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_interrupt_t *cb)
 {
-    configASSERT(i2s_num < I2S_DEVICE_MAX);
+    configASSERT(device_num < I2S_DEVICE_MAX);
     if(data.transfer_mode == I2S_SEND)
     {
         configASSERT(data.tx_buf && data.tx_len);
@@ -667,14 +667,14 @@ void i2s_handle_data_dma(i2s_device_number_t i2s_num, i2s_data_t data, plic_inte
         }
         if(cb)
         {
-            g_i2s_send_instance[i2s_num].i2s_int_instance.callback = cb->callback;
-            g_i2s_send_instance[i2s_num].i2s_int_instance.ctx = cb->ctx;
-            g_i2s_send_instance[i2s_num].dmac_channel = data.tx_channel;
-            g_i2s_send_instance[i2s_num].transfer_mode = I2S_SEND;
-            dmac_irq_register(data.tx_channel, i2s_dmac_irq, &g_i2s_send_instance[i2s_num], cb->priority);
+            g_i2s_send_instance[device_num].i2s_int_instance.callback = cb->callback;
+            g_i2s_send_instance[device_num].i2s_int_instance.ctx = cb->ctx;
+            g_i2s_send_instance[device_num].dmac_channel = data.tx_channel;
+            g_i2s_send_instance[device_num].transfer_mode = I2S_SEND;
+            dmac_irq_register(data.tx_channel, i2s_dmac_irq, &g_i2s_send_instance[device_num], cb->priority);
         }
-        sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2S0_TX_REQ + i2s_num * 2);
-        dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2s[i2s_num]->txdma), DMAC_ADDR_INCREMENT,
+        sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2S0_TX_REQ + device_num * 2);
+        dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2s[device_num]->txdma), DMAC_ADDR_INCREMENT,
                              DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.tx_len);
         if(!cb && data.wait_dma_done)
         {
@@ -690,14 +690,14 @@ void i2s_handle_data_dma(i2s_device_number_t i2s_num, i2s_data_t data, plic_inte
         }
         if(cb)
         {
-            g_i2s_recv_instance[i2s_num].i2s_int_instance.callback = cb->callback;
-            g_i2s_recv_instance[i2s_num].i2s_int_instance.ctx = cb->ctx;
-            g_i2s_recv_instance[i2s_num].dmac_channel = data.rx_channel;
-            g_i2s_recv_instance[i2s_num].transfer_mode = I2S_RECEIVE;
-            dmac_irq_register(data.rx_channel, i2s_dmac_irq, &g_i2s_recv_instance[i2s_num], cb->priority);
+            g_i2s_recv_instance[device_num].i2s_int_instance.callback = cb->callback;
+            g_i2s_recv_instance[device_num].i2s_int_instance.ctx = cb->ctx;
+            g_i2s_recv_instance[device_num].dmac_channel = data.rx_channel;
+            g_i2s_recv_instance[device_num].transfer_mode = I2S_RECEIVE;
+            dmac_irq_register(data.rx_channel, i2s_dmac_irq, &g_i2s_recv_instance[device_num], cb->priority);
         }
-        sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2S0_RX_REQ + i2s_num * 2);
-        dmac_set_single_mode(data.rx_channel, (void *)(&i2s[i2s_num]->rxdma), data.rx_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+        sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
+        dmac_set_single_mode(data.rx_channel, (void *)(&i2s[device_num]->rxdma), data.rx_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
                               DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
         if(!cb && data.wait_dma_done)
         {
