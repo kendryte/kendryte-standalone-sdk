@@ -455,7 +455,14 @@ int i2c_recv_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
 void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
                        i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len,
                        uint8_t *receive_buf, size_t receive_buf_len);
-
+/**
+ * @brief       I2c handle transfer data operations
+ *
+ * @param[in]   i2c_num             i2c number
+ * @param[in]   data                i2c data information
+ * @param[in]   cb                  i2c dma callback
+ *
+*/
 void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus

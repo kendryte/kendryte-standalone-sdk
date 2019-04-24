@@ -766,7 +766,15 @@ int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable);
  */
 int i2s_get_dma_divide_16(i2s_device_number_t device_num);
 
-void i2s_handle_data_dma(i2s_device_number_t i2s_num, i2s_data_t data, plic_interrupt_t *cb);
+/**
+ * @brief       I2s handle transfer data operations
+ *
+ * @param[in]   device_num           I2s device number
+ * @param[in]   data                 I2s data information
+ * @param[in]   cb                   I2s dma callback
+ *
+ */
+void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus
 }

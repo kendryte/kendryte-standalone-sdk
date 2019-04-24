@@ -338,7 +338,15 @@ void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_n
                                uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
                                void *ctx, uint32_t priority);
 
-void uart_handle_data_dma(uart_device_number_t uart_num ,uart_data_t data, plic_interrupt_t *cb);
+/**
+ * @brief       Uart handle transfer data operations
+ *
+ * @param[in]   uart_channel        Uart index
+ * @param[in]   data                Uart data information
+ * @param[in]   buffer              Uart DMA callback
+ *
+ */
+void uart_handle_data_dma(uart_device_number_t uart_channel ,uart_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus
 }

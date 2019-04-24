@@ -466,6 +466,15 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
  */
 void spi_slave_config(uint8_t int_pin, uint8_t ready_pin, dmac_channel_number_t dmac_channel, size_t data_bit_length, uint8_t *data, uint32_t len, spi_slave_receive_callback_t callback);
 
+/**
+ * @brief       Spi handle transfer data operations
+ *
+ * @param[in]   spi_num         Spi bus number
+ * @param[in]   chip_select     Spi chip select
+ * @param[in]   data            Spi transfer data information
+ * @param[in]   cb              Spi DMA callback
+ *
+ */
 void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select, spi_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus
