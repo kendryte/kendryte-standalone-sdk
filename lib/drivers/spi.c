@@ -93,28 +93,6 @@ static spi_transfer_width_t spi_get_frame_size(size_t data_bit_length)
     return SPI_TRANS_INT;
 }
 
-static spi_transfer_width_t spi_get_frame_length(spi_device_num_t spi_num)
-{
-    volatile spi_t *spi_handle = spi[spi_num];
-    uint8_t dfs_offset;
-    switch(spi_num)
-    {
-        case 0:
-        case 1:
-            dfs_offset = 16;
-            break;
-        case 2:
-            configASSERT(!"Spi Bus 2 Not Support!");
-            break;
-        case 3:
-        default:
-            dfs_offset = 0;
-            break;
-    }
-    uint32_t data_bit_length = (spi_handle->ctrlr0 >> dfs_offset) & 0x1F;
-    return spi_get_frame_size(data_bit_length);
-}
-
 static int spi_dma_irq(void *ctx)
 {
     spi_instance_t *v_instance = (spi_instance_t *)ctx;
