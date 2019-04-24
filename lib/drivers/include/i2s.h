@@ -20,6 +20,7 @@
 #include "platform.h"
 #include "io.h"
 #include "dmac.h"
+#include "bsp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -624,6 +625,25 @@ typedef struct _i2s
     volatile uint32_t i2s_comp_type;
 } __attribute__((packed, aligned(4))) i2s_t;
 
+typedef enum _i2s_transfer_mode
+{
+    I2S_SEND,
+    I2S_RECEIVE,
+} i2s_transfer_mode_t;
+
+typedef struct _i2s_data_t
+{
+    dmac_channel_number_t tx_channel;
+    dmac_channel_number_t rx_channel;
+    uint32_t *tx_buf;
+    size_t tx_len;
+    uint32_t *rx_buf;
+    size_t rx_len;
+    i2s_transfer_mode_t transfer_mode;
+    bool nowait_dma_idle;
+    bool wait_dma_done;
+} i2s_data_t;
+
 /**
  * @brief      I2S object instance
  */
@@ -745,6 +765,16 @@ int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable);
  *     - other  value of dma_divide_16
  */
 int i2s_get_dma_divide_16(i2s_device_number_t device_num);
+
+/**
+ * @brief       I2s handle transfer data operations
+ *
+ * @param[in]   device_num           I2s device number
+ * @param[in]   data                 I2s data information
+ * @param[in]   cb                   I2s dma callback
+ *
+ */
+void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus
 }

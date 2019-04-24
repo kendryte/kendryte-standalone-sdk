@@ -161,6 +161,7 @@ static void sysctl_reset_ctl(sysctl_reset_t reset, uint8_t rst_value)
 void sysctl_reset(sysctl_reset_t reset)
 {
     sysctl_reset_ctl(reset, 1);
+    usleep(10);
     sysctl_reset_ctl(reset, 0);
 }
 

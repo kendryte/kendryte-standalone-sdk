@@ -196,6 +196,7 @@ static inline void corelock_lock(corelock_t *lock)
             while (atomic_read(&lock->count))
                 ;
         } while (corelock_trylock(lock));
+        return;
     }
     spinlock_unlock(&lock->lock);
 }

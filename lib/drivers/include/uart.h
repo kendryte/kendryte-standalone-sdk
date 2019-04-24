@@ -179,6 +179,17 @@ typedef enum _uart_receive_trigger
     UART_RECEIVE_FIFO_14,
 } uart_receive_trigger_t;
 
+typedef struct _uart_data_t
+{
+    dmac_channel_number_t tx_channel;
+    dmac_channel_number_t rx_channel;
+    uint32_t *tx_buf;
+    size_t tx_len;
+    uint32_t *rx_buf;
+    size_t rx_len;
+    uart_interrupt_mode_t transfer_mode;
+} uart_data_t;
+
 /**
  * @brief       Send data from uart
  *
@@ -326,6 +337,16 @@ void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_numb
 void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel,
                                uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
                                void *ctx, uint32_t priority);
+
+/**
+ * @brief       Uart handle transfer data operations
+ *
+ * @param[in]   uart_channel        Uart index
+ * @param[in]   data                Uart data information
+ * @param[in]   buffer              Uart DMA callback
+ *
+ */
+void uart_handle_data_dma(uart_device_number_t uart_channel ,uart_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus
 }

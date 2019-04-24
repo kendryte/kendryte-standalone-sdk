@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "sysctl.h"
+#include "bsp.h"
 
 typedef struct _i2c_slave_instance
 {
@@ -28,6 +29,17 @@ typedef struct _i2c_slave_instance
 } i2c_slave_instance_t;
 
 static i2c_slave_instance_t slave_instance[I2C_MAX_NUM];
+
+typedef struct _i2c_instance
+{
+    i2c_device_number_t i2c_num;
+    i2c_transfer_mode_t transfer_mode;
+    dmac_channel_number_t dmac_channel;
+    plic_instance_t i2c_int_instance;
+    spinlock_t lock;
+} i2c_instance_t;
+
+static i2c_instance_t g_i2c_instance[3];
 
 volatile i2c_t* const i2c[3] =
 {
@@ -173,7 +185,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
     {
         if (i2c_adapter->tx_abrt_source != 0)
-            configASSERT(!"source abort");
+            return;
     }
 }
 
@@ -248,4 +260,102 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
     }
 
     free(write_cmd);
+}
+
+static int i2c_dma_irq(void *ctx)
+{
+    i2c_instance_t *v_instance = (i2c_instance_t *)ctx;
+    volatile i2c_t* i2c_adapter = i2c[v_instance->i2c_num];
+    dmac_irq_unregister(v_instance->dmac_channel);
+    if(v_instance->transfer_mode == I2C_SEND)
+    {
+        while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
+        {
+            if (i2c_adapter->tx_abrt_source != 0)
+            {
+                spinlock_unlock(&v_instance->lock);
+                return -1;
+            }
+        }
+    }
+    spinlock_unlock(&v_instance->lock);
+    if(v_instance->i2c_int_instance.callback)
+    {
+        v_instance->i2c_int_instance.callback(v_instance->i2c_int_instance.ctx);
+    }
+    return 0;
+}
+
+void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_interrupt_t *cb)
+{
+    configASSERT(i2c_num < I2C_MAX_NUM);
+    configASSERT(data.tx_channel < DMAC_CHANNEL_MAX && data.rx_channel < DMAC_CHANNEL_MAX);
+
+    spinlock_lock(&g_i2c_instance[i2c_num].lock);
+    if(cb)
+    {
+        g_i2c_instance[i2c_num].i2c_int_instance.callback = cb->callback;
+        g_i2c_instance[i2c_num].i2c_int_instance.ctx = cb->ctx;
+    }
+
+    volatile i2c_t* i2c_adapter = i2c[i2c_num];
+    if(data.transfer_mode == I2C_SEND)
+    {
+        configASSERT(data.tx_buf && data.tx_len);
+
+        i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
+        if(cb)
+        {
+            g_i2c_instance[i2c_num].dmac_channel = data.tx_channel;
+            g_i2c_instance[i2c_num].transfer_mode = I2C_SEND;
+            dmac_irq_register(data.tx_channel, i2c_dma_irq, &g_i2c_instance[i2c_num], cb->priority);
+        }
+        sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
+        dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
+            DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
+        if(!cb)
+        {
+            dmac_wait_done(data.tx_channel);
+            while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
+            {
+                if (i2c_adapter->tx_abrt_source != 0)
+                    configASSERT(!"source abort");
+            }
+        }
+    }
+    else
+    {
+        configASSERT(data.rx_buf && data.rx_len);
+        if(data.tx_len)
+            configASSERT(data.tx_buf);
+        if(cb)
+        {
+            g_i2c_instance[i2c_num].dmac_channel = data.rx_channel;
+            g_i2c_instance[i2c_num].transfer_mode = I2C_RECEIVE;
+            dmac_irq_register(data.rx_channel, i2c_dma_irq, &g_i2c_instance[i2c_num], cb->priority);
+        }
+        sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2C0_RX_REQ + i2c_num * 2);
+        dmac_set_single_mode(data.rx_channel, (void *)(&i2c_adapter->data_cmd), data.rx_buf, DMAC_ADDR_NOCHANGE,
+             DMAC_ADDR_INCREMENT,DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
+
+        sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
+        if(data.tx_len)
+        {
+            configASSERT(data.tx_buf);
+            dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT,
+                 DMAC_ADDR_NOCHANGE,DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
+            dmac_wait_done(data.tx_channel);
+        }
+        static uint32_t s_read_cmd = I2C_DATA_CMD_CMD;
+        dmac_set_single_mode(data.tx_channel, &s_read_cmd, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_NOCHANGE,
+                     DMAC_ADDR_NOCHANGE,DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
+
+        if(!cb)
+        {
+            dmac_wait_done(data.tx_channel);
+            dmac_wait_done(data.rx_channel);
+        }
+    }
+    if(!cb)
+        spinlock_unlock(&g_i2c_instance[i2c_num].lock);
 }

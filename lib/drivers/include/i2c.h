@@ -354,6 +354,23 @@ typedef struct _i2c_slave_handler
     void(*on_event)(i2c_event_t event);
 } i2c_slave_handler_t;
 
+typedef enum _i2c_transfer_mode
+{
+    I2C_SEND,
+    I2C_RECEIVE,
+} i2c_transfer_mode_t;
+
+typedef struct _i2c_data_t
+{
+    dmac_channel_number_t tx_channel;
+    dmac_channel_number_t rx_channel;
+    uint32_t *tx_buf;
+    size_t tx_len;
+    uint32_t *rx_buf;
+    size_t rx_len;
+    i2c_transfer_mode_t transfer_mode;
+} i2c_data_t;
+
 /**
  * @brief       Set i2c params
  *
@@ -438,6 +455,15 @@ int i2c_recv_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
 void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
                        i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len,
                        uint8_t *receive_buf, size_t receive_buf_len);
+/**
+ * @brief       I2c handle transfer data operations
+ *
+ * @param[in]   i2c_num             i2c number
+ * @param[in]   data                i2c data information
+ * @param[in]   cb                  i2c dma callback
+ *
+*/
+void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_interrupt_t *cb);
 
 #ifdef __cplusplus
 }

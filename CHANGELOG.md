@@ -107,3 +107,17 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 
 - Breaking change
   - Fix bus reset problem
+  
+## 0.5.5
+- Major change
+  - Add SPI I2C I2S UART DMA callback
+  - Add malloc lock
+  - Update WIN32 cmake program auto-set
+  - Upadte KPU driver for lastest NNCASE
+
+- Non-breaking bug fixes
+  - Fix double issues
+  - Fix GPIO issues
+
+- Breaking change
+  - Fix device reset problem

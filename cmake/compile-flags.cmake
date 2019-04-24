@@ -22,6 +22,9 @@ add_compile_flags(BOTH
         -fdata-sections
         -fstrict-volatile-bitfields
         -fno-zero-initialized-in-bss
+        -ffast-math
+        -fno-math-errno
+        -fsingle-precision-constant
         -Os
         -ggdb
         )
@@ -38,7 +41,7 @@ if (BUILDING_SDK)
             -Wno-error=unused-variable
             -Wno-error=deprecated-declarations
             -Wextra
-            -Werror=frame-larger-than=65536
+            -Werror=frame-larger-than=32768
             -Wno-unused-parameter
             -Wno-sign-compare
             -Wno-error=missing-braces

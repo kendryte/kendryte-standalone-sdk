@@ -48,6 +48,7 @@
 #ifndef _DRIVER_UARTHS_H
 #define _DRIVER_UARTHS_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include "platform.h"
 #include "plic.h"

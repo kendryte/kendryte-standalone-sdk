@@ -27,6 +27,17 @@ volatile i2s_t *const i2s[3] =
     (volatile i2s_t *)I2S2_BASE_ADDR
 };
 
+typedef struct _i2s_instance
+{
+    i2s_device_number_t i2s_num;
+    i2s_transfer_mode_t transfer_mode;
+    dmac_channel_number_t dmac_channel;
+    plic_instance_t i2s_int_instance;
+} i2s_instance_t;
+
+static i2s_instance_t g_i2s_send_instance[3];
+static i2s_instance_t g_i2s_recv_instance[3];
+
 static int i2s_recv_channel_enable(i2s_device_number_t device_num,
                             i2s_channel_num_t channel_num, uint32_t enable)
 {
@@ -570,7 +581,6 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
     i2s_transmit_channel_enable(device_num, channel_num, 1);
 }
 
-
 void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_I2S0 + device_num);
@@ -632,5 +642,67 @@ uint32_t i2s_set_sample_rate(i2s_device_number_t device_num, uint32_t sample_rat
     uint32_t threshold = round(pll2_clock / (sample_rate * 2.0 * v_clk_word_size * 2.0) - 1);
     sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2S0 + device_num, threshold);
     return sysctl_clock_get_freq(SYSCTL_CLOCK_I2S0 + device_num);
+}
+
+int i2s_dmac_irq(void *ctx)
+{
+    i2s_instance_t *v_instance = (i2s_instance_t *)ctx;
+    dmac_irq_unregister(v_instance->dmac_channel);
+    if(v_instance->i2s_int_instance.callback)
+    {
+        v_instance->i2s_int_instance.callback(v_instance->i2s_int_instance.ctx);
+    }
+    return 0;
+}
+
+void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_interrupt_t *cb)
+{
+    configASSERT(device_num < I2S_DEVICE_MAX);
+    if(data.transfer_mode == I2S_SEND)
+    {
+        configASSERT(data.tx_buf && data.tx_len);
+        if(!data.nowait_dma_idle)
+        {
+            dmac_wait_idle(data.tx_channel);
+        }
+        if(cb)
+        {
+            g_i2s_send_instance[device_num].i2s_int_instance.callback = cb->callback;
+            g_i2s_send_instance[device_num].i2s_int_instance.ctx = cb->ctx;
+            g_i2s_send_instance[device_num].dmac_channel = data.tx_channel;
+            g_i2s_send_instance[device_num].transfer_mode = I2S_SEND;
+            dmac_irq_register(data.tx_channel, i2s_dmac_irq, &g_i2s_send_instance[device_num], cb->priority);
+        }
+        sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2S0_TX_REQ + device_num * 2);
+        dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2s[device_num]->txdma), DMAC_ADDR_INCREMENT,
+                             DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.tx_len);
+        if(!cb && data.wait_dma_done)
+        {
+            dmac_wait_done(data.tx_channel);
+        }
+    }
+    else
+    {
+        configASSERT(data.rx_buf && data.rx_len);
+        if(!data.nowait_dma_idle)
+        {
+            dmac_wait_idle(data.rx_channel);
+        }
+        if(cb)
+        {
+            g_i2s_recv_instance[device_num].i2s_int_instance.callback = cb->callback;
+            g_i2s_recv_instance[device_num].i2s_int_instance.ctx = cb->ctx;
+            g_i2s_recv_instance[device_num].dmac_channel = data.rx_channel;
+            g_i2s_recv_instance[device_num].transfer_mode = I2S_RECEIVE;
+            dmac_irq_register(data.rx_channel, i2s_dmac_irq, &g_i2s_recv_instance[device_num], cb->priority);
+        }
+        sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
+        dmac_set_single_mode(data.rx_channel, (void *)(&i2s[device_num]->rxdma), data.rx_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
+                              DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
+        if(!cb && data.wait_dma_done)
+        {
+            dmac_wait_done(data.rx_channel);
+        }
+    }
 }
 
