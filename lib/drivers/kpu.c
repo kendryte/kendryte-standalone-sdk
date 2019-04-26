@@ -142,9 +142,8 @@ static void kpu_run_dma_input(uint32_t dma_ch, const void* src, plic_irq_callbac
     kpu_task_t* task = _task;
     kpu_layer_argument_t* first_layer = &task->layers[0];
     uint64_t input_size = first_layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (first_layer->image_channel_num.data.i_ch_num+1);
-    void *v_src = ((uintptr_t)src > 0x80000000 && (uintptr_t)src < 0x80600000) ? (void *)(src - 0x40000000) : (void *)src;
     dmac_irq_register(dma_ch, cb, _task, 1);
-    dmac_set_single_mode(dma_ch, (void *)v_src, (void *)(AI_IO_BASE_ADDR), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(dma_ch, (void *)src, (void *)(AI_IO_BASE_ADDR), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
 }
 
@@ -289,10 +288,9 @@ static void kpu_data_input(kpu_task_t *task)
         kpu_data_ready(task);
         return;
     }
-    void *v_src = ((uintptr_t)task->src > 0x80000000 && (uintptr_t)task->src < 0x80600000) ? (void *)((void *)task->src - 0x40000000) : (void *)task->src;
     dmac_irq_register(task->dma_ch, kpu_data_ready, task, 1);
     kpu_layer_argument_t *layer = &task->layers[0];
-    dmac_set_single_mode(task->dma_ch, v_src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(task->dma_ch, (void *)(uintptr_t)task->src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, task->src_length);
 }
 
@@ -397,22 +395,11 @@ void kpu_init(int eight_bit_mode, plic_irq_callback_t callback, void *userdata)
     plic_irq_register(IRQN_AI_INTERRUPT, callback, userdata);
 }
 
-#if 0
-void kpu_input_dma(kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata)
-{
-    uint64_t input_size = layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (layer->image_channel_num.data.i_ch_num + 1);
-    dmac_set_irq(dma_ch, callback, userdata, 1);
-    dmac_set_single_mode(dma_ch, (void *)src, (void *)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
-        DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
-}
-#endif
-
 void kpu_input_dma(const kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata)
 {
     uint64_t input_size = layer->kernel_calc_type_cfg.data.channel_switch_addr * 64 * (layer->image_channel_num.data.i_ch_num + 1);
-    void *v_src = ((uintptr_t)src > 0x80000000 && (uintptr_t)src < 0x80600000) ? (void *)(src - 0x40000000) : (void *)src;
     dmac_set_irq(dma_ch, callback, userdata, 1);
-    dmac_set_single_mode(dma_ch, (void *)v_src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(dma_ch, (void *)src, (void *)(uintptr_t)(AI_IO_BASE_ADDR + layer->image_addr.data.image_src_addr * 64), DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
 }
 
@@ -679,21 +666,21 @@ static void kpu_upload_core(size_t width, size_t height, size_t channels, const 
     uint32_t row_length;
     if (width <= 16)
     {
-    	row_padding = 16;
-    	row_group = 4;
-    	row_length = 1;
+        row_padding = 16;
+        row_group = 4;
+        row_length = 1;
     }
     else if (width <= 32)
     {
-    	row_padding = 32;
-    	row_group = 2;
-    	row_length = 1;
+        row_padding = 32;
+        row_group = 2;
+        row_length = 1;
     }
     else
     {
-    	row_padding = 64;
-    	row_group = 1;
-    	row_length = (width + 63) / 64;
+        row_padding = 64;
+        row_group = 1;
+        row_length = (width + 63) / 64;
     }
 
     if ((uintptr_t)src % 8 == 0 && width % 8 == 0)
@@ -750,11 +737,11 @@ static void kpu_upload_core(size_t width, size_t height, size_t channels, const 
     {
         for (oc = 0; oc < channels; oc++)
         {
-        	uint8_t *channel_origin = dest + oc / row_group * row_length * height * 64 + oc % row_group * row_padding;
-        	for (y = 0; y < height; y++)
-        	{
-        		uint8_t *y_origin = channel_origin + y * row_length * 64;
-        		for (x = 0; x < width; x++)
+            uint8_t *channel_origin = dest + oc / row_group * row_length * height * 64 + oc % row_group * row_padding;
+            for (y = 0; y < height; y++)
+            {
+                uint8_t *y_origin = channel_origin + y * row_length * 64;
+                for (x = 0; x < width; x++)
                     y_origin[x] = *src++;
             }
         }
@@ -776,8 +763,8 @@ static void kpu_kmodel_add(const kpu_model_add_layer_argument_t *arg, kpu_model_
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t i, count = arg->count;
 
-	for (i = 0; i < count; i++)
-		dest[i] = src_a[i] + src_b[i];
+    for (i = 0; i < count; i++)
+        dest[i] = src_a[i] + src_b[i];
 }
 
 static void kpu_quantized_add(const kpu_model_quant_add_layer_argument_t *arg, kpu_model_context_t *ctx)
@@ -883,7 +870,7 @@ static void kpu_quantized_add(const kpu_model_quant_add_layer_argument_t *arg, k
 
 #undef QADD_UNROLL_7
 #define QADD_UNROLL_7(x) \
-    v##x >>= sh_o;
+    v##x = kpu_carry_shift(v##x, sh_o);
 
 #undef QADD_UNROLL_8
 #define QADD_UNROLL_8(x) \
@@ -930,15 +917,15 @@ static void kpu_global_average_pool2d(const kpu_model_gap2d_layer_argument_t *ar
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, channels = arg->channels, kernel_size = arg->kernel_size;
 
-	for (oc = 0; oc < channels; oc++)
-	{
-		float sum = 0.f;
-		size_t i;
-		for (i = 0; i < kernel_size; i++)
-			sum += *src++;
+    for (oc = 0; oc < channels; oc++)
+    {
+        float sum = 0.f;
+        size_t i;
+        for (i = 0; i < kernel_size; i++)
+            sum += *src++;
 
-		dest[oc] = sum / kernel_size;
-	}
+        dest[oc] = sum / kernel_size;
+    }
 }
 
 static void kpu_quantized_max_pool2d(const kpu_model_quant_max_pool2d_layer_argument_t *arg, kpu_model_context_t *ctx)
@@ -1040,7 +1027,7 @@ static void kpu_quantize(const kpu_model_quantize_layer_argument_t *arg, kpu_mod
     size_t i;
     for (i = 0; i < count; i++)
     {
-        int value = (*src++ - q.bias) * scale;
+        int value = roundf((*src++ - q.bias) * scale);
         if (value < 0) value = 0;
         if (value > 0xFF) value = 0xFF;
         *dest++ = (uint8_t)value;
@@ -1054,8 +1041,8 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
     size_t oc, count = arg->count;
     const kpu_model_quant_param_t q = arg->quant_param;
 
-	for (oc = 0; oc < count; oc++)
-		dest[oc] = *src++ * q.scale + q.bias;
+    for (oc = 0; oc < count; oc++)
+        dest[oc] = *src++ * q.scale + q.bias;
 }
 
 static void kpu_kmodel_channelwise_dequantize(const kpu_model_channelwise_dequant_argument_t *arg, kpu_model_context_t *ctx)
@@ -1064,12 +1051,12 @@ static void kpu_kmodel_channelwise_dequantize(const kpu_model_channelwise_dequan
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, i, channels = arg->channels, count = arg->channel_size;
 
-	for (oc = 0; oc < channels; oc++)
+    for (oc = 0; oc < channels; oc++)
     {
         const kpu_model_quant_param_t q = arg->quant_params[oc];
 
-	    for (i = 0; i < count; i++)
-		    *dest++ = *src++ * q.scale + q.bias;
+        for (i = 0; i < count; i++)
+            *dest++ = *src++ * q.scale + q.bias;
     }
 }
 
@@ -1077,19 +1064,27 @@ static void kpu_requantize(const kpu_model_requantize_layer_argument_t *arg, kpu
 {
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
     uint8_t *dest = (uint8_t *)(ctx->main_buffer + arg->main_mem_out_address);
-    size_t oc, count = ALIGN_UP(arg->count, 8) / 8;
+    size_t oc, count = arg->count;
     const uint8_t *table = arg->table;
 
-	for (oc = 0; oc < count;)
+    if (false && count % 8 == 0)
     {
-		dest[oc++] = table[*src++];
-		dest[oc++] = table[*src++];
-		dest[oc++] = table[*src++];
-		dest[oc++] = table[*src++];
-		dest[oc++] = table[*src++];
-		dest[oc++] = table[*src++];
-		dest[oc++] = table[*src++];
-		dest[oc++] = table[*src++];
+        for (oc = 0; oc < count;)
+        {
+            dest[oc++] = table[*src++];
+            dest[oc++] = table[*src++];
+            dest[oc++] = table[*src++];
+            dest[oc++] = table[*src++];
+            dest[oc++] = table[*src++];
+            dest[oc++] = table[*src++];
+            dest[oc++] = table[*src++];
+            dest[oc++] = table[*src++];
+        }
+    }
+    else
+    {
+        for (oc = 0; oc < count; oc++)
+            dest[oc] = table[src[oc]];
     }
 }
 
@@ -1241,6 +1236,33 @@ static void kpu_resize_nearest_neighbor(const kpu_model_resize_nearest_neighbor_
     }
 }
 
+static void kpu_quant_resize_nearest_neighbor(const kpu_model_quant_resize_nearest_neighbor_layer_argument_t *arg, kpu_model_context_t *ctx)
+{
+    const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
+    uint8_t *dest = (uint8_t *)(ctx->main_buffer + arg->main_mem_out_address);
+    kpu_model_shape_t in_shape = arg->in_shape;
+    uint32_t out_width = arg->out_width, out_height = arg->out_height;
+    uint32_t oc, oy, ox;
+
+    float height_scale = (float)in_shape.height / out_height;
+    float width_scale = (float)in_shape.width / out_width;
+
+    for (oc = 0; oc < in_shape.channels; oc++)
+    {
+        const uint8_t *channel_src = src + in_shape.width * in_shape.height * oc;
+        for (oy = 0; oy <out_height; oy++)
+        {
+            uint32_t in_y = (uint32_t)min(floorf(oy * height_scale), in_shape.height - 1);
+            const uint8_t *y_origin = channel_src + in_y * in_shape.width;
+            for (ox = 0; ox < out_width; ox++)
+            {
+                uint32_t in_x = (uint32_t)min(floorf(ox * width_scale), in_shape.width - 1);
+                *dest++ = y_origin[in_x];
+            }
+        }
+    }
+}
+
 static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     volatile kpu_layer_argument_t layer = *(const volatile kpu_layer_argument_t *)(ctx->model_buffer + arg->layer_offset);
@@ -1298,9 +1320,9 @@ static void kpu_add_padding(const kpu_model_add_padding_layer_argument_t *arg, k
 {
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
 #if USE_CACHED_AI_RAM
-	uint8_t *dest = (uint8_t *)(uintptr_t)(AI_RAM_BASE_ADDR + arg->kpu_mem_out_address * 64);
+    uint8_t *dest = (uint8_t *)(uintptr_t)(AI_RAM_BASE_ADDR + arg->kpu_mem_out_address * 64);
 #else
-	uint8_t *dest = (uint8_t *)(uintptr_t)(AI_IO_BASE_ADDR + arg->kpu_mem_out_address * 64);
+    uint8_t *dest = (uint8_t *)(uintptr_t)(AI_IO_BASE_ADDR + arg->kpu_mem_out_address * 64);
 #endif
 
     uint32_t row_padding = 16;
@@ -1427,6 +1449,8 @@ static const char *str_layer_type(uint32_t type)
             return "TFFlatten";
         case KL_RESIZE_NEAREST_NEIGHBOR:
             return "ResizeNearestNeighbor";
+        case KL_QUANTIZED_RESIZE_NEAREST_NEIGHBOR:
+            return "QuantResizeNearestNeighbor";
         case KL_CHANNELWISE_DEQUANTIZE:
             return "ChannelwiseDequantize";
         case KL_K210_CONV:
@@ -1545,6 +1569,9 @@ static int ai_step(void *userdata)
             break;
         case KL_RESIZE_NEAREST_NEIGHBOR:
             kpu_resize_nearest_neighbor((const kpu_model_resize_nearest_neighbor_layer_argument_t *)layer_body, ctx);
+            break;
+        case KL_QUANTIZED_RESIZE_NEAREST_NEIGHBOR:
+            kpu_quant_resize_nearest_neighbor((const kpu_model_quant_resize_nearest_neighbor_layer_argument_t *)layer_body, ctx);
             break;
         case KL_CHANNELWISE_DEQUANTIZE:
             kpu_kmodel_channelwise_dequantize((const kpu_model_channelwise_dequant_argument_t *)layer_body, ctx);

@@ -635,6 +635,17 @@ typedef struct
     uint32_t flags;
     uint32_t main_mem_in_address;
     uint32_t main_mem_out_address;
+    kpu_model_shape_t in_shape;
+    uint32_t out_width;
+    uint32_t out_height;
+    uint32_t align_corners;
+} kpu_model_quant_resize_nearest_neighbor_layer_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
     uint32_t channels;
     uint32_t channel_size;
     kpu_model_quant_param_t quant_params[0];
