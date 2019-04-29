@@ -5333,6 +5333,20 @@ int fpioa_set_st(int number, uint8_t st_enable)
     return 0;
 }
 
+int fpioa_set_oe_inv(int number, uint8_t inv_enable)
+{
+    /* Check parameters */
+    if (number < 0 || number >= FPIOA_NUM_IO)
+        return -1;
+
+    /* Atomic read register */
+    fpioa_io_config_t cfg = fpioa->io[number];
+    /* Set IO schmitt trigger */
+    cfg.oe_inv = inv_enable;
+    /* Atomic write register */
+    fpioa->io[number] = cfg;
+    return 0;
+}
 
 int fpioa_get_io_driving(int number)
 {

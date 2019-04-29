@@ -1005,7 +1005,7 @@ int fpioa_get_io_by_function(fpioa_function_t function);
 int fpioa_set_sl(int number, uint8_t sl_enable);
 
 /**
- * @brief       Set IO slew rate
+ * @brief       Set IO schmitt trigger
  *
  * @param[in]   number       The IO number
  * @param[in]   st_enable    Enable schmitt trigger. 0: disable 1:enable
@@ -1015,6 +1015,18 @@ int fpioa_set_sl(int number, uint8_t sl_enable);
  *     - Other  Fail
  */
 int fpioa_set_st(int number, uint8_t st_enable);
+
+/**
+ * @brief       Set IO output invert enable
+ *
+ * @param[in]   number       The IO number
+ * @param[in]   inv_enable   Enable output invert. 0: disable 1:enable
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int fpioa_set_oe_inv(int number, uint8_t inv_enable);
 
 #ifdef __cplusplus
 }
