@@ -272,12 +272,6 @@ void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwi
     uint8_t dlf = divisor - (dlh << 12) - dll * __UART_BRATE_CONST;
 
     /* Set UART registers */
-    uart[channel]->TCR &= ~(1u);
-    uart[channel]->TCR &= ~(1u << 3);
-    uart[channel]->TCR &= ~(1u << 4);
-    uart[channel]->TCR |= (1u << 2);
-    uart[channel]->TCR &= ~(1u << 1);
-    uart[channel]->DE_EN &= ~(1u);
 
     uart[channel]->LCR |= 1u << 7;
     uart[channel]->DLH = dlh;
@@ -286,7 +280,6 @@ void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwi
     uart[channel]->LCR = 0;
     uart[channel]->LCR = (data_width - 5) | (stopbit_val << 2) | (parity_val << 3);
     uart[channel]->LCR &= ~(1u << 7);
-    uart[channel]->MCR &= ~3;
     uart[channel]->IER |= 0x80; /* THRE */
     uart[channel]->FCR = UART_RECEIVE_FIFO_1 << 6 | UART_SEND_FIFO_8 << 4 | 0x1 << 3 | 0x1;
 }
@@ -410,6 +403,112 @@ void uart_handle_data_dma(uart_device_number_t uart_channel ,uart_data_t data, p
             dmac_wait_done(data.rx_channel);
             spinlock_unlock(&g_uart_recv_instance_dma[uart_channel].lock);
         }
+    }
+}
+
+void uart_set_work_mode(uart_device_number_t uart_channel, uart_work_mode_t work_mode)
+{
+    volatile uart_tcr_t *tcr;
+    switch(work_mode)
+    {
+        case UART_IRDA:
+            uart[uart_channel]->MCR |= (1 << 6);
+            break;
+        case UART_RS485_FULL_DUPLEX:
+            tcr = (uart_tcr_t *)&uart[uart_channel]->TCR;
+            tcr->xfer_mode = 0;
+            tcr->rs485_en = 1;
+            break;
+        case UART_RS485_HALF_DUPLEX:
+            tcr = (uart_tcr_t *)&uart[uart_channel]->TCR;
+            tcr->xfer_mode = 2;
+            tcr->rs485_en = 1;
+            uart[uart_channel]->DE_EN = 1;
+            uart[uart_channel]->RE_EN = 1;
+            break;
+        default:
+            uart[uart_channel]->MCR &= ~(1 << 6);
+            uart[uart_channel]->TCR &= ~(1 << 0);
+            break;
+    }
+}
+
+void uart_set_rede_polarity(uart_device_number_t uart_channel, uart_rs485_rede_t rede, uart_polarity_t polarity)
+{
+    volatile uart_tcr_t *tcr = (uart_tcr_t *)&uart[uart_channel]->TCR;
+    switch(rede)
+    {
+        case UART_RS485_DE:
+            tcr->de_pol = polarity;
+            break;
+        case UART_RS485_RE:
+            tcr->re_pol = polarity;
+            break;
+        default:
+            tcr->de_pol = polarity;
+            tcr->re_pol = polarity;
+            break;
+    }
+}
+
+void uart_set_rede_enable(uart_device_number_t uart_channel, uart_rs485_rede_t rede, bool enable)
+{
+    switch(rede)
+    {
+        case UART_RS485_DE:
+            uart[uart_channel]->DE_EN = enable;
+            break;
+        case UART_RS485_RE:
+            uart[uart_channel]->RE_EN = enable;
+            break;
+        default:
+            uart[uart_channel]->DE_EN = enable;
+            uart[uart_channel]->RE_EN = enable;
+            break;
+    }
+}
+
+void uart_set_det(uart_device_number_t uart_channel, uart_det_mode_t det_mode, size_t time)
+{
+    volatile uart_det_t *det = (uart_det_t *)&uart[uart_channel]->DET;
+    uint32_t freq = sysctl_clock_get_freq(SYSCTL_CLOCK_APB0);
+    uint32_t v_clk_cnt = time * freq / 1e9 + 1;
+    if(v_clk_cnt > 255)
+        v_clk_cnt = 255;
+    switch(det_mode)
+    {
+        case UART_DE_ASSERTION:
+            det ->de_assertion_time = v_clk_cnt;
+            break;
+        case UART_DE_DE_ASSERTION:
+            det->de_de_assertion_time = v_clk_cnt;
+            break;
+        default:
+            det ->de_assertion_time = v_clk_cnt;
+            det->de_de_assertion_time = v_clk_cnt;
+            break;
+    }
+}
+
+void uart_set_tat(uart_device_number_t uart_channel, uart_tat_mode_t tat_mode, size_t time)
+{
+    volatile uart_tat_t *tat = (uart_tat_t *)&uart[uart_channel]->TAT;
+    uint32_t freq = sysctl_clock_get_freq(SYSCTL_CLOCK_APB0);
+    uint32_t v_clk_cnt = time * freq / 1e9 + 1;
+    if(v_clk_cnt > 65536)
+        v_clk_cnt = 65536;
+    switch(tat_mode)
+    {
+        case UART_DE_TO_RE:
+            tat->de_to_re = v_clk_cnt - 1;
+            break;
+        case UART_RE_TO_DE:
+            tat->re_to_de = v_clk_cnt - 1;
+            break;
+        default:
+            tat->de_to_re = v_clk_cnt - 1;
+            tat->re_to_de = v_clk_cnt - 1;
+            break;
     }
 }
 
