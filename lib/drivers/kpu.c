@@ -1263,6 +1263,16 @@ static void kpu_quant_resize_nearest_neighbor(const kpu_model_quant_resize_neare
     }
 }
 
+static void kpu_logistic(const kpu_model_logistic_layer_argument_t *arg, kpu_model_context_t *ctx)
+{
+    const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
+    float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
+    size_t oc, channels = arg->channels;
+
+    for (oc = 0; oc < channels; oc++)
+        dest[oc] = 1.f / (1.f + expf(-src[oc]));
+}
+
 static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     volatile kpu_layer_argument_t layer = *(const volatile kpu_layer_argument_t *)(ctx->model_buffer + arg->layer_offset);
@@ -1453,6 +1463,8 @@ static const char *str_layer_type(uint32_t type)
             return "QuantResizeNearestNeighbor";
         case KL_CHANNELWISE_DEQUANTIZE:
             return "ChannelwiseDequantize";
+        case KL_LOGISTIC:
+            return "Logistic";
         case KL_K210_CONV:
             return "K210Conv";
         case KL_K210_ADD_PADDING:
@@ -1575,6 +1587,9 @@ static int ai_step(void *userdata)
             break;
         case KL_CHANNELWISE_DEQUANTIZE:
             kpu_kmodel_channelwise_dequantize((const kpu_model_channelwise_dequant_argument_t *)layer_body, ctx);
+            break;
+        case KL_LOGISTIC:
+            kpu_logistic((const kpu_model_logistic_layer_argument_t *)layer_body, ctx);
             break;
         case KL_K210_CONV:
             kpu_conv((const kpu_model_conv_layer_argument_t *)layer_body, ctx);

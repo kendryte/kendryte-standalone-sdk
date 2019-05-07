@@ -396,6 +396,7 @@ typedef enum
     KL_RESIZE_NEAREST_NEIGHBOR,
     KL_QUANTIZED_RESIZE_NEAREST_NEIGHBOR,
     KL_CHANNELWISE_DEQUANTIZE,
+    KL_LOGISTIC,
     KL_K210_CONV = 10240,
     KL_K210_ADD_PADDING,
     KL_K210_REMOVE_PADDING,
@@ -650,6 +651,14 @@ typedef struct
     uint32_t channel_size;
     kpu_model_quant_param_t quant_params[0];
 } kpu_model_channelwise_dequant_argument_t;
+
+typedef struct
+{
+    uint32_t flags;
+    uint32_t main_mem_in_address;
+    uint32_t main_mem_out_address;
+    uint32_t channels;
+} kpu_model_logistic_layer_argument_t;
 
 typedef void(*kpu_done_callback_t)(void* userdata);
 
