@@ -111,6 +111,13 @@ void sys_register_getchar(sys_getchar_t getchar)
     sys_getchar = getchar;
 }
 
+void sys_stdin_flush(void)
+{
+    if (sys_getchar)
+        while (sys_getchar() != EOF)
+            continue;
+}
+
 void __attribute__((noreturn)) sys_exit(int code)
 {
     /* Read core id */
@@ -213,7 +220,7 @@ static ssize_t sys_write(int file, const void *ptr, size_t len)
     if (STDOUT_FILENO == file || STDERR_FILENO == file)
     {
         /* Write data */
-        while (length-- > 0 && *data != 0) {
+        while (length-- > 0 && data != NULL) {
             if (sys_putchar)
                 sys_putchar(*(data++));
         }
@@ -227,6 +234,64 @@ static ssize_t sys_write(int file, const void *ptr, size_t len)
         res = -ENOSYS;
     }
 
+    return res;
+}
+
+static ssize_t sys_read(int file, void *ptr, size_t len)
+{
+    ssize_t res = -EBADF;
+
+    /**
+     * Write from a file.
+     *
+     * ssize_t read(int file, void *ptr, size_t len)
+     *
+     * IN : regs[10] = file, regs[11] = ptr, regs[12] = len
+     * OUT: regs[10] = len
+     */
+
+    /* Get size to read */
+    register size_t length = len;
+    /* Get data pointer */
+    register char *data = (char *)ptr;
+    /* Actual size to read */
+    register size_t actual_length = 0;
+
+    if (STDIN_FILENO == file)
+    {
+        /* Read data */
+        actual_length = 0;
+        while (length-- > 0 && data != NULL) {
+            if (sys_getchar) {
+                int getchar_result = sys_getchar();
+                /* Get char until not EOF */
+                while (getchar_result == EOF)
+                    getchar_result = sys_getchar();
+                if (getchar_result != EOF) {
+                    /* Not EOF, read data to buffer */
+                    *(data++) = (char)getchar_result;
+                    actual_length++;
+                    /* Echo back this char to user */
+                    if (sys_putchar)
+                        sys_putchar((char)getchar_result);
+                    /* User press RETURN, break. This is the last step in stdin */
+                    if ((char)getchar_result == '\r')
+                        break;
+                    if ((char)getchar_result == '\n')
+                        break;
+                } else {
+                    /* EOF, do nothing */
+                }
+            }
+        }
+        /* Return the actual size read */
+        res = actual_length;
+    }
+    else
+    {
+        /* Not support yet */
+        res = -ENOSYS;
+    }
     return res;
 }
 
@@ -322,6 +387,7 @@ handle_ecall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs
         SYS_ID_EXIT,
         SYS_ID_BRK,
         SYS_ID_WRITE,
+        SYS_ID_READ,
         SYS_ID_FSTAT,
         SYS_ID_CLOSE,
         SYS_ID_GETTIMEOFDAY,
@@ -335,6 +401,7 @@ handle_ecall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs
         [SYS_ID_EXIT]          = (void *)sys_exit,
         [SYS_ID_BRK]           = (void *)sys_brk,
         [SYS_ID_WRITE]         = (void *)sys_write,
+        [SYS_ID_READ]          = (void *)sys_read,
         [SYS_ID_FSTAT]         = (void *)sys_fstat,
         [SYS_ID_CLOSE]         = (void *)sys_close,
         [SYS_ID_GETTIMEOFDAY]  = (void *)sys_gettimeofday,
@@ -350,7 +417,7 @@ handle_ecall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs
         [0xFF & SYS_exit_group]    = SYS_ID_EXIT,
         [0xFF & SYS_getpid]        = SYS_ID_NOSYS,
         [0xFF & SYS_kill]          = SYS_ID_NOSYS,
-        [0xFF & SYS_read]          = SYS_ID_NOSYS,
+        [0xFF & SYS_read]          = SYS_ID_READ,
         [0xFF & SYS_write]         = SYS_ID_WRITE,
         [0xFF & SYS_open]          = SYS_ID_NOSYS,
         [0xFF & SYS_openat]        = SYS_ID_NOSYS,

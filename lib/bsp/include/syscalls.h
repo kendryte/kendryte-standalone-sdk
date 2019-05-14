@@ -64,6 +64,13 @@ void sys_register_putchar(sys_putchar_t putchar);
  */
 void sys_register_getchar(sys_getchar_t getchar);
 
+/**
+ * @brief       Flush stdin buffer
+ *
+ * @return      None
+ */
+void sys_stdin_flush(void);
+
 void __attribute__((noreturn)) sys_exit(int code);
 
 void setStats(int enable);

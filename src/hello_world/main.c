@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <stdio.h>
+#include <uart.h>
 #include "bsp.h"
 
 int core1_function(void *ctx)
@@ -26,7 +27,15 @@ int core1_function(void *ctx)
 int main()
 {
     uint64_t core = current_coreid();
+    int data;
     printf("Core %ld Hello world\n", core);
     register_core1(core1_function, NULL);
-    while(1);
+
+    /* Clear stdin buffer before scanf */
+    sys_stdin_flush();
+
+    scanf("%d", &data);
+    printf("Data is %d\n", data);
+    while(1)
+        continue;
 }
