@@ -469,6 +469,72 @@ void uart_set_tat(uart_device_number_t uart_channel, uart_tat_mode_t tat_mode, s
  */
 void uart_set_det(uart_device_number_t uart_channel, uart_det_mode_t det_mode, size_t time);
 
+/**
+ * @brief       Put a char to UART1
+ *
+ * @param[in]   c       The char to put
+ *
+ * @note        If c is '\n', a '\r' will be appended automatically
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int uart1_putchar(char c);
+
+/**
+ * @brief       Get a byte from UART1
+ *
+ * @return      byte as int type from UART
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
+ */
+int uart1_getchar(void);
+
+/**
+ * @brief       Put a char to UART2
+ *
+ * @param[in]   c       The char to put
+ *
+ * @note        If c is '\n', a '\r' will be appended automatically
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int uart2_putchar(char c);
+
+/**
+ * @brief       Get a byte from UART2
+ *
+ * @return      byte as int type from UART
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
+ */
+int uart2_getchar(void);
+
+/**
+ * @brief       Put a char to UART3
+ *
+ * @param[in]   c       The char to put
+ *
+ * @note        If c is '\n', a '\r' will be appended automatically
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
+int uart3_putchar(char c);
+
+/**
+ * @brief       Get a byte from UART3
+ *
+ * @return      byte as int type from UART
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
+ */
+int uart3_getchar(void);
+
 #ifdef __cplusplus
 }
 #endif

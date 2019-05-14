@@ -95,7 +95,7 @@ static int uart_irq_callback(void *param)
     return 0;
 }
 
-static int uartapb_putc(uart_device_number_t channel, char c)
+int uart_channel_putc(char c, uart_device_number_t channel)
 {
     while (uart[channel]->LSR & (1u << 5))
         continue;
@@ -103,12 +103,43 @@ static int uartapb_putc(uart_device_number_t channel, char c)
     return 0;
 }
 
-int uartapb_getc(uart_device_number_t channel)
+int uart_channel_getc(uart_device_number_t channel)
 {
-    while (!(uart[channel]->LSR & 1))
-        continue;
+    /* If received empty */
+    if (!(uart[channel]->LSR & 1))
+        return EOF;
+    else
+        return (char)(uart[channel]->RBR & 0xff);
+}
 
-    return (char)(uart[channel]->RBR & 0xff);
+int uart1_putchar(char c)
+{
+    return uart_channel_putc(c, UART_DEVICE_1);
+}
+
+int uart1_getchar(void)
+{
+    return uart_channel_getc(UART_DEVICE_1);
+}
+
+int uart2_putchar(char c)
+{
+    return uart_channel_putc(c, UART_DEVICE_2);
+}
+
+int uart2_getchar(void)
+{
+    return uart_channel_getc(UART_DEVICE_2);
+}
+
+int uart3_putchar(char c)
+{
+    return uart_channel_putc(c, UART_DEVICE_3);
+}
+
+int uart3_getchar(void)
+{
+    return uart_channel_getc(UART_DEVICE_3);
 }
 
 static int uart_dma_callback(void *ctx)
@@ -189,7 +220,7 @@ int uart_send_data(uart_device_number_t channel, const char *buffer, size_t buf_
     g_write_count = 0;
     while (g_write_count < buf_len)
     {
-        uartapb_putc(channel, *buffer++);
+        uart_channel_putc(*buffer++, channel);
         g_write_count++;
     }
     return g_write_count;
