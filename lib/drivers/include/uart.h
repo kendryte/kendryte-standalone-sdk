@@ -474,11 +474,9 @@ void uart_set_det(uart_device_number_t uart_channel, uart_det_mode_t det_mode, s
  *
  * @param[in]   c       The char to put
  *
- * @note        If c is '\n', a '\r' will be appended automatically
- *
  * @return      result
- *     - 0      Success
- *     - Other  Fail
+ *     - Byte   On success, returns the written character.
+ *     - EOF    On failure, returns EOF and sets the error indicator (see ferror()) on stdout.
  */
 int uart1_putchar(char c);
 
@@ -496,11 +494,9 @@ int uart1_getchar(void);
  *
  * @param[in]   c       The char to put
  *
- * @note        If c is '\n', a '\r' will be appended automatically
- *
  * @return      result
- *     - 0      Success
- *     - Other  Fail
+ *     - Byte   On success, returns the written character.
+ *     - EOF    On failure, returns EOF and sets the error indicator (see ferror()) on stdout.
  */
 int uart2_putchar(char c);
 
@@ -518,11 +514,9 @@ int uart2_getchar(void);
  *
  * @param[in]   c       The char to put
  *
- * @note        If c is '\n', a '\r' will be appended automatically
- *
  * @return      result
- *     - 0      Success
- *     - Other  Fail
+ *     - Byte   On success, returns the written character.
+ *     - EOF    On failure, returns EOF and sets the error indicator (see ferror()) on stdout.
  */
 int uart3_putchar(char c);
 

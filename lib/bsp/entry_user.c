@@ -23,7 +23,8 @@
 #include "plic.h"
 #include "sysctl.h"
 #include "syslog.h"
-#include "uarths.h"
+#include "uart.h"
+#include "syscalls.h"
 
 extern volatile uint64_t g_wake_up[2];
 
@@ -72,7 +73,12 @@ void _init_bsp(int core_id, int number_of_cores)
         /* Initialize bss data to 0 */
         init_bss();
         /* Init UART */
-        uarths_init();
+        uart_init(UART_DEVICE_3);
+        uart_configure(UART_DEVICE_3, 115200, 8, UART_STOP_1, UART_PARITY_NONE);
+        fpioa_set_function(4, FUNC_UART3_RX);
+        fpioa_set_function(5, FUNC_UART3_TX);
+        sys_register_getchar(uart3_getchar);
+        sys_register_putchar(uart3_putchar);
         /* Init FPIOA */
         fpioa_init();
         /* Register finalization function */

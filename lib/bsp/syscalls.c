@@ -33,7 +33,6 @@
 #include "fpioa.h"
 #include "interrupt.h"
 #include "sysctl.h"
-#include "uarths.h"
 #include "util.h"
 #include "syslog.h"
 #include "dump.h"
@@ -99,6 +98,18 @@ extern char _heap_start[];
 extern char _heap_end[];
 char *_heap_cur = &_heap_start[0];
 
+sys_putchar_t sys_putchar;
+sys_getchar_t sys_getchar;
+
+void sys_register_putchar(sys_putchar_t putchar)
+{
+    sys_putchar = putchar;
+}
+
+void sys_register_getchar(sys_getchar_t getchar)
+{
+    sys_getchar = getchar;
+}
 
 void __attribute__((noreturn)) sys_exit(int code)
 {
@@ -202,8 +213,10 @@ static ssize_t sys_write(int file, const void *ptr, size_t len)
     if (STDOUT_FILENO == file || STDERR_FILENO == file)
     {
         /* Write data */
-        while (length-- > 0 && *data != 0)
-            uarths_putchar(*(data++));
+        while (length-- > 0 && *data != 0) {
+            if (sys_putchar)
+                sys_putchar(*(data++));
+        }
 
         /* Return the actual size written */
         res = len;

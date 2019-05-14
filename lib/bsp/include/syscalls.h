@@ -26,6 +26,44 @@
 extern "C" {
 #endif
 
+/**
+ * @brief       Definitions for syscall putchar function
+ *
+ * @param[in]   c       The char to put
+ *
+ * @return      result
+ *     - Byte   On success, returns the written character.
+ *     - EOF   On failure, returns EOF and sets the error indicator (see ferror()) on stdout.
+ */
+typedef int (*sys_putchar_t)(char c);
+
+/**
+ * @brief       Definitions for syscall getchar function
+ *
+ * @return      byte as int type to get
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
+ */
+typedef int (*sys_getchar_t)(void);
+
+/**
+ * @brief       Register putchar function when perform write syscall
+ * 
+ * @param[in]   putchar       The user-defined putchar function
+ *
+ * @return      None
+ */
+void sys_register_putchar(sys_putchar_t putchar);
+
+/**
+ * @brief       Register getchar function when perform read syscall
+ * 
+ * @param[in]   getchar       The user-defined getchar function
+ *
+ * @return      None
+ */
+void sys_register_getchar(sys_getchar_t getchar);
+
 void __attribute__((noreturn)) sys_exit(int code);
 
 void setStats(int enable);

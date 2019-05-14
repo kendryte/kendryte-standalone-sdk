@@ -97,7 +97,7 @@ int uarths_putchar(char c)
         continue;
     uarths->txdata.data = (uint8_t)c;
 
-    return 0;
+    return (c & 0xff);
 }
 
 int uarths_getchar(void)
@@ -108,7 +108,7 @@ int uarths_getchar(void)
     if (recv.empty)
         return EOF;
     else
-        return (recv.data & 0xFF);
+        return (recv.data & 0xff);
 }
 
 /* [Deprecated] this function will remove in future */

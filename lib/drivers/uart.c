@@ -100,7 +100,7 @@ int uart_channel_putc(char c, uart_device_number_t channel)
     while (uart[channel]->LSR & (1u << 5))
         continue;
     uart[channel]->THR = c;
-    return 0;
+    return c & 0xff;
 }
 
 int uart_channel_getc(uart_device_number_t channel)

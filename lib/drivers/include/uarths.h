@@ -201,11 +201,9 @@ void uarths_init(void);
  *
  * @param[in]   c       The char to put
  *
- * @note        If c is '\n', a '\r' will be appended automatically
- *
  * @return      result
- *     - 0      Success
- *     - Other  Fail
+ *     - Byte   On success, returns the written character.
+ *     - EOF    On failure, returns EOF and sets the error indicator (see ferror()) on stdout.
  */
 int uarths_putchar(char c);
 
