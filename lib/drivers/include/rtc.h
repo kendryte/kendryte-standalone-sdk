@@ -24,6 +24,8 @@
 #include <stdint.h>
 #include <time.h>
 #include "platform.h"
+#include <plic.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -164,6 +166,17 @@ typedef struct _rtc_time
     /* Reserved */
     uint32_t resv2 : 3;
 } __attribute__((packed, aligned(4))) rtc_time_t;
+
+typedef struct _rtc_date_time
+{
+    uint32_t sec : 6;
+    uint32_t min : 6;
+    uint32_t hour : 5;
+    uint32_t week : 3;
+    uint32_t day : 5;
+    uint32_t month : 4;
+    uint16_t year;
+} rtc_date_time_t;
 
 /**
  * @brief       Alarm date information
@@ -390,6 +403,11 @@ int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *
  *     - Other  Fail
  */
 int rtc_init(void);
+
+int rtc_tick_irq_register(bool is_single_shot, rtc_tick_interrupt_mode_t mode, plic_irq_callback_t callback, void *ctx, uint8_t priority);
+void rtc_tick_irq_unregister(void);
+int rtc_alarm_irq_register(bool is_single_shot, rtc_date_time_t data_time, rtc_mask_t mask, plic_irq_callback_t callback, void *ctx, uint8_t priority);
+void rtc_alarm_irq_unregister(void);
 
 #ifdef __cplusplus
 }

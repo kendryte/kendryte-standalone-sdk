@@ -18,10 +18,25 @@
 #include "encoding.h"
 #include "sysctl.h"
 #include "rtc.h"
+#include "printf.h"
 
 volatile rtc_t *const rtc = (volatile rtc_t *)RTC_BASE_ADDR;
 
-struct tm rtc_date_time;
+struct tm rtc_timer_date_time;
+
+struct tm rtc_alarm_date_time;
+
+typedef struct _rtc_instance_t
+{
+    plic_irq_callback_t rtc_tick_callback;
+    void *tick_ctx;
+    plic_irq_callback_t rtc_alarm_callback;
+    void *alarm_ctx;
+    bool tick_is_single_shot;
+    bool alarm_is_single_shot;
+} rtc_instance_t;
+
+rtc_instance_t rtc_instance;
 
 void rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
 {
@@ -241,10 +256,14 @@ int rtc_timer_set_alarm_tm(const struct tm *tm)
             alarm_date.week = tm->tm_wday;
         else
             return -1;
-
+        /* Set RTC mode to timer setting mode */
+        rtc_timer_set_mode(RTC_TIMER_SETTING);
         /* Write value to RTC */
         rtc->alarm_date = alarm_date;
         rtc->alarm_time = alarm_time;
+        /* Set RTC mode to timer running mode */
+        rtc_timer_set_mode(RTC_TIMER_RUNNING);
+
     }
 
     return 0;
@@ -283,7 +302,7 @@ struct tm *rtc_timer_get_tm(void)
     rtc_time_t timer_time = rtc->time;
     rtc_extended_t timer_extended = rtc->extended;
 
-    struct tm *tm = &rtc_date_time;
+    struct tm *tm = &rtc_timer_date_time;
 
     tm->tm_sec = timer_time.second % 60;
     tm->tm_min = timer_time.minute % 60;
@@ -307,7 +326,7 @@ struct tm *rtc_timer_get_alarm_tm(void)
     rtc_alarm_time_t alarm_time = rtc->alarm_time;
     rtc_extended_t timer_extended = rtc->extended;
 
-    struct tm *tm = &rtc_date_time;
+    struct tm *tm = &rtc_alarm_date_time;
 
     tm->tm_sec = alarm_time.second % 60;
     tm->tm_min = alarm_time.minute % 60;
@@ -438,7 +457,7 @@ unsigned int rtc_timer_get_clock_count_value(void)
     return rtc->current_count.count;
 }
 
-int rtc_tick_interrupt_set(int enable)
+int rtc_tick_set_interrupt(int enable)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
     interrupt_ctrl.tick_enable = enable;
@@ -448,14 +467,14 @@ int rtc_tick_interrupt_set(int enable)
     return 0;
 }
 
-int rtc_tick_interrupt_get(void)
+int rtc_tick_get_interrupt(void)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     return interrupt_ctrl.tick_enable;
 }
 
-int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_t mode)
+int rtc_tick_interrupt_set_mode(rtc_tick_interrupt_mode_t mode)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
@@ -466,39 +485,43 @@ int rtc_tick_interrupt_mode_set(rtc_tick_interrupt_mode_t mode)
     return 0;
 }
 
-rtc_tick_interrupt_mode_t rtc_tick_interrupt_mode_get(void)
+rtc_tick_interrupt_mode_t rtc_tick_interrupt_get_mode(void)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     return interrupt_ctrl.tick_int_mode;
 }
 
-int rtc_alarm_interrupt_set(int enable)
+int rtc_alarm_set_interrupt(int enable)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.alarm_enable = enable;
+    rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
-int rtc_alarm_interrupt_get(void)
+int rtc_alarm_get_interrupt(void)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     return interrupt_ctrl.alarm_enable;
 }
 
-int rtc_alarm_interrupt_mask_set(rtc_mask_t mask)
+int rtc_alarm_set_mask(rtc_mask_t mask)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.alarm_compare_mask = *(uint8_t *)&mask;
+    rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
-rtc_mask_t rtc_alarm_interrupt_mask_get(void)
+rtc_mask_t rtc_alarm_get_mask(void)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
@@ -585,3 +608,228 @@ int rtc_init(void)
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
+
+int rtc_irq_callback(void *ctx)
+{
+    printk("%s\n", __func__);
+    rtc_instance_t *instance = (rtc_instance_t *)ctx;
+    struct tm *now_tm = rtc_timer_get_tm();
+    if(rtc_alarm_get_interrupt())
+    {
+        struct tm *alarm_tm = rtc_timer_get_alarm_tm();
+        rtc_mask_t alarm_mask = rtc_alarm_get_mask();
+        if((*((uint8_t *)&alarm_mask) & 0xFE) == 0)
+        {
+            goto tick;
+        }
+        if(alarm_mask.year)
+        {
+            if(now_tm->tm_year != alarm_tm->tm_year)
+            {
+                goto tick;
+            }
+        }
+        if(alarm_mask.month)
+        {
+            if(now_tm->tm_mon != alarm_tm->tm_mon)
+            {
+                goto tick;
+            }
+        }
+        if(alarm_mask.day)
+        {
+            if(now_tm->tm_mday != alarm_tm->tm_mday)
+            {
+                goto tick;
+            }
+        }
+        if(alarm_mask.hour)
+        {
+            if(now_tm->tm_hour != alarm_tm->tm_hour)
+            {
+                goto tick;
+            }
+        }
+        if(alarm_mask.minute)
+        {
+            if(now_tm->tm_min != alarm_tm->tm_min)
+            {
+                goto tick;
+            }
+        }
+        if(alarm_mask.second)
+        {
+            if(now_tm->tm_sec != alarm_tm->tm_sec)
+            {
+                goto tick;
+            }
+        }
+        if(instance->alarm_is_single_shot)
+        {
+            rtc_alarm_set_interrupt(0);
+        }
+        if(instance->rtc_alarm_callback)
+            instance->rtc_alarm_callback(instance->alarm_ctx);
+    }
+tick:
+    if(rtc_tick_get_interrupt())
+    {
+        rtc_tick_interrupt_mode_t tick_mode = rtc_tick_interrupt_get_mode();
+        switch(tick_mode)
+        {
+            case RTC_INT_MINUTE:
+                if(now_tm->tm_sec != 0)
+                    goto ret;
+                break;
+            case RTC_INT_HOUR:
+                if(now_tm->tm_sec != 0 || now_tm->tm_min != 0)
+                    goto ret;
+                break;
+            case RTC_INT_DAY:
+                if(now_tm->tm_sec != 0 || now_tm->tm_min != 0 || now_tm->tm_hour != 0)
+                    goto ret;
+                break;
+            case RTC_INT_SECOND:
+            default:
+                break;
+        }
+
+        if(instance->tick_is_single_shot)
+        {
+            rtc_tick_set_interrupt(0);
+        }
+        if(instance->rtc_tick_callback)
+            instance->rtc_tick_callback(instance->tick_ctx);
+    }
+ret:
+    return 0;
+}
+
+int rtc_tick_irq_register(bool is_single_shot, rtc_tick_interrupt_mode_t mode, plic_irq_callback_t callback, void *ctx, uint8_t priority)
+{
+    plic_irq_disable(IRQN_RTC_INTERRUPT);
+    rtc_tick_set_interrupt(0);
+
+    rtc_instance.rtc_tick_callback = callback;
+    rtc_instance.tick_ctx = ctx;
+    rtc_instance.tick_is_single_shot = is_single_shot;
+    rtc_tick_interrupt_set_mode(mode);
+
+    plic_set_priority(IRQN_RTC_INTERRUPT, priority);
+    plic_irq_register(IRQN_RTC_INTERRUPT, rtc_irq_callback, &rtc_instance);
+    plic_irq_enable(IRQN_RTC_INTERRUPT);
+
+    rtc_tick_set_interrupt(1);
+    return 0;
+}
+
+void rtc_tick_irq_unregister(void)
+{
+    rtc_instance.rtc_tick_callback = NULL;
+    rtc_instance.tick_ctx = NULL;
+    rtc_tick_set_interrupt(0);
+    if(!rtc_alarm_get_interrupt())
+    {
+        plic_irq_unregister(IRQN_RTC_INTERRUPT);
+    }
+}
+
+int rtc_alarm_irq_register(bool is_single_shot, rtc_date_time_t date_time, rtc_mask_t mask, plic_irq_callback_t callback, void *ctx, uint8_t priority)
+{
+    if(date_time.year < 1900)
+    {
+        if(mask.year)
+            return -1;
+        else
+            date_time.year = 2000;
+    }
+
+    if(!rtc_in_range(date_time.month, 1, 12))
+    {
+        if(mask.month)
+            return -1;
+        else
+            date_time.month = 1;
+    }
+
+    if(!rtc_in_range(date_time.day, 1, 31))
+    {
+        if(mask.day)
+            return -1;
+        else
+            date_time.day = 1;
+    }
+
+    if(!rtc_in_range(date_time.week, 0, 6))
+    {
+        if(mask.week)
+            return -1;
+        else
+            date_time.week = 0;
+    }
+
+    if(!rtc_in_range(date_time.hour, 0, 23))
+    {
+        if(mask.hour)
+            return -1;
+        else
+            date_time.hour = 0;
+    }
+
+    if(!rtc_in_range(date_time.min, 0, 59))
+    {
+        if(mask.minute)
+            return -1;
+        else
+            date_time.min = 0;
+    }
+
+    if(!rtc_in_range(date_time.sec, 0, 59))
+    {
+        if(mask.second)
+            return -1;
+        else
+            date_time.sec = 0;
+    }
+
+    plic_irq_disable(IRQN_RTC_INTERRUPT);
+    rtc_alarm_set_interrupt(0);
+    rtc_instance.rtc_alarm_callback = callback;
+    rtc_instance.alarm_ctx = ctx;
+    rtc_instance.alarm_is_single_shot = is_single_shot;
+
+    rtc_alarm_set_mask(mask);
+    struct tm v_tm = (struct tm)
+    {
+        .tm_sec = date_time.sec,
+        .tm_min = date_time.min,
+        .tm_hour = date_time.hour,
+        .tm_mday = date_time.day,
+        .tm_mon = date_time.month - 1,
+        .tm_year = date_time.year - 1900,
+        .tm_wday = date_time.week,
+        .tm_isdst = -1,
+    };
+
+    if(rtc_timer_set_alarm_tm(&v_tm))
+        return -1;
+
+    plic_set_priority(IRQN_RTC_INTERRUPT, priority);
+    plic_irq_register(IRQN_RTC_INTERRUPT, rtc_irq_callback, &rtc_instance);
+    plic_irq_enable(IRQN_RTC_INTERRUPT);
+
+    rtc_alarm_set_interrupt(1);
+    return 0;
+}
+
+void rtc_alarm_irq_unregister(void)
+{
+    rtc_instance.rtc_alarm_callback = NULL;
+    rtc_instance.alarm_ctx = NULL;
+    rtc_alarm_set_interrupt(0);
+    if(!rtc_tick_get_interrupt())
+    {
+        plic_irq_unregister(IRQN_RTC_INTERRUPT);
+    }
+}
+

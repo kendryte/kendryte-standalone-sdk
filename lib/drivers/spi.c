@@ -1357,8 +1357,8 @@ void spi_slave_config(uint8_t int_pin, uint8_t ready_pin, dmac_channel_number_t 
     gpiohs_set_irq(g_instance.int_pin, 3, spi_slave_cs_irq);
 
     plic_set_priority(IRQN_SPI_SLAVE_INTERRUPT, 4);
-    plic_irq_enable(IRQN_SPI_SLAVE_INTERRUPT);
     plic_irq_register(IRQN_SPI_SLAVE_INTERRUPT, spi_slave_irq, NULL);
+    plic_irq_enable(IRQN_SPI_SLAVE_INTERRUPT);
 }
 
 void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select, spi_data_t data, plic_interrupt_t *cb)

@@ -169,9 +169,9 @@ int kpu_run(kpu_task_t* v_task, dmac_channel_number_t dma_ch, const void *src, v
     task->remain_layers_length = task->layers_length;
     task->remain_layers = task->layers;
 
-    plic_irq_enable(IRQN_AI_INTERRUPT);
     plic_set_priority(IRQN_AI_INTERRUPT, 1);
     plic_irq_register(IRQN_AI_INTERRUPT, kpu_continue, task);
+    plic_irq_enable(IRQN_AI_INTERRUPT);
 
     kpu_run_dma_input(dma_ch, src, kpu_run_dma_input_done_push_layers, task);
 
@@ -268,9 +268,10 @@ static int kpu_data_ready(void *ctx)
     {
         .fifo_full_threshold = 12, .fifo_empty_threshold = 1
     };
-    plic_irq_enable(IRQN_AI_INTERRUPT);
+
     plic_set_priority(IRQN_AI_INTERRUPT, 2);
     plic_irq_register(IRQN_AI_INTERRUPT, kpu_config_input, task);
+    plic_irq_enable(IRQN_AI_INTERRUPT);
     kpu_config_input(task);
     kpu->interrupt_mask.data = (kpu_config_interrupt_t)
     {
@@ -390,9 +391,9 @@ void kpu_init(int eight_bit_mode, plic_irq_callback_t callback, void *userdata)
         .layer_cfg_almost_full_int = 1
     };
 
-    plic_irq_enable(IRQN_AI_INTERRUPT);
     plic_set_priority(IRQN_AI_INTERRUPT, 1);
     plic_irq_register(IRQN_AI_INTERRUPT, callback, userdata);
+    plic_irq_enable(IRQN_AI_INTERRUPT);
 }
 
 void kpu_input_dma(const kpu_layer_argument_t *layer, const uint8_t *src, dmac_channel_number_t dma_ch, plic_irq_callback_t callback, void *userdata)
@@ -1651,9 +1652,9 @@ int kpu_run_kmodel(kpu_model_context_t *ctx, const uint8_t *src, dmac_channel_nu
         .layer_cfg_almost_full_int = 1
     };
 
-    plic_irq_enable(IRQN_AI_INTERRUPT);
     plic_set_priority(IRQN_AI_INTERRUPT, 1);
     plic_irq_register(IRQN_AI_INTERRUPT, ai_step, ctx);
+    plic_irq_enable(IRQN_AI_INTERRUPT);
 
     const kpu_model_layer_header_t *first_layer_header = ctx->layer_headers;
     if (first_layer_header->type != KL_K210_CONV)
