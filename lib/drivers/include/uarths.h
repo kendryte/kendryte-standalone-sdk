@@ -210,6 +210,15 @@ void uarths_init(void);
 int uarths_putchar(char c);
 
 /**
+ * @brief       Get a byte from UART
+ *
+ * @return      byte as int type from UART
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
+ */
+int uarths_getchar(void);
+
+/**
  * @brief       Send a string to UART
  *
  * @param[in]   s       The string to send
@@ -222,11 +231,12 @@ int uarths_putchar(char c);
  */
 int uarths_puts(const char *s);
 
-
 /**
- * @brief       Get a byte from UART
+ * @brief       [Deprecated] Get a byte from UART
  *
  * @return      byte as int type from UART
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
  */
 int uarths_getc(void);
 
