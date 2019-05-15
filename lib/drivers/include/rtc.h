@@ -446,15 +446,105 @@ int rtc_alarm_set(int year, int month, int day, int hour, int minute, int second
  */
 int rtc_alarm_get(int *year, int *month, int *day, int *hour, int *minute, int *second);
 
+/**
+ * @brief     Get RTC timer clock count value
+ *
+ * @return    unsigned int, the value of counter
+ */
 unsigned int rtc_timer_get_clock_count_value(void);
 
+/**
+ * @brief     Enable or disable RTC tick interrupt
+ *
+ * @param     enable    Enable or disable RTC tick interrupt
+ * @return    Result
+ *            - 0     Success
+ *            - Other Fail
+ */
 int rtc_tick_interrupt_set(int enable);
+
+/**
+ * @brief     Get the enable status of RTC tick interrupt
+ *
+ * @return    The enable status of RTC tick interrupt
+ */
 int rtc_tick_interrupt_get(void);
+
+/**
+ * @brief     Set the interrupt mode of RTC tick interrupt
+ *
+ * @param     mode    The mode of RTC tick interrupt
+ *                    - RTC_INT_SECOND,  0: Interrupt every second
+ *                    - RTC_INT_MINUTE,  1: Interrupt every minute
+ *                    - RTC_INT_HOUR,    2: Interrupt every hour
+ *                    - RTC_INT_DAY,     3: Interrupt every day
+ * @return    Result
+ *            - 0     Success
+ *            - Other Fail
+ */
 int rtc_tick_set_interrupt_mode(rtc_tick_interrupt_mode_t mode);
+
+/**
+ * @brief     Get the interrupt mode of RTC tick interrupt
+ *
+ * @return    mode    The mode of RTC tick interrupt
+ *                    - RTC_INT_SECOND,  0: Interrupt every second
+ *                    - RTC_INT_MINUTE,  1: Interrupt every minute
+ *                    - RTC_INT_HOUR,    2: Interrupt every hour
+ *                    - RTC_INT_DAY,     3: Interrupt every day
+ */
 rtc_tick_interrupt_mode_t rtc_tick_get_interrupt_mode(void);
+
+/**
+ * @brief     Enable or disable RTC alarm interrupt
+ *
+ * @param     enable    Enable or disable RTC alarm interrupt
+ * @return    Result
+ *            - 0     Success
+ *            - Other Fail
+ */
 int rtc_alarm_set_interrupt(int enable);
+
+/**
+ * @brief     Get the enable status of RTC alarm interrupt
+ *
+ * @return    The enable status of RTC alarm interrupt
+ */
 int rtc_alarm_get_interrupt(void);
+
+/**
+ * @brief     Set the compare mask for RTC alarm interrupt
+ *
+ * @param       mask    The alarm compare mask for RTC alarm interrupt
+ *                      (rtc_mask_t) {
+ *                          .second = 1, Set this mask to compare Second
+ *                          .minute = 0, Set this mask to compare Minute
+ *                          .hour = 0,   Set this mask to compare Hour
+ *                          .week = 0,   Set this mask to compare Week
+ *                          .day = 0,    Set this mask to compare Day
+ *                          .month = 0,  Set this mask to compare Month
+ *                          .year = 0,   Set this mask to compare Year
+ *                      }
+ * @return    Result
+ *            - 0     Success
+ *            - Other Fail
+ */
 int rtc_alarm_set_mask(rtc_mask_t mask);
+
+/**
+ * @brief    Get the compare mask for RTC alarm interrupt
+ *
+ * @return   mask    The alarm compare mask for RTC alarm interrupt
+ *                   (rtc_mask_t) {
+ *                       .second = 1, Set this mask to compare Second
+ *                       .minute = 0, Set this mask to compare Minute
+ *                       .hour = 0,   Set this mask to compare Hour
+ *                       .week = 0,   Set this mask to compare Week
+ *                       .day = 0,    Set this mask to compare Day
+ *                       .month = 0,  Set this mask to compare Month
+ *                       .year = 0,   Set this mask to compare Year
+ *                   }
+ */
 rtc_mask_t rtc_alarm_get_mask(void);
 
 /**
@@ -493,7 +583,38 @@ int rtc_tick_irq_register(bool is_single_shot, rtc_tick_interrupt_mode_t mode, p
  *     - Other  Fail
  */
 void rtc_tick_irq_unregister(void);
+
+/**
+ * @brief       Register callback of alarm interrupt
+ *
+ * @param       is_single_shot          Indicates if single shot
+ * @param       mask                    The alarm compare mask for RTC alarm interrupt
+ *                                      (rtc_mask_t) {
+ *                                          .second = 1, Set this mask to compare Second
+ *                                          .minute = 0, Set this mask to compare Minute
+ *                                          .hour = 0,   Set this mask to compare Hour
+ *                                          .week = 0,   Set this mask to compare Week
+ *                                          .day = 0,    Set this mask to compare Day
+ *                                          .month = 0,  Set this mask to compare Month
+ *                                          .year = 0,   Set this mask to compare Year
+ *                                      }
+ * @param       callback                Callback of tick interrupt
+ * @param       ctx                     Param of callback
+ * @param       priority                Priority of tick interrupt
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
 int rtc_alarm_irq_register(bool is_single_shot, rtc_mask_t mask, plic_irq_callback_t callback, void *ctx, uint8_t priority);
+
+/**
+ * @brief       Unregister alarm interrupt
+ *
+ * @return      Result
+ *     - 0      Success
+ *     - Other  Fail
+ */
 void rtc_alarm_irq_unregister(void);
 
 #ifdef __cplusplus
