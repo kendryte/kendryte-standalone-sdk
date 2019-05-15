@@ -321,6 +321,7 @@ uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t da
 void uart_init(uart_device_number_t channel)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_UART1 + channel);
+    sysctl_reset(SYSCTL_RESET_UART1 + channel);
 }
 
 void uart_set_send_trigger(uart_device_number_t channel, uart_send_trigger_t trigger)
