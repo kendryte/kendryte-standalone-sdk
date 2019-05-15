@@ -1,5 +1,9 @@
 #include <sys/lock.h>
 #include <stdlib.h>
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "portmacro.h"
+#include "task.h"
 #include "bsp.h"
 
 #define LOCK_MAX_NUM    (1024)
