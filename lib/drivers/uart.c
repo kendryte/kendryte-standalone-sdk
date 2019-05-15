@@ -19,6 +19,7 @@
 #include "uart.h"
 #include "utils.h"
 #include "atomic.h"
+#include "syscalls.h"
 
 #define __UART_BRATE_CONST  16
 
@@ -95,7 +96,9 @@ static int uart_irq_callback(void *param)
     return 0;
 }
 
-int uart_channel_putc(char c, uart_device_number_t channel)
+static uart_device_number_t s_uart_debug_channel = UART_DEVICE_3;
+
+static int uart_channel_putc(char c, uart_device_number_t channel)
 {
     while (uart[channel]->LSR & (1u << 5))
         continue;
@@ -103,7 +106,7 @@ int uart_channel_putc(char c, uart_device_number_t channel)
     return c & 0xff;
 }
 
-int uart_channel_getc(uart_device_number_t channel)
+static int uart_channel_getc(uart_device_number_t channel)
 {
     /* If received empty */
     if (!(uart[channel]->LSR & 1))
@@ -112,34 +115,39 @@ int uart_channel_getc(uart_device_number_t channel)
         return (char)(uart[channel]->RBR & 0xff);
 }
 
-int uart1_putchar(char c)
+static int uart_debug_putchar(char c)
 {
-    return uart_channel_putc(c, UART_DEVICE_1);
+    return uart_channel_putc(c, s_uart_debug_channel);
 }
 
-int uart1_getchar(void)
+static int uart_debug_getchar(void)
 {
-    return uart_channel_getc(UART_DEVICE_1);
+    return uart_channel_getc(s_uart_debug_channel);
 }
 
-int uart2_putchar(char c)
+void uart_debug_init(uart_device_number_t uart_channel)
 {
-    return uart_channel_putc(c, UART_DEVICE_2);
-}
-
-int uart2_getchar(void)
-{
-    return uart_channel_getc(UART_DEVICE_2);
-}
-
-int uart3_putchar(char c)
-{
-    return uart_channel_putc(c, UART_DEVICE_3);
-}
-
-int uart3_getchar(void)
-{
-    return uart_channel_getc(UART_DEVICE_3);
+    volatile bool v_uart_reset_flag = false;
+    if(uart_channel >= UART_DEVICE_1 && uart_channel <= UART_DEVICE_3)
+    {
+        s_uart_debug_channel = uart_channel;
+        v_uart_reset_flag = true;
+    }
+    uart_init(s_uart_debug_channel);
+    uart_configure(s_uart_debug_channel, 115200, 8, UART_STOP_1, UART_PARITY_NONE);
+    uart_set_receive_trigger(s_uart_debug_channel, UART_RECEIVE_FIFO_1);
+    if(v_uart_reset_flag)
+    {
+        sys_register_getchar(uart_debug_getchar);
+        sys_register_putchar(uart_debug_putchar);
+    }
+    else
+    {
+        if(sys_getchar == NULL)
+            sys_register_getchar(uart_debug_getchar);
+        if(sys_putchar == NULL)
+            sys_register_putchar(uart_debug_putchar);
+    }
 }
 
 static int uart_dma_callback(void *ctx)
@@ -321,6 +329,7 @@ uart_config(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t da
 void uart_init(uart_device_number_t channel)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_UART1 + channel);
+    sysctl_reset(SYSCTL_RESET_UART1 + channel);
 }
 
 void uart_set_send_trigger(uart_device_number_t channel, uart_send_trigger_t trigger)
