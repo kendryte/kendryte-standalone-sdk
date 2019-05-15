@@ -38,30 +38,42 @@ typedef struct _rtc_instance_t
 
 rtc_instance_t rtc_instance;
 
-void rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
+int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
 {
     rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
 
-    switch (timer_mode)
-    {
-        case RTC_TIMER_PAUSE:
-            register_ctrl.read_enable = 0;
-            register_ctrl.write_enable = 0;
-            break;
-        case RTC_TIMER_RUNNING:
-            register_ctrl.read_enable = 1;
-            register_ctrl.write_enable = 0;
-            break;
-        case RTC_TIMER_SETTING:
-            register_ctrl.read_enable = 0;
-            register_ctrl.write_enable = 1;
-            break;
-        default:
-            register_ctrl.read_enable = 0;
-            register_ctrl.write_enable = 0;
-            break;
+    switch (timer_mode) {
+    case RTC_TIMER_PAUSE:
+        register_ctrl.read_enable = 0;
+        register_ctrl.write_enable = 0;
+        break;
+    case RTC_TIMER_RUNNING:
+        register_ctrl.read_enable = 1;
+        register_ctrl.write_enable = 0;
+        break;
+    case RTC_TIMER_SETTING:
+        register_ctrl.read_enable = 0;
+        register_ctrl.write_enable = 1;
+        break;
+    default:
+        register_ctrl.read_enable = 0;
+        register_ctrl.write_enable = 0;
+        break;
     }
+
+    /* Get CPU current freq */
+    unsigned long freq = sysctl_clock_get_freq(SYSCTL_CLOCK_CPU);
+    /* Set threshold to 1/26000000 s */
+    freq = freq / 26000000;
+    /* Get current CPU cycle */
+    unsigned long start_cycle = read_csr(mcycle);
+    /* Wait for 1/26000000 s to sync data */
+    while (read_csr(mcycle) - start_cycle < freq)
+        continue;
+
     rtc->register_ctrl = register_ctrl;
+
+    return 0;
 }
 
 rtc_timer_mode_t rtc_timer_get_mode(void)
@@ -69,22 +81,16 @@ rtc_timer_mode_t rtc_timer_get_mode(void)
     rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
     rtc_timer_mode_t timer_mode = RTC_TIMER_PAUSE;
 
-    if ((!register_ctrl.read_enable) && (!register_ctrl.write_enable))
-    {
+    if ((!register_ctrl.read_enable) && (!register_ctrl.write_enable)) {
         /* RTC_TIMER_PAUSE */
         timer_mode = RTC_TIMER_PAUSE;
-    }
-    else if ((register_ctrl.read_enable) && (!register_ctrl.write_enable))
-    {
+    } else if ((register_ctrl.read_enable) && (!register_ctrl.write_enable)) {
         /* RTC_TIMER_RUNNING */
         timer_mode = RTC_TIMER_RUNNING;
-    }
-    else if ((!register_ctrl.read_enable) && (register_ctrl.write_enable)) {
+    } else if ((!register_ctrl.read_enable) && (register_ctrl.write_enable)) {
         /* RTC_TIMER_SETTING */
-        timer_mode = RTC_TIMER_SETTING;
-    }
-    else
-    {
+        timer_mode = RTC_TIMER_RUNNING;
+    } else {
         /* Something is error, reset timer mode */
         rtc_timer_set_mode(timer_mode);
     }
@@ -103,8 +109,7 @@ int rtc_timer_set_tm(const struct tm *tm)
     rtc_time_t timer_time;
     rtc_extended_t timer_extended;
 
-    if (tm)
-    {
+    if (tm) {
         /*
          * Range of tm->tm_sec could be [0,61]
          *
@@ -154,12 +159,10 @@ int rtc_timer_set_tm(const struct tm *tm)
         int rtc_century = human_year / 100;
 
         if (rtc_in_range(rtc_year, 0, 99) &&
-            rtc_in_range(rtc_century, 0, 31))
-        {
+            rtc_in_range(rtc_century, 0, 31)) {
             timer_date.year = rtc_year;
             timer_extended.century = rtc_century;
-        }
-        else
+        } else
             return -1;
 
         /* Range of tm->tm_wday could be [0, 6] */
@@ -174,15 +177,6 @@ int rtc_timer_set_tm(const struct tm *tm)
         rtc->date = timer_date;
         rtc->time = timer_time;
         rtc->extended = timer_extended;
-        /* Get CPU current freq */
-        unsigned long freq = sysctl_clock_get_freq(SYSCTL_CLOCK_CPU);
-        /* Set threshold to 1/26000000 s */
-        freq = freq / 26000000;
-        /* Get current CPU cycle */
-        unsigned long start_cycle = read_cycle();
-        /* Wait for 1/26000000 s to sync data */
-        while (read_cycle() - start_cycle < freq)
-            continue;
         /* Set RTC mode to timer running mode */
         rtc_timer_set_mode(RTC_TIMER_RUNNING);
     }
@@ -190,7 +184,7 @@ int rtc_timer_set_tm(const struct tm *tm)
     return 0;
 }
 
-int rtc_timer_set_alarm_tm(const struct tm *tm)
+int rtc_alarm_set_tm(const struct tm *tm)
 {
     rtc_alarm_date_t alarm_date;
     rtc_alarm_time_t alarm_time;
@@ -245,8 +239,7 @@ int rtc_timer_set_alarm_tm(const struct tm *tm)
         int rtc_century = human_year / 100;
 
         if (rtc_in_range(rtc_year, 0, 99) &&
-            rtc_in_range(rtc_century, 0, 31))
-        {
+            rtc_in_range(rtc_century, 0, 31)) {
             alarm_date.year = rtc_year;
         } else
             return -1;
@@ -256,6 +249,7 @@ int rtc_timer_set_alarm_tm(const struct tm *tm)
             alarm_date.week = tm->tm_wday;
         else
             return -1;
+
         /* Set RTC mode to timer setting mode */
         rtc_timer_set_mode(RTC_TIMER_SETTING);
         /* Write value to RTC */
@@ -263,21 +257,19 @@ int rtc_timer_set_alarm_tm(const struct tm *tm)
         rtc->alarm_time = alarm_time;
         /* Set RTC mode to timer running mode */
         rtc_timer_set_mode(RTC_TIMER_RUNNING);
-
     }
 
     return 0;
 }
 
-static int rtc_year_is_leap(int year)
+int rtc_year_is_leap(int year)
 {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
-static int rtc_get_yday(int year, int month, int day)
+int rtc_get_yday(int year, int month, int day)
 {
-    static const int days[2][13] =
-    {
+    static const int days[2][13] = {
         {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334},
         {0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335}
     };
@@ -286,7 +278,7 @@ static int rtc_get_yday(int year, int month, int day)
     return days[leap][month] + day;
 }
 
-static int rtc_get_wday(int year, int month, int day)
+int rtc_get_wday(int year, int month, int day)
 {
     /* Magic method to get weekday */
     int weekday  = (day += month < 3 ? year-- : year - 2, 23 * month / 9 + day + 4 + year / 4 - year / 100 + year / 400) % 7;
@@ -304,20 +296,20 @@ struct tm *rtc_timer_get_tm(void)
 
     struct tm *tm = &rtc_timer_date_time;
 
-    tm->tm_sec = timer_time.second % 60;
-    tm->tm_min = timer_time.minute % 60;
-    tm->tm_hour = timer_time.hour % 24;
-    tm->tm_mday = (timer_date.day - 1) % 31 + 1;
-    tm->tm_mon = (timer_date.month - 1)% 12;
+    tm->tm_sec = timer_time.second % 61; /* 0-60, follow C99 */
+    tm->tm_min = timer_time.minute % 60; /* 0-59 */
+    tm->tm_hour = timer_time.hour % 24; /* 0-23 */
+    tm->tm_mday = timer_date.day % 32; /* 1-31 */
+    tm->tm_mon = (timer_date.month - 1) % 12; /* 0-11 */
     tm->tm_year = (timer_date.year % 100) + (timer_extended.century * 100) - 1900;
-    tm->tm_wday = timer_date.week;
-    tm->tm_yday = rtc_get_yday(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+    tm->tm_wday = timer_date.week % 7; /* 0-6 */
+    tm->tm_yday = rtc_get_yday(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday) % 366; /* 0-365 */
     tm->tm_isdst = -1;
 
     return tm;
 }
 
-struct tm *rtc_timer_get_alarm_tm(void)
+struct tm *rtc_alarm_get_tm(void)
 {
     if (rtc_timer_get_mode() != RTC_TIMER_RUNNING)
         return NULL;
@@ -328,15 +320,14 @@ struct tm *rtc_timer_get_alarm_tm(void)
 
     struct tm *tm = &rtc_alarm_date_time;
 
-    tm->tm_sec = alarm_time.second % 60;
-    tm->tm_min = alarm_time.minute % 60;
-    tm->tm_hour = alarm_time.hour % 24;
-    tm->tm_mday = alarm_date.day % 31;
-    tm->tm_mon = (alarm_date.month % 12) - 1;
-    /* Alarm and Timer use same timer_extended.century */
+    tm->tm_sec = alarm_time.second % 61; /* 0-60, follow C99  */
+    tm->tm_min = alarm_time.minute % 60; /* 0-59 */
+    tm->tm_hour = alarm_time.hour % 24; /* 0-23 */
+    tm->tm_mday = alarm_date.day % 32; /* 1-31 */
+    tm->tm_mon = (alarm_date.month - 1) % 12; /* 0-11 */
     tm->tm_year = (alarm_date.year % 100) + (timer_extended.century * 100) - 1900;
-    tm->tm_wday = alarm_date.week;
-    tm->tm_yday = rtc_get_yday(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+    tm->tm_wday = alarm_date.week % 7; /* 0-6 */
+    tm->tm_yday = rtc_get_yday(tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday) % 366; /* 0-365 */
     tm->tm_isdst = -1;
 
     return tm;
@@ -344,8 +335,7 @@ struct tm *rtc_timer_get_alarm_tm(void)
 
 int rtc_timer_set(int year, int month, int day, int hour, int minute, int second)
 {
-    struct tm date_time =
-    {
+    struct tm date_time = {
         .tm_sec = second,
         .tm_min = minute,
         .tm_hour = hour,
@@ -356,6 +346,7 @@ int rtc_timer_set(int year, int month, int day, int hour, int minute, int second
         .tm_yday = rtc_get_yday(year, month, day),
         .tm_isdst = -1,
     };
+
     return rtc_timer_set_tm(&date_time);
 }
 
@@ -363,8 +354,7 @@ int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *
 {
     struct tm *tm = rtc_timer_get_tm();
 
-    if (tm)
-    {
+    if (tm) {
         if (year)
             *year = tm->tm_year + 1900;
         if (month)
@@ -383,7 +373,7 @@ int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *
     return 0;
 }
 
-int rtc_timer_set_alarm(int year, int month, int day, int hour, int minute, int second)
+int rtc_alarm_set(int year, int month, int day, int hour, int minute, int second)
 {
     struct tm date_time = {
         .tm_sec = second,
@@ -397,12 +387,12 @@ int rtc_timer_set_alarm(int year, int month, int day, int hour, int minute, int 
         .tm_isdst = -1,
     };
 
-    return rtc_timer_set_alarm_tm(&date_time);
+    return rtc_alarm_set_tm(&date_time);
 }
 
-int rtc_timer_get_alarm(int *year, int *month, int *day, int *hour, int *minute, int *second)
+int rtc_alarm_get(int *year, int *month, int *day, int *hour, int *minute, int *second)
 {
-    struct tm *tm = rtc_timer_get_alarm_tm();
+    struct tm *tm = rtc_alarm_get_tm();
 
     if (tm) {
         if (year)
@@ -425,12 +415,13 @@ int rtc_timer_get_alarm(int *year, int *month, int *day, int *hour, int *minute,
 
 int rtc_timer_set_clock_frequency(unsigned int frequency)
 {
-
     rtc_initial_count_t initial_count;
 
     initial_count.count = frequency;
+    /* Set RTC mode to timer setting mode */
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->initial_count = initial_count;
+    /* Set RTC mode to timer running mode */
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
@@ -446,8 +437,10 @@ int rtc_timer_set_clock_count_value(unsigned int  count)
     rtc_current_count_t current_count;
 
     current_count.count = count;
+    /* Set RTC mode to timer setting mode */
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->current_count = current_count;
+    /* Set RTC mode to timer running mode */
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
@@ -461,8 +454,10 @@ int rtc_tick_set_interrupt(int enable)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
     interrupt_ctrl.tick_enable = enable;
+    /* Set RTC mode to timer setting mode */
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
@@ -474,18 +469,20 @@ int rtc_tick_get_interrupt(void)
     return interrupt_ctrl.tick_enable;
 }
 
-int rtc_tick_interrupt_set_mode(rtc_tick_interrupt_mode_t mode)
+int rtc_tick_set_interrupt_mode(rtc_tick_interrupt_mode_t mode)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.tick_int_mode = mode;
+    /* Set RTC mode to timer setting mode */
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+    /* Set RTC mode to timer running mode */
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
-rtc_tick_interrupt_mode_t rtc_tick_interrupt_get_mode(void)
+rtc_tick_interrupt_mode_t rtc_tick_get_interrupt_mode(void)
 {
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
@@ -497,8 +494,10 @@ int rtc_alarm_set_interrupt(int enable)
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.alarm_enable = enable;
+    /* Set RTC mode to timer setting mode */
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+    /* Set RTC mode to timer running mode */
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
@@ -515,8 +514,10 @@ int rtc_alarm_set_mask(rtc_mask_t mask)
     rtc_interrupt_ctrl_t interrupt_ctrl = rtc->interrupt_ctrl;
 
     interrupt_ctrl.alarm_compare_mask = *(uint8_t *)&mask;
+    /* Set RTC mode to timer setting mode */
     rtc_timer_set_mode(RTC_TIMER_SETTING);
     rtc->interrupt_ctrl = interrupt_ctrl;
+    /* Set RTC mode to timer running mode */
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
@@ -534,59 +535,41 @@ int rtc_protect_set(int enable)
 {
     rtc_register_ctrl_t register_ctrl = rtc->register_ctrl;
 
-    rtc_mask_t mask =
-    {
-        .second = 1,
-        /* Second mask */
-        .minute = 1,
-        /* Minute mask */
-        .hour = 1,
-        /* Hour mask */
-        .week = 1,
-        /* Week mask */
-        .day = 1,
-        /* Day mask */
-        .month = 1,
-        /* Month mask */
-        .year = 1,
+    rtc_mask_t mask = {
+        .second = 1,        /* Second mask */
+        .minute = 1,        /* Minute mask */
+        .hour = 1,          /* Hour mask */
+        .week = 1,          /* Week mask */
+        .day = 1,           /* Day mask */
+        .month = 1,         /* Month mask */
+        .year = 1,          /* Year mask */
     };
 
-    rtc_mask_t unmask =
-    {
-        .second = 0,
-        /* Second mask */
-        .minute = 0,
-        /* Minute mask */
-        .hour = 0,
-        /* Hour mask */
-        .week = 0,
-        /* Week mask */
-        .day = 0,
-        /* Day mask */
-        .month = 0,
-        /* Month mask */
-        .year = 0,
+    rtc_mask_t unmask = {
+        .second = 0,        /* Second mask */
+        .minute = 0,        /* Minute mask */
+        .hour = 0,          /* Hour mask */
+        .week = 0,          /* Week mask */
+        .day = 0,           /* Day mask */
+        .month = 0,         /* Month mask */
+        .year = 0,          /* Year mask */
     };
 
-    if (enable)
-    {
+    if (enable) {
         /* Turn RTC in protect mode, no one can write time */
         register_ctrl.timer_mask = *(uint8_t *)&unmask;
         register_ctrl.alarm_mask = *(uint8_t *)&unmask;
         register_ctrl.initial_count_mask = 0;
         register_ctrl.interrupt_register_mask = 0;
-    }
-    else
-    {
+    } else {
         /* Turn RTC in unprotect mode, everyone can write time */
         register_ctrl.timer_mask = *(uint8_t *)&mask;
         register_ctrl.alarm_mask = *(uint8_t *)&mask;
         register_ctrl.initial_count_mask = 1;
         register_ctrl.interrupt_register_mask = 1;
     }
-    rtc_timer_set_mode(RTC_TIMER_SETTING);
+
     rtc->register_ctrl = register_ctrl;
-    rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
 }
 
@@ -603,7 +586,6 @@ int rtc_init(void)
         sysctl_clock_get_freq(SYSCTL_CLOCK_IN0)
     );
     rtc_timer_set_clock_count_value(1);
-
     /* Set RTC mode to timer running mode */
     rtc_timer_set_mode(RTC_TIMER_RUNNING);
     return 0;
@@ -616,7 +598,7 @@ int rtc_irq_callback(void *ctx)
     struct tm *now_tm = rtc_timer_get_tm();
     if(rtc_alarm_get_interrupt())
     {
-        struct tm *alarm_tm = rtc_timer_get_alarm_tm();
+        struct tm *alarm_tm = rtc_alarm_get_tm();
         rtc_mask_t alarm_mask = rtc_alarm_get_mask();
         if((*((uint8_t *)&alarm_mask) & 0xFE) == 0)
         {
@@ -674,7 +656,7 @@ int rtc_irq_callback(void *ctx)
 tick:
     if(rtc_tick_get_interrupt())
     {
-        rtc_tick_interrupt_mode_t tick_mode = rtc_tick_interrupt_get_mode();
+        rtc_tick_interrupt_mode_t tick_mode = rtc_tick_get_interrupt_mode();
         switch(tick_mode)
         {
             case RTC_INT_MINUTE:
@@ -713,7 +695,7 @@ int rtc_tick_irq_register(bool is_single_shot, rtc_tick_interrupt_mode_t mode, p
     rtc_instance.rtc_tick_callback = callback;
     rtc_instance.tick_ctx = ctx;
     rtc_instance.tick_is_single_shot = is_single_shot;
-    rtc_tick_interrupt_set_mode(mode);
+    rtc_tick_set_interrupt_mode(mode);
 
     plic_set_priority(IRQN_RTC_INTERRUPT, priority);
     plic_irq_register(IRQN_RTC_INTERRUPT, rtc_irq_callback, &rtc_instance);
@@ -727,98 +709,37 @@ void rtc_tick_irq_unregister(void)
 {
     rtc_instance.rtc_tick_callback = NULL;
     rtc_instance.tick_ctx = NULL;
-    rtc_tick_set_interrupt(0);
+
+    /* Resolve interrupt dependency */
     if(!rtc_alarm_get_interrupt())
+    {
+        rtc_tick_set_interrupt(0);
+    }
+
+    if((!rtc_instance.rtc_tick_callback) && (!rtc_instance.rtc_alarm_callback))
     {
         plic_irq_unregister(IRQN_RTC_INTERRUPT);
     }
 }
 
-int rtc_alarm_irq_register(bool is_single_shot, rtc_date_time_t date_time, rtc_mask_t mask, plic_irq_callback_t callback, void *ctx, uint8_t priority)
+int rtc_alarm_irq_register(bool is_single_shot, rtc_mask_t mask, plic_irq_callback_t callback, void *ctx, uint8_t priority)
 {
-    if(date_time.year < 1900)
-    {
-        if(mask.year)
-            return -1;
-        else
-            date_time.year = 2000;
-    }
-
-    if(!rtc_in_range(date_time.month, 1, 12))
-    {
-        if(mask.month)
-            return -1;
-        else
-            date_time.month = 1;
-    }
-
-    if(!rtc_in_range(date_time.day, 1, 31))
-    {
-        if(mask.day)
-            return -1;
-        else
-            date_time.day = 1;
-    }
-
-    if(!rtc_in_range(date_time.week, 0, 6))
-    {
-        if(mask.week)
-            return -1;
-        else
-            date_time.week = 0;
-    }
-
-    if(!rtc_in_range(date_time.hour, 0, 23))
-    {
-        if(mask.hour)
-            return -1;
-        else
-            date_time.hour = 0;
-    }
-
-    if(!rtc_in_range(date_time.min, 0, 59))
-    {
-        if(mask.minute)
-            return -1;
-        else
-            date_time.min = 0;
-    }
-
-    if(!rtc_in_range(date_time.sec, 0, 59))
-    {
-        if(mask.second)
-            return -1;
-        else
-            date_time.sec = 0;
-    }
-
     plic_irq_disable(IRQN_RTC_INTERRUPT);
+    rtc_tick_set_interrupt(0);
     rtc_alarm_set_interrupt(0);
     rtc_instance.rtc_alarm_callback = callback;
     rtc_instance.alarm_ctx = ctx;
     rtc_instance.alarm_is_single_shot = is_single_shot;
 
     rtc_alarm_set_mask(mask);
-    struct tm v_tm = (struct tm)
-    {
-        .tm_sec = date_time.sec,
-        .tm_min = date_time.min,
-        .tm_hour = date_time.hour,
-        .tm_mday = date_time.day,
-        .tm_mon = date_time.month - 1,
-        .tm_year = date_time.year - 1900,
-        .tm_wday = date_time.week,
-        .tm_isdst = -1,
-    };
-
-    if(rtc_timer_set_alarm_tm(&v_tm))
-        return -1;
 
     plic_set_priority(IRQN_RTC_INTERRUPT, priority);
     plic_irq_register(IRQN_RTC_INTERRUPT, rtc_irq_callback, &rtc_instance);
     plic_irq_enable(IRQN_RTC_INTERRUPT);
 
     rtc_alarm_set_interrupt(1);
+    /* Must enable tick hardware interrupt */
+    rtc_tick_set_interrupt(1);
     return 0;
 }
 
@@ -827,9 +748,8 @@ void rtc_alarm_irq_unregister(void)
     rtc_instance.rtc_alarm_callback = NULL;
     rtc_instance.alarm_ctx = NULL;
     rtc_alarm_set_interrupt(0);
-    if(!rtc_tick_get_interrupt())
+    if((!rtc_instance.rtc_tick_callback) && (!rtc_instance.rtc_alarm_callback))
     {
         plic_irq_unregister(IRQN_RTC_INTERRUPT);
     }
 }
-
