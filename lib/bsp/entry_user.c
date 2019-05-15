@@ -73,13 +73,9 @@ void _init_bsp(int core_id, int number_of_cores)
         /* Initialize bss data to 0 */
         init_bss();
         /* Init UART */
-        uart_init(UART_DEVICE_3);
-        uart_configure(UART_DEVICE_3, 115200, 8, UART_STOP_1, UART_PARITY_NONE);
-        uart_set_receive_trigger(UART_DEVICE_3, UART_RECEIVE_FIFO_1);
         fpioa_set_function(4, FUNC_UART3_RX);
         fpioa_set_function(5, FUNC_UART3_TX);
-        sys_register_getchar(uart3_getchar);
-        sys_register_putchar(uart3_putchar);
+        uart_debug_init(UART_DEVICE_3);
         /* Init FPIOA */
         fpioa_init();
         /* Register finalization function */

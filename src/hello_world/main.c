@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdio.h>
-#include <uart.h>
-#include "bsp.h"
+#include <bsp.h>
+#include <sysctl.h>
 
 int core1_function(void *ctx)
 {
@@ -23,9 +22,9 @@ int core1_function(void *ctx)
     while(1);
 }
 
-
-int main()
+int main(void)
 {
+    sysctl_pll_set_freq(SYSCTL_PLL0, 800000000);
     uint64_t core = current_coreid();
     int data;
     printf("Core %ld Hello world\n", core);
@@ -35,7 +34,8 @@ int main()
     sys_stdin_flush();
 
     scanf("%d", &data);
-    printf("Data is %d\n", data);
+    printf("\nData is %d\n", data);
     while(1)
         continue;
+    return 0;
 }

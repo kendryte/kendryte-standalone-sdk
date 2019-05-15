@@ -4,4 +4,6 @@
 #include "entry.h"
 #include "sleep.h"
 #include "encoding.h"
+#include "syscalls.h"
+#include "printf.h"
 #endif

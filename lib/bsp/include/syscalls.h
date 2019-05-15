@@ -76,14 +76,11 @@ void sys_stdin_flush(void);
 
 void __attribute__((noreturn)) sys_exit(int code);
 
-void setStats(int enable);
-
-#undef putchar
-int putchar(int ch);
-void printstr(const char *s);
-
-void printhex(uint64_t x);
-
+/**
+ * @brief       Get free memory
+ *
+ * @return      The size of free memory
+ */
 size_t get_free_heap_size(void);
 
 #ifdef __cplusplus
