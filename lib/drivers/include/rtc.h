@@ -404,10 +404,33 @@ int rtc_timer_get(int *year, int *month, int *day, int *hour, int *minute, int *
  */
 int rtc_init(void);
 
+/**
+ * @brief       Register callback of tick interrupt
+ *
+ * @param       is_single_shot          Indicates if single shot
+ * @param       mode                    Tick interrupt mode
+                                        0:second
+                                        1:minute
+                                        2:hour
+                                        3:day
+ * @param       callback                Callback of tick interrupt
+ * @param       ctx                     Param of callback
+ * @param       priority                Priority of tick interrupt
+ *
+ * @return      result
+ *     - 0      Success
+ *     - Other  Fail
+ */
 int rtc_tick_irq_register(bool is_single_shot, rtc_tick_interrupt_mode_t mode, plic_irq_callback_t callback, void *ctx, uint8_t priority);
+
+/**
+ * @brief       Unregister tick interrupt
+ *
+ * @return      Result
+ *     - 0      Success
+ *     - Other  Fail
+ */
 void rtc_tick_irq_unregister(void);
-int rtc_alarm_irq_register(bool is_single_shot, rtc_date_time_t data_time, rtc_mask_t mask, plic_irq_callback_t callback, void *ctx, uint8_t priority);
-void rtc_alarm_irq_unregister(void);
 
 #ifdef __cplusplus
 }
