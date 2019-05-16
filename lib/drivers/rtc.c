@@ -34,9 +34,17 @@ typedef struct _rtc_instance_t
     void *alarm_ctx;
     bool tick_is_single_shot;
     bool alarm_is_single_shot;
+    bool tick_enable_by_alarm;
+    bool tick_enable_by_user;
+    rtc_tick_interrupt_mode_t tick_mode_by_user;
+    rtc_tick_interrupt_mode_t tick_mode_by_alarm;
 } rtc_instance_t;
 
-rtc_instance_t rtc_instance;
+rtc_instance_t rtc_instance = (rtc_instance_t)
+{
+    .tick_mode_by_user = -1,
+    .tick_mode_by_alarm = RTC_INT_MAX,
+};
 
 int rtc_timer_set_mode(rtc_timer_mode_t timer_mode)
 {
@@ -649,15 +657,30 @@ int rtc_irq_callback(void *ctx)
         if(instance->alarm_is_single_shot)
         {
             rtc_alarm_set_interrupt(0);
+            instance->tick_enable_by_alarm = false;
+            instance->tick_mode_by_alarm = RTC_INT_MAX;
+
+            if(instance->tick_enable_by_user)
+            {
+                if(instance->tick_mode_by_user > rtc_tick_get_interrupt_mode())
+                {
+                    rtc_tick_set_interrupt(0);
+                    rtc_tick_set_interrupt_mode(instance->tick_mode_by_user);
+                    rtc_tick_set_interrupt(1);
+                }
+            }
+            else
+            {
+                rtc_tick_set_interrupt(0);
+            }
         }
         if(instance->rtc_alarm_callback)
             instance->rtc_alarm_callback(instance->alarm_ctx);
     }
 tick:
-    if(rtc_tick_get_interrupt())
+    if(instance->tick_enable_by_user)
     {
-        rtc_tick_interrupt_mode_t tick_mode = rtc_tick_get_interrupt_mode();
-        switch(tick_mode)
+        switch(instance->tick_mode_by_user)
         {
             case RTC_INT_MINUTE:
                 if(now_tm->tm_sec != 0)
@@ -679,6 +702,8 @@ tick:
         if(instance->tick_is_single_shot)
         {
             rtc_tick_set_interrupt(0);
+            instance->tick_enable_by_user = false;
+            instance->tick_mode_by_user = -1;
         }
         if(instance->rtc_tick_callback)
             instance->rtc_tick_callback(instance->tick_ctx);
@@ -695,7 +720,13 @@ int rtc_tick_irq_register(bool is_single_shot, rtc_tick_interrupt_mode_t mode, p
     rtc_instance.rtc_tick_callback = callback;
     rtc_instance.tick_ctx = ctx;
     rtc_instance.tick_is_single_shot = is_single_shot;
-    rtc_tick_set_interrupt_mode(mode);
+    rtc_instance.tick_enable_by_user = true;
+    rtc_instance.tick_mode_by_user = mode;
+
+    if(!rtc_instance.tick_enable_by_alarm || (rtc_instance.tick_enable_by_alarm && mode < rtc_tick_get_interrupt_mode()))
+    {
+        rtc_tick_set_interrupt_mode(mode);
+    }
 
     plic_set_priority(IRQN_RTC_INTERRUPT, priority);
     plic_irq_register(IRQN_RTC_INTERRUPT, rtc_irq_callback, &rtc_instance);
@@ -707,14 +738,17 @@ int rtc_tick_irq_register(bool is_single_shot, rtc_tick_interrupt_mode_t mode, p
 
 void rtc_tick_irq_unregister(void)
 {
-    rtc_instance.rtc_tick_callback = NULL;
-    rtc_instance.tick_ctx = NULL;
-
     /* Resolve interrupt dependency */
     if(!rtc_alarm_get_interrupt())
     {
         rtc_tick_set_interrupt(0);
     }
+
+    rtc_instance.tick_enable_by_user = false;
+    rtc_instance.tick_mode_by_user = -1;
+
+    rtc_instance.rtc_tick_callback = NULL;
+    rtc_instance.tick_ctx = NULL;
 
     if((!rtc_instance.rtc_tick_callback) && (!rtc_instance.rtc_alarm_callback))
     {
@@ -725,11 +759,38 @@ void rtc_tick_irq_unregister(void)
 int rtc_alarm_irq_register(bool is_single_shot, rtc_mask_t mask, plic_irq_callback_t callback, void *ctx, uint8_t priority)
 {
     plic_irq_disable(IRQN_RTC_INTERRUPT);
+
     rtc_tick_set_interrupt(0);
     rtc_alarm_set_interrupt(0);
     rtc_instance.rtc_alarm_callback = callback;
     rtc_instance.alarm_ctx = ctx;
     rtc_instance.alarm_is_single_shot = is_single_shot;
+    rtc_instance.tick_enable_by_alarm = true;
+
+    if(mask.second)
+    {
+        rtc_instance.tick_mode_by_alarm = RTC_INT_SECOND;
+        goto alarm_mode;
+    }
+    if(mask.minute)
+    {
+        rtc_instance.tick_mode_by_alarm = RTC_INT_MINUTE;
+        goto alarm_mode;
+    }
+    if(mask.hour)
+    {
+        rtc_instance.tick_mode_by_alarm = RTC_INT_HOUR;
+        goto alarm_mode;
+    }
+    else
+    {
+        rtc_instance.tick_mode_by_alarm = RTC_INT_DAY;
+    }
+alarm_mode:
+    if((rtc_instance.tick_enable_by_user && rtc_instance.tick_mode_by_alarm < rtc_tick_get_interrupt_mode()) || !rtc_instance.tick_enable_by_user)
+    {
+        rtc_tick_set_interrupt_mode(rtc_instance.tick_mode_by_alarm);
+    }
 
     rtc_alarm_set_mask(mask);
 
@@ -745,11 +806,29 @@ int rtc_alarm_irq_register(bool is_single_shot, rtc_mask_t mask, plic_irq_callba
 
 void rtc_alarm_irq_unregister(void)
 {
+    rtc_alarm_set_interrupt(0);
     rtc_instance.rtc_alarm_callback = NULL;
     rtc_instance.alarm_ctx = NULL;
-    rtc_alarm_set_interrupt(0);
+    rtc_instance.tick_enable_by_alarm = false;
+    rtc_instance.tick_mode_by_alarm = RTC_INT_MAX;
+
+    if(rtc_instance.tick_enable_by_user)
+    {
+        if(rtc_instance.tick_mode_by_user > rtc_tick_get_interrupt_mode())
+        {
+            rtc_tick_set_interrupt(0);
+            rtc_tick_set_interrupt_mode(rtc_instance.tick_mode_by_user);
+            rtc_tick_set_interrupt(1);
+        }
+    }
+    else
+    {
+        rtc_tick_set_interrupt(0);
+    }
+
     if((!rtc_instance.rtc_tick_callback) && (!rtc_instance.rtc_alarm_callback))
     {
         plic_irq_unregister(IRQN_RTC_INTERRUPT);
     }
 }
+
