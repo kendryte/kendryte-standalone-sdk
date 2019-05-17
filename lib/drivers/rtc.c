@@ -601,7 +601,6 @@ int rtc_init(void)
 
 int rtc_irq_callback(void *ctx)
 {
-    printk("%s\n", __func__);
     rtc_instance_t *instance = (rtc_instance_t *)ctx;
     struct tm *now_tm = rtc_timer_get_tm();
     if(rtc_alarm_get_interrupt())
