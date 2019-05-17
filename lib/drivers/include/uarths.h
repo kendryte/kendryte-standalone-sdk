@@ -201,13 +201,20 @@ void uarths_init(void);
  *
  * @param[in]   c       The char to put
  *
- * @note        If c is '\n', a '\r' will be appended automatically
- *
  * @return      result
- *     - 0      Success
- *     - Other  Fail
+ *     - Byte   On success, returns the written character.
+ *     - EOF    On failure, returns EOF and sets the error indicator (see ferror()) on stdout.
  */
 int uarths_putchar(char c);
+
+/**
+ * @brief       Get a byte from UART
+ *
+ * @return      byte as int type from UART
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
+ */
+int uarths_getchar(void);
 
 /**
  * @brief       Send a string to UART
@@ -222,11 +229,12 @@ int uarths_putchar(char c);
  */
 int uarths_puts(const char *s);
 
-
 /**
- * @brief       Get a byte from UART
+ * @brief       [Deprecated] Get a byte from UART
  *
  * @return      byte as int type from UART
+ *     - Byte   The character read as an unsigned char cast to an int
+ *     - EOF    EOF on end of file or error, no enough byte to read
  */
 int uarths_getc(void);
 

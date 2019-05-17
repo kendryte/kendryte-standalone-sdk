@@ -91,14 +91,28 @@ void uarths_set_irq(uarths_interrupt_mode_t interrupt_mode, plic_irq_callback_t 
     plic_irq_enable(IRQN_UARTHS_INTERRUPT);
 }
 
-static inline int uarths_putc(char c)
+int uarths_putchar(char c)
 {
     while (uarths->txdata.full)
         continue;
     uarths->txdata.data = (uint8_t)c;
 
-    return 0;
+    return (c & 0xff);
 }
+
+int uarths_getchar(void)
+{
+    /* while not empty */
+    uarths_rxdata_t recv = uarths->rxdata;
+
+    if (recv.empty)
+        return EOF;
+    else
+        return (recv.data & 0xff);
+}
+
+/* [Deprecated] this function will remove in future */
+int uarths_getc(void) __attribute__ ((weak, alias ("uarths_getchar")));
 
 size_t uarths_receive_data(uint8_t *buf, size_t buf_len)
 {
@@ -119,32 +133,16 @@ size_t uarths_send_data(const uint8_t *buf, size_t buf_len)
     size_t write = 0;
     while (write < buf_len)
     {
-        uarths_putc(*buf++);
+        uarths_putchar(*buf++);
         write++;
     }
     return write;
 }
 
-int uarths_getc(void)
-{
-    /* while not empty */
-    uarths_rxdata_t recv = uarths->rxdata;
-
-    if (recv.empty)
-        return EOF;
-    else
-        return recv.data;
-}
-
-int uarths_putchar(char c)
-{
-    return uarths_putc(c);
-}
-
 int uarths_puts(const char *s)
 {
     while (*s)
-        if (uarths_putc(*s++) != 0)
+        if (uarths_putchar(*s++) != 0)
             return -1;
     return 0;
 }

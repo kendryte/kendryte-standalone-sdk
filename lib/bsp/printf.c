@@ -30,8 +30,7 @@
 #include <stddef.h>
 #include "printf.h"
 #include "atomic.h"
-#include "uarths.h"
-
+#include "syscalls.h"
 
 /**
  * Configuration
@@ -633,7 +632,8 @@ int tfp_sprintf(char *str, const char *format, ...)
 static void uart_putf(void *unused, char c)
 {
     UNUSED(unused);
-    uarths_putchar(c);
+    if(sys_putchar)
+        sys_putchar(c);
 }
 
 int printk(const char *format, ...)

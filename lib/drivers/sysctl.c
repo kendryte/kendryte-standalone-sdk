@@ -20,6 +20,7 @@
 #include "string.h"
 #include "encoding.h"
 #include "bsp.h"
+#include "uart.h"
 
 #define SYSCTRL_CLOCK_FREQ_IN0 (26000000UL)
 
@@ -1790,8 +1791,10 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, uint32_t pll_freq)
 
     /* 9. Change CPU CLK to PLL */
     if(pll == SYSCTL_PLL0)
+    {
         sysctl_clock_set_clock_select(SYSCTL_CLOCK_SELECT_ACLK, SYSCTL_SOURCE_PLL0);
-
+        uart_debug_init(-1);
+    }
     return result;
 }
 

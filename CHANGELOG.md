@@ -3,13 +3,13 @@ Changelog for Kendryte K210
 
 ## 0.1.0
 
-Kendryte K210 first SDK with FreeRTOS, have fun. 
+Kendryte K210 first SDK with FreeRTOS, have fun.
 
 ## 0.2.0
 
 - Major changes
-  - Rework trap handling 
-  - New functions to enable spi0 and dvp pin 
+  - Rework trap handling
+  - New functions to enable spi0 and dvp pin
   - New functions to select IO power mode
 - Breaking changes
   - Modify struct enum union format
@@ -17,7 +17,7 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
   - Fix spi lcd unwork issues
   - Fix dual core startup issues
   - Use "__global_pointer$" instead of "_gp"
-  
+
 ## 0.3.0
 
 - Major change
@@ -39,9 +39,9 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
   - Fix the procedure of setting pll
   - Fix wdt interrupt bug
   - Fix serveral bugs in i2s drivers
-  
+
 ## 0.5.0
-  
+
 - Major change
   - Add KPU driver
   - Find toolchain automatically
@@ -55,14 +55,15 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 
 - Major changes
   - Add i2c slave driver
-  
+
 - Non-breaking bug fixes
   - Fix pll init issues
   - Fix spi receive mode issues
   - Fix redefine function does not report error issues
   - Reduce stack size
-  
+
 ## 0.5.2
+
 - Major change
   - Add KPU driver for latest model compiler
   - Automatic set PROJ if user not set it
@@ -77,6 +78,7 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
   - Add new timer interrupt API
 
 ## 0.5.3
+
 - Major change
   - Modify KPU driver for latest model compiler
   - Add freertos
@@ -92,8 +94,9 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
   - Fix uarths stopbit problem
   - Fix core1 stack problem
   - Fix core1 interrupt problem
-  
+
 ## 0.5.4
+
 - Major change
   - Modify KPU driver for NNCASE
   - Add APU driver
@@ -107,13 +110,14 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 
 - Breaking change
   - Fix bus reset problem
-  
+
 ## 0.5.5
+
 - Major change
   - Add SPI I2C I2S UART DMA callback
   - Add malloc lock
   - Update WIN32 cmake program auto-set
-  - Upadte KPU driver for lastest NNCASE
+  - Update KPU driver for lastest NNCASE
 
 - Non-breaking bug fixes
   - Fix double issues
@@ -121,3 +125,14 @@ Kendryte K210 first SDK with FreeRTOS, have fun.
 
 - Breaking change
   - Fix device reset problem
+
+## 0.5.6
+
+- Major change
+
+  - Add irda rs485
+  - Add rtc tick interrupt handler
+  - Add rtc alarm interrupt handler
+  - Modify system default print uart
+  - Update KPU driver for lastest NNCASE
+  - Delete freertos
