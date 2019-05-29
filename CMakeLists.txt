@@ -1,4 +1,4 @@
-### This file is used for build example projects.
+# DO NOT MODIFY THIS FILE, IT WILL BE OVERRIDE!!!
 
 # set this will supress some warnings
 set(BUILDING_SDK "yes" CACHE INTERNAL "")
