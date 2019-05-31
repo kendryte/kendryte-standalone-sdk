@@ -15,12 +15,12 @@
 #ifndef _DRIVER_DMAC_H
 #define _DRIVER_DMAC_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include "io.h"
 #include "platform.h"
-#include "stdbool.h"
 #include "plic.h"
-#include <stddef.h>
+#include "stdbool.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,9 +56,9 @@ typedef enum _state_value
 
 typedef enum _dmac_lock_bus_ch
 {
-    DMAC_LOCK_BUS     = 0x1,
+    DMAC_LOCK_BUS = 0x1,
     DMAC_LOCK_CHANNEL = 0x2,
-    DMAC_LOCK_BUS_CH  = 0x3
+    DMAC_LOCK_BUS_CH = 0x3
 } dmac_lock_bus_ch_t;
 
 typedef enum _dmac_sw_hw_hs_select
@@ -76,29 +76,29 @@ typedef enum _dmac_scatter_gather_param
 typedef enum _dmac_irq
 {
     /* no interrupts */
-    DMAC_IRQ_NONE    = 0x00,
+    DMAC_IRQ_NONE = 0x00,
     /* transfer complete */
-    DMAC_IRQ_TFR     = 0x01,
+    DMAC_IRQ_TFR = 0x01,
     /* block transfer complete */
-    DMAC_IRQ_BLOCK   = 0x02,
+    DMAC_IRQ_BLOCK = 0x02,
     /* source transaction complete */
     DMAC_IRQ_SRCTRAN = 0x04,
     /* destination transaction complete */
     DMAC_IRQ_DSTTRAN = 0x08,
     /* error */
-    DMAC_IRQ_ERR     = 0x10,
+    DMAC_IRQ_ERR = 0x10,
     /* all interrupts */
-    DMAC_IRQ_ALL     = 0x1f
+    DMAC_IRQ_ALL = 0x1f
 } dmac_irq_t;
 
 typedef enum _dmac_software_req
 {
     /* ReqSrcReq/ReqDstReq */
-    DMAC_REQUEST    = 0x1,
+    DMAC_REQUEST = 0x1,
     /* SglReqSrcReq/SglReqDstReq */
     DMAC_SINGLE_REQUEST = 0x2,
     /* LstReqSrcReq/LstReqDstReq */
-    DMAC_LAST_REQUEST   = 0x4
+    DMAC_LAST_REQUEST = 0x4
 } dmac_software_req_t;
 
 typedef enum _dmac_master_number
@@ -110,31 +110,31 @@ typedef enum _dmac_master_number
 typedef enum _dmac_transfer_flow
 {
     /* mem to mem - DMAC   flow ctlr */
-    DMAC_MEM2MEM_DMA    = 0x0,
+    DMAC_MEM2MEM_DMA = 0x0,
     /* mem to prf - DMAC   flow ctlr */
-    DMAC_MEM2PRF_DMA    = 0x1,
+    DMAC_MEM2PRF_DMA = 0x1,
     /* prf to mem - DMAC   flow ctlr */
-    DMAC_PRF2MEM_DMA    = 0x2,
+    DMAC_PRF2MEM_DMA = 0x2,
     /* prf to prf - DMAC   flow ctlr */
-    DMAC_PRF2PRF_DMA    = 0x3,
+    DMAC_PRF2PRF_DMA = 0x3,
     /* prf to mem - periph flow ctlr */
-    DMAC_PRF2MEM_PRF    = 0x4,
+    DMAC_PRF2MEM_PRF = 0x4,
     /* prf to prf - source flow ctlr */
     DMAC_PRF2PRF_SRCPRF = 0x5,
     /* mem to prf - periph flow ctlr */
-    DMAC_MEM2PRF_PRF    = 0x6,
+    DMAC_MEM2PRF_PRF = 0x6,
     /* prf to prf - dest   flow ctlr */
     DMAC_PRF2PRF_DSTPRF = 0x7
 } dmac_transfer_flow_t;
 
 typedef enum _dmac_burst_trans_length
 {
-    DMAC_MSIZE_1   = 0x0,
-    DMAC_MSIZE_4   = 0x1,
-    DMAC_MSIZE_8   = 0x2,
-    DMAC_MSIZE_16  = 0x3,
-    DMAC_MSIZE_32  = 0x4,
-    DMAC_MSIZE_64  = 0x5,
+    DMAC_MSIZE_1 = 0x0,
+    DMAC_MSIZE_4 = 0x1,
+    DMAC_MSIZE_8 = 0x2,
+    DMAC_MSIZE_16 = 0x3,
+    DMAC_MSIZE_32 = 0x4,
+    DMAC_MSIZE_64 = 0x5,
     DMAC_MSIZE_128 = 0x6,
     DMAC_MSIZE_256 = 0x7
 } dmac_burst_trans_length_t;
@@ -142,31 +142,31 @@ typedef enum _dmac_burst_trans_length
 typedef enum _dmac_address_increment
 {
     DMAC_ADDR_INCREMENT = 0x0,
-    DMAC_ADDR_NOCHANGE  = 0x1
+    DMAC_ADDR_NOCHANGE = 0x1
 } dmac_address_increment_t;
 
 typedef enum _dmac_transfer_width
 {
-    DMAC_TRANS_WIDTH_8   = 0x0,
-    DMAC_TRANS_WIDTH_16  = 0x1,
-    DMAC_TRANS_WIDTH_32  = 0x2,
-    DMAC_TRANS_WIDTH_64  = 0x3,
+    DMAC_TRANS_WIDTH_8 = 0x0,
+    DMAC_TRANS_WIDTH_16 = 0x1,
+    DMAC_TRANS_WIDTH_32 = 0x2,
+    DMAC_TRANS_WIDTH_64 = 0x3,
     DMAC_TRANS_WIDTH_128 = 0x4,
     DMAC_TRANS_WIDTH_256 = 0x5
 } dmac_transfer_width_t;
 
 typedef enum _dmac_hs_interface
 {
-    DMAC_HS_IF0  = 0x0,
-    DMAC_HS_IF1  = 0x1,
-    DMAC_HS_IF2  = 0x2,
-    DMAC_HS_IF3  = 0x3,
-    DMAC_HS_IF4  = 0x4,
-    DMAC_HS_IF5  = 0x5,
-    DMAC_HS_IF6  = 0x6,
-    DMAC_HS_IF7  = 0x7,
-    DMAC_HS_IF8  = 0x8,
-    DMAC_HS_IF9  = 0x9,
+    DMAC_HS_IF0 = 0x0,
+    DMAC_HS_IF1 = 0x1,
+    DMAC_HS_IF2 = 0x2,
+    DMAC_HS_IF3 = 0x3,
+    DMAC_HS_IF4 = 0x4,
+    DMAC_HS_IF5 = 0x5,
+    DMAC_HS_IF6 = 0x6,
+    DMAC_HS_IF7 = 0x7,
+    DMAC_HS_IF8 = 0x8,
+    DMAC_HS_IF9 = 0x9,
     DMAC_HS_IF10 = 0xa,
     DMAC_HS_IF11 = 0xb,
     DMAC_HS_IF12 = 0xc,
@@ -177,37 +177,37 @@ typedef enum _dmac_hs_interface
 
 typedef enum _dmac_multiblk_transfer_type
 {
-    CONTIGUOUS     = 0,
-    RELOAD   = 1,
+    CONTIGUOUS = 0,
+    RELOAD = 1,
     SHADOWREGISTER = 2,
-    LINKEDLIST     = 3
+    LINKEDLIST = 3
 } dmac_multiblk_transfer_type_t;
 
 typedef enum _dmac_multiblk_type
 {
-    DMAC_SRC_DST_CONTINUE          = 0,
-    DMAC_SRC_CONTINUE_DST_RELAOD       = 2,
-    DMAC_SRC_CONTINUE_DST_LINKEDLIST   = 3,
-    DMAC_SRC_RELOAD_DST_CONTINUE       = 4,
-    DMAC_SRC_RELOAD_DST_RELOAD   = 5,
-    DMAC_SRC_RELOAD_DST_LINKEDLIST     = 6,
-    DMAC_SRC_LINKEDLIST_DST_CONTINUE   = 7,
-    DMAC_SRC_LINKEDLIST_DST_RELOAD     = 8,
+    DMAC_SRC_DST_CONTINUE = 0,
+    DMAC_SRC_CONTINUE_DST_RELAOD = 2,
+    DMAC_SRC_CONTINUE_DST_LINKEDLIST = 3,
+    DMAC_SRC_RELOAD_DST_CONTINUE = 4,
+    DMAC_SRC_RELOAD_DST_RELOAD = 5,
+    DMAC_SRC_RELOAD_DST_LINKEDLIST = 6,
+    DMAC_SRC_LINKEDLIST_DST_CONTINUE = 7,
+    DMAC_SRC_LINKEDLIST_DST_RELOAD = 8,
     DMAC_SRC_LINKEDLIST_DST_LINKEDLIST = 9,
-    DMAC_SRC_SHADOWREG_DST_CONTINUE    = 10
+    DMAC_SRC_SHADOWREG_DST_CONTINUE = 10
 } dmac_multiblk_type_t;
 
 typedef enum _dmac_transfer_type
 {
-    DMAC_TRANSFER_ROW1  = 0x1,
-    DMAC_TRANSFER_ROW2  = 0x2,
-    DMAC_TRANSFER_ROW3  = 0x3,
-    DMAC_TRANSFER_ROW4  = 0x4,
-    DMAC_TRANSFER_ROW5  = 0x5,
-    DMAC_TRANSFER_ROW6  = 0x6,
-    DMAC_TRANSFER_ROW7  = 0x7,
-    DMAC_TRANSFER_ROW8  = 0x8,
-    DMAC_TRANSFER_ROW9  = 0x9,
+    DMAC_TRANSFER_ROW1 = 0x1,
+    DMAC_TRANSFER_ROW2 = 0x2,
+    DMAC_TRANSFER_ROW3 = 0x3,
+    DMAC_TRANSFER_ROW4 = 0x4,
+    DMAC_TRANSFER_ROW5 = 0x5,
+    DMAC_TRANSFER_ROW6 = 0x6,
+    DMAC_TRANSFER_ROW7 = 0x7,
+    DMAC_TRANSFER_ROW8 = 0x8,
+    DMAC_TRANSFER_ROW9 = 0x9,
     DMAC_TRANSFER_ROW10 = 0xa
 } dmac_transfer_type_t;
 
@@ -215,21 +215,21 @@ typedef enum _dmac_prot_level
 {
     /* default prot level */
     DMAC_NONCACHE_NONBUFF_NONPRIV_OPCODE = 0x0,
-    DMAC_NONCACHE_NONBUFF_NONPRIV_DATA   = 0x1,
-    DMAC_NONCACHE_NONBUFF_PRIV_OPCODE    = 0x2,
-    DMAC_NONCACHE_NONBUFF_PRIV_DATA      = 0x3,
-    DMAC_NONCACHE_BUFF_NONPRIV_OPCODE    = 0x4,
-    DMAC_NONCACHE_BUFF_NONPRIV_DATA      = 0x5,
-    DMAC_NONCACHE_BUFF_PRIV_OPCODE       = 0x6,
-    DMAC_NONCACHE_BUFF_PRIV_DATA     = 0x7,
-    DMAC_CACHE_NONBUFF_NONPRIV_OPCODE    = 0x8,
-    DMAC_CACHE_NONBUFF_NONPRIV_DATA      = 0x9,
-    DMAC_CACHE_NONBUFF_PRIV_OPCODE       = 0xa,
-    DMAC_CACHE_NONBUFF_PRIV_DATA     = 0xb,
-    DMAC_CACHE_BUFF_NONPRIV_OPCODE       = 0xc,
-    DMAC_CACHE_BUFF_NONPRIV_DATA     = 0xd,
-    DMAC_CACHE_BUFF_PRIV_OPCODE   = 0xe,
-    DMAC_CACHE_BUFF_PRIV_DATA       = 0xf
+    DMAC_NONCACHE_NONBUFF_NONPRIV_DATA = 0x1,
+    DMAC_NONCACHE_NONBUFF_PRIV_OPCODE = 0x2,
+    DMAC_NONCACHE_NONBUFF_PRIV_DATA = 0x3,
+    DMAC_NONCACHE_BUFF_NONPRIV_OPCODE = 0x4,
+    DMAC_NONCACHE_BUFF_NONPRIV_DATA = 0x5,
+    DMAC_NONCACHE_BUFF_PRIV_OPCODE = 0x6,
+    DMAC_NONCACHE_BUFF_PRIV_DATA = 0x7,
+    DMAC_CACHE_NONBUFF_NONPRIV_OPCODE = 0x8,
+    DMAC_CACHE_NONBUFF_NONPRIV_DATA = 0x9,
+    DMAC_CACHE_NONBUFF_PRIV_OPCODE = 0xa,
+    DMAC_CACHE_NONBUFF_PRIV_DATA = 0xb,
+    DMAC_CACHE_BUFF_NONPRIV_OPCODE = 0xc,
+    DMAC_CACHE_BUFF_NONPRIV_DATA = 0xd,
+    DMAC_CACHE_BUFF_PRIV_OPCODE = 0xe,
+    DMAC_CACHE_BUFF_PRIV_DATA = 0xf
 } dmac_prot_level_t;
 
 typedef enum _dmac_fifo_mode
@@ -240,7 +240,7 @@ typedef enum _dmac_fifo_mode
 
 typedef enum _dw_dmac_flow_ctl_mode
 {
-    DMAC_DATA_PREFETCH_ENABLED  = 0x0,
+    DMAC_DATA_PREFETCH_ENABLED = 0x0,
     DMAC_DATA_PREFETCH_DISABLED = 0x1
 } dw_dmac_flow_ctl_mode_t;
 
@@ -252,9 +252,9 @@ typedef enum _dmac_polarity_level
 
 typedef enum _dmac_lock_level
 {
-    DMAC_LOCK_LEVEL_DMA_TRANSFER   = 0x0,
+    DMAC_LOCK_LEVEL_DMA_TRANSFER = 0x0,
     DMAC_LOCK_LEVEL_BLOCK_TRANSFER = 0x1,
-    DMAC_LOCK_LEVEL_TRANSACTION    = 0x2
+    DMAC_LOCK_LEVEL_TRANSACTION = 0x2
 } dmac_lock_level_t;
 
 typedef enum _dmac_channel_priority
@@ -277,12 +277,12 @@ typedef enum _dmac_state
 
 typedef enum _dmac_common_int
 {
-    SLVIF_COMMON_DEC_ERR       = 0,
-    SLVIF_COMMON_WR2RO_ERR     = 1,
-    SLVIF_COMMON_RD2WO_ERR     = 2,
+    SLVIF_COMMON_DEC_ERR = 0,
+    SLVIF_COMMON_WR2RO_ERR = 1,
+    SLVIF_COMMON_RD2WO_ERR = 2,
     SLVIF_COMMON__WRONHOLD_ERR = 3,
-    SLVIF_UNDEFINED_DEC_ERR    = 4,
-    SLVIF_ALL_INT          = 5
+    SLVIF_UNDEFINED_DEC_ERR = 4,
+    SLVIF_ALL_INT = 5
 } dmac_common_int_t;
 
 typedef struct _dmac_cfg
@@ -1372,7 +1372,7 @@ typedef struct _dmac_channel_config
     uint8_t cfg_ch_prior;
 } dmac_channel_config_t;
 
-#define LIST_ENTRY(ptr, type, member)                                          \
+#define LIST_ENTRY(ptr, type, member) \
     ((type *)((char *)(ptr) - (unsigned long)(&((type *)0)->member)))
 
 struct list_head_t
@@ -1472,7 +1472,7 @@ void dmac_wait_idle(dmac_channel_number_t channel_num);
  * @param[in]   ctx                     The param of callback
  * @param[in]   priority                Interrupt priority
  */
-void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
+void dmac_set_irq(dmac_channel_number_t channel_num, plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
 
 /**
  * @brief       Set interrupt param
@@ -1482,8 +1482,7 @@ void dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_c
  * @param[in]   ctx                     The param of callback
  * @param[in]   priority                Interrupt priority
  */
-void dmac_irq_register(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
-
+void dmac_irq_register(dmac_channel_number_t channel_num, plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
 
 /**
  * @brief       Unregister dmac interrupt

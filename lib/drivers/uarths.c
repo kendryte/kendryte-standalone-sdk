@@ -15,9 +15,9 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "uarths.h"
-#include "sysctl.h"
 #include "encoding.h"
+#include "sysctl.h"
+#include "uarths.h"
 
 volatile uarths_t *const uarths = (volatile uarths_t *)UARTHS_BASE_ADDR;
 
@@ -93,7 +93,7 @@ void uarths_set_irq(uarths_interrupt_mode_t interrupt_mode, plic_irq_callback_t 
 
 int uarths_putchar(char c)
 {
-    while (uarths->txdata.full)
+    while(uarths->txdata.full)
         continue;
     uarths->txdata.data = (uint8_t)c;
 
@@ -105,14 +105,14 @@ int uarths_getchar(void)
     /* while not empty */
     uarths_rxdata_t recv = uarths->rxdata;
 
-    if (recv.empty)
+    if(recv.empty)
         return EOF;
     else
         return (recv.data & 0xff);
 }
 
 /* [Deprecated] this function will remove in future */
-int uarths_getc(void) __attribute__ ((weak, alias ("uarths_getchar")));
+int uarths_getc(void) __attribute__((weak, alias("uarths_getchar")));
 
 size_t uarths_receive_data(uint8_t *buf, size_t buf_len)
 {
@@ -131,7 +131,7 @@ size_t uarths_receive_data(uint8_t *buf, size_t buf_len)
 size_t uarths_send_data(const uint8_t *buf, size_t buf_len)
 {
     size_t write = 0;
-    while (write < buf_len)
+    while(write < buf_len)
     {
         uarths_putchar(*buf++);
         write++;
@@ -141,8 +141,8 @@ size_t uarths_send_data(const uint8_t *buf, size_t buf_len)
 
 int uarths_puts(const char *s)
 {
-    while (*s)
-        if (uarths_putchar(*s++) != 0)
+    while(*s)
+        if(uarths_putchar(*s++) != 0)
             return -1;
     return 0;
 }
@@ -171,4 +171,3 @@ void uarths_config(uint32_t baud_rate, uarths_stopbit_t stopbit)
     uarths->div.div = div;
     uarths->txctrl.nstop = stopbit;
 }
-

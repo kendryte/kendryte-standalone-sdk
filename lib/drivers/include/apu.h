@@ -254,45 +254,45 @@ typedef struct _apu_int_mask
 typedef struct _apu_reg
 {
     //0x200
-    apu_ch_cfg_t     bf_ch_cfg_reg;
+    apu_ch_cfg_t bf_ch_cfg_reg;
     //0x204
-    apu_ctl_t            bf_ctl_reg;
+    apu_ctl_t bf_ctl_reg;
     //0x208
-    apu_dir_bidx_t       bf_dir_bidx[16][2];
+    apu_dir_bidx_t bf_dir_bidx[16][2];
     //0x288
-    apu_fir_coef_t       bf_pre_fir0_coef[9];
+    apu_fir_coef_t bf_pre_fir0_coef[9];
     //0x2ac
-    apu_fir_coef_t       bf_post_fir0_coef[9];
+    apu_fir_coef_t bf_post_fir0_coef[9];
     //0x2d0
-    apu_fir_coef_t       bf_pre_fir1_coef[9];
+    apu_fir_coef_t bf_pre_fir1_coef[9];
     //0x2f4
-    apu_fir_coef_t       bf_post_fir1_coef[9];
+    apu_fir_coef_t bf_post_fir1_coef[9];
     //0x318
-    apu_dwsz_cfg_t       bf_dwsz_cfg_reg;
+    apu_dwsz_cfg_t bf_dwsz_cfg_reg;
     //0x31c
-    apu_fft_cfg_t        bf_fft_cfg_reg;
+    apu_fft_cfg_t bf_fft_cfg_reg;
     // 0x320
     /**
      * This is the read register for system DMA to read data stored in
      * sample out buffers (the sample out buffers are used for sound
      * direction detect). Each data contains two sound samples.
      */
-    volatile uint32_t           sobuf_dma_rdata;
+    volatile uint32_t sobuf_dma_rdata;
     // 0x324
     /**
      * This is the read register for system DMA to read data stored in voice
      * out buffers (the voice out buffers are used for voice recognition).
      * Each data contains two sound samples.
      */
-    volatile uint32_t           vobuf_dma_rdata;
+    volatile uint32_t vobuf_dma_rdata;
     /*0x328*/
-    apu_int_stat_t       bf_int_stat_reg;
+    apu_int_stat_t bf_int_stat_reg;
     /*0x32c*/
-    apu_int_mask_t       bf_int_mask_reg;
+    apu_int_mask_t bf_int_mask_reg;
     /*0x330*/
-    uint32_t                saturation_counter;
+    uint32_t saturation_counter;
     /*0x334*/
-    uint32_t                saturation_limits;
+    uint32_t saturation_limits;
 } __attribute__((packed, aligned(4))) apu_reg_t;
 
 extern volatile apu_reg_t *const apu;

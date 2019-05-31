@@ -15,9 +15,9 @@
 #ifndef _DRIVER_WDT_H
 #define _DRIVER_WDT_H
 
-#include <stdint.h>
-#include <stddef.h>
 #include <plic.h>
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

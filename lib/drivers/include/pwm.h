@@ -15,8 +15,8 @@
 #ifndef _DRIVER_PWM_H
 #define _DRIVER_PWM_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,7 +65,6 @@ void pwm_set_enable(pwm_device_number_t pwm_number, pwm_channel_number_t channel
  *
  */
 double pwm_set_frequency(pwm_device_number_t pwm_number, pwm_channel_number_t channel, double frequency, double duty);
-
 
 #ifdef __cplusplus
 }

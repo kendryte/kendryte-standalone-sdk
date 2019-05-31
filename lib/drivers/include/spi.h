@@ -15,8 +15,8 @@
 #ifndef _DRIVER_SPI_H
 #define _DRIVER_SPI_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include "dmac.h"
 
 #ifdef __cplusplus
@@ -140,12 +140,11 @@ typedef enum _spi_transfer_mode
     SPI_TMOD_EEROM
 } spi_transfer_mode_t;
 
-
 typedef enum _spi_transfer_width
 {
-    SPI_TRANS_CHAR  = 0x1,
+    SPI_TRANS_CHAR = 0x1,
     SPI_TRANS_SHORT = 0x2,
-    SPI_TRANS_INT   = 0x4,
+    SPI_TRANS_INT = 0x4,
 } spi_transfer_width_t;
 
 typedef enum _spi_chip_select
@@ -447,9 +446,9 @@ uint32_t spi_set_clk_rate(spi_device_num_t spi_num, uint32_t spi_clk);
  *
  */
 void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
-                               dmac_channel_number_t dma_receive_channel_num,
-                               spi_device_num_t spi_num, spi_chip_select_t chip_select,
-                               const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len);
+                                   dmac_channel_number_t dma_receive_channel_num,
+                                   spi_device_num_t spi_num, spi_chip_select_t chip_select,
+                                   const uint8_t *tx_buf, size_t tx_len, uint8_t *rx_buf, size_t rx_len);
 
 /**
  * @brief       Set spi slave configuration

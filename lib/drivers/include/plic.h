@@ -285,7 +285,7 @@ typedef struct _plic_target_enables
     /* 0x0C002000-0x0C1F1F80: target 0-15871 enables */
     struct
     {
-        uint32_t enable[32 * 2];/* Offset 0x00-0x7C: Bit 0 is zero, Bits 1-1023 is bits*/
+        uint32_t enable[32 * 2]; /* Offset 0x00-0x7C: Bit 0 is zero, Bits 1-1023 is bits*/
     } target[15872 / 2];
 
     /* 0x0C1F2000-0x0C1FFFFC: Reserved, size 0xE000 */
@@ -324,9 +324,10 @@ typedef struct _plic_target_enables
 typedef struct _plic_target
 {
     /* 0x0C200000-0x0FFFF004: target 0-15871 */
-    struct {
-        uint32_t priority_threshold;/* Offset 0x000 */
-        uint32_t claim_complete;    /* Offset 0x004 */
+    struct
+    {
+        uint32_t priority_threshold; /* Offset 0x000 */
+        uint32_t claim_complete;     /* Offset 0x004 */
         uint8_t resv[0x1FF8];        /* Offset 0x008, Size 0xFF8 */
     } target[15872 / 2];
 } __attribute__((packed, aligned(4))) plic_target_t;

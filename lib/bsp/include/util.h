@@ -16,7 +16,6 @@
 #ifndef _BSP_UTIL_H
 #define _BSP_UTIL_H
 
-
 #include <stdint.h>
 #if defined(__riscv)
 #include "encoding.h"
@@ -55,29 +54,22 @@ extern "C" {
 #define PREALLOCATE 0
 #endif
 
-
-#define static_assert(cond)   \
-    {                         \
-        switch (0)            \
-        {                     \
-        case 0:               \
-        case !!(long)(cond):; \
-        }                     \
-    }
+#define static_assert(cond){ \
+    switch(0){               \
+        case 0 : case !!(long)(cond):; } }
 
 #define stringify_1(s) #s
 #define stringify(s) stringify_1(s)
-#define stats(code, iter)                                                                         \
-    do                                                                                            \
-    {                                                                                             \
-        unsigned long _c = -read_cycle(), _i = -read_csr(minstret);                           \
-        code;                                                                                     \
-        _c += read_cycle(), _i += read_csr(minstret);                                         \
-        if (cid == 0)                                                                             \
-            printf("\r\n%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\r\n",                        \
-                stringify(code), _c, _c / iter, 10 * _c / iter % 10, _c / _i, 10 * _c / _i % 10); \
-    } while (0)
-
+#define stats(code, iter)                                                                            \
+    do                                                                                               \
+    {                                                                                                \
+        unsigned long _c = -read_cycle(), _i = -read_csr(minstret);                                  \
+        code;                                                                                        \
+        _c += read_cycle(), _i += read_csr(minstret);                                                \
+        if(cid == 0)                                                                                 \
+            printf("\r\n%s: %ld cycles, %ld.%ld cycles/iter, %ld.%ld CPI\r\n",                       \
+                   stringify(code), _c, _c / iter, 10 * _c / iter % 10, _c / _i, 10 * _c / _i % 10); \
+    } while(0)
 
 /**
  * Set SET_STATS to 1 if you want to carve out the piece that actually
@@ -86,11 +78,12 @@ extern "C" {
 
 #if HOST_DEBUG
 #include <stdio.h>
-static void setStats(int enable) {}
+static void setStats(int enable)
+{
+}
 #else
 extern void setStats(int enable);
 #endif
-
 
 static void printArray(const char name[], int n, const int arr[])
 {
@@ -98,7 +91,7 @@ static void printArray(const char name[], int n, const int arr[])
     int i;
 
     printf(" %10s :", name);
-    for (i = 0; i < n; i++)
+    for(i = 0; i < n; i++)
         printf(" %3d ", arr[i]);
     printf("\r\n");
 #endif
@@ -110,7 +103,7 @@ static void printDoubleArray(const char name[], int n, const double arr[])
     int i;
 
     printf(" %10s :", name);
-    for (i = 0; i < n; i++)
+    for(i = 0; i < n; i++)
         printf(" %g ", arr[i]);
     printf("\r\n");
 #endif
@@ -120,17 +113,17 @@ static int verify(int n, const volatile int *test, const int *verify)
 {
     int i;
     /* Unrolled for faster verification */
-    for (i = 0; i < n / 2 * 2; i += 2)
+    for(i = 0; i < n / 2 * 2; i += 2)
     {
         int t0 = test[i], t1 = test[i + 1];
         int v0 = verify[i], v1 = verify[i + 1];
 
-        if (t0 != v0)
+        if(t0 != v0)
             return i + 1;
-        if (t1 != v1)
+        if(t1 != v1)
             return i + 2;
     }
-    if (n % 2 != 0 && test[n - 1] != verify[n - 1])
+    if(n % 2 != 0 && test[n - 1] != verify[n - 1])
         return n;
     return 0;
 }
@@ -139,16 +132,16 @@ static int verifyDouble(int n, const volatile double *test, const double *verify
 {
     int i;
     /* Unrolled for faster verification */
-    for (i = 0; i < n / 2 * 2; i += 2)
+    for(i = 0; i < n / 2 * 2; i += 2)
     {
         double t0 = test[i], t1 = test[i + 1];
         double v0 = verify[i], v1 = verify[i + 1];
         int eq1 = t0 == v0, eq2 = t1 == v1;
 
-        if (!(eq1 & eq2))
+        if(!(eq1 & eq2))
             return i + 1 + eq1;
     }
-    if (n % 2 != 0 && test[n - 1] != verify[n - 1])
+    if(n % 2 != 0 && test[n - 1] != verify[n - 1])
         return n;
     return 0;
 }
@@ -163,14 +156,13 @@ static void __attribute__((noinline)) barrier(int ncores)
     __sync_synchronize();
 
     threadsense = !threadsense;
-    if (__sync_fetch_and_add(&count, 1) == ncores - 1)
+    if(__sync_fetch_and_add(&count, 1) == ncores - 1)
     {
         count = 0;
         sense = threadsense;
-    }
-    else
+    } else
     {
-        while (sense != threadsense)
+        while(sense != threadsense)
             ;
     }
 
@@ -184,7 +176,6 @@ static uint64_t lfsr(uint64_t x)
     return (x >> 1) | (bit << 62);
 }
 
-
 #if defined(__GNUC__)
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #pragma GCC diagnostic warning "-Wunused-function"
@@ -195,4 +186,3 @@ static uint64_t lfsr(uint64_t x)
 #endif
 
 #endif /* _BSP_UTIL_H */
-

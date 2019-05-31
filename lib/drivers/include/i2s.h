@@ -15,21 +15,20 @@
 #ifndef _DRIVER_I2S_H
 #define _DRIVER_I2S_H
 
-#include <stdint.h>
 #include <stddef.h>
-#include "platform.h"
-#include "io.h"
-#include "dmac.h"
+#include <stdint.h>
 #include "bsp.h"
+#include "dmac.h"
+#include "io.h"
+#include "platform.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-#define I2S0_IN_D0  90
-#define I2S0_SCLK   88
-#define I2S0_WS    89
+#define I2S0_IN_D0 90
+#define I2S0_SCLK 88
+#define I2S0_WS 89
 
 typedef enum _i2s_device_number
 {
@@ -135,7 +134,6 @@ typedef enum _fifo_threshold
     /* Interrupt trigger when FIFO level is 16 */
     TRIGGER_LEVEL_16 = 0xf
 } i2s_fifo_threshold_t;
-
 
 typedef struct _i2s_ier
 {
@@ -336,7 +334,8 @@ typedef struct _i2s_rcr_tcr
     uint32_t resv : 29;
 } __attribute__((packed, aligned(4))) i2s_rcr_tcr_t;
 
-typedef union _rcr_tcr_u {
+typedef union _rcr_tcr_u
+{
     i2s_rcr_tcr_t rcr_tcr;
     uint32_t reg_data;
 } rcr_tcr_t;
@@ -695,11 +694,11 @@ void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t b
  * @param[in]   trigger_level           The trigger level
  */
 void i2s_rx_channel_config(i2s_device_number_t device_num,
-    i2s_channel_num_t channel_num,
-    i2s_word_length_t word_length,
-    i2s_word_select_cycles_t word_select_size,
-    i2s_fifo_threshold_t trigger_level,
-    i2s_work_mode_t word_mode);
+                           i2s_channel_num_t channel_num,
+                           i2s_word_length_t word_length,
+                           i2s_word_select_cycles_t word_select_size,
+                           i2s_fifo_threshold_t trigger_level,
+                           i2s_work_mode_t word_mode);
 
 /**
  * @brief       I2S transmit channel  enable
@@ -711,11 +710,11 @@ void i2s_rx_channel_config(i2s_device_number_t device_num,
  * @param[in]   trigger_level           The trigger level
  */
 void i2s_tx_channel_config(i2s_device_number_t device_num,
-    i2s_channel_num_t channel_num,
-    i2s_word_length_t word_length,
-    i2s_word_select_cycles_t word_select_size,
-    i2s_fifo_threshold_t trigger_level,
-    i2s_work_mode_t word_mode);
+                           i2s_channel_num_t channel_num,
+                           i2s_word_length_t word_length,
+                           i2s_word_select_cycles_t word_select_size,
+                           i2s_fifo_threshold_t trigger_level,
+                           i2s_work_mode_t word_mode);
 
 /**
  * @brief       Play PCM format audio

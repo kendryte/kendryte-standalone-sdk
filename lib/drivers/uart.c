@@ -12,27 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include "atomic.h"
 #include "plic.h"
+#include "syscalls.h"
 #include "sysctl.h"
 #include "uart.h"
 #include "utils.h"
-#include "atomic.h"
-#include "syscalls.h"
 
-#define __UART_BRATE_CONST  16
+#define __UART_BRATE_CONST 16
 
-volatile uart_t* const  uart[3] =
-{
-    (volatile uart_t*)UART1_BASE_ADDR,
-    (volatile uart_t*)UART2_BASE_ADDR,
-    (volatile uart_t*)UART3_BASE_ADDR
-};
+volatile uart_t *const uart[3] =
+    {
+        (volatile uart_t *)UART1_BASE_ADDR,
+        (volatile uart_t *)UART2_BASE_ADDR,
+        (volatile uart_t *)UART3_BASE_ADDR};
 
-#define UART_INTERRUPT_SEND                 0x02U
-#define UART_INTERRUPT_RECEIVE              0x04U
-#define UART_INTERRUPT_CHARACTER_TIMEOUT    0x0CU
+#define UART_INTERRUPT_SEND 0x02U
+#define UART_INTERRUPT_RECEIVE 0x04U
+#define UART_INTERRUPT_CHARACTER_TIMEOUT 0x0CU
 
 typedef struct _uart_interrupt_instance
 {
@@ -87,8 +86,7 @@ static int uart_irq_callback(void *param)
     {
         if(uart_instance->uart_send_instance.callback != NULL)
             uart_instance->uart_send_instance.callback(uart_instance->uart_send_instance.ctx);
-    }
-    else if(v_int_status == UART_INTERRUPT_RECEIVE || v_int_status == UART_INTERRUPT_CHARACTER_TIMEOUT)
+    } else if(v_int_status == UART_INTERRUPT_RECEIVE || v_int_status == UART_INTERRUPT_CHARACTER_TIMEOUT)
     {
         if(uart_instance->uart_receive_instance.callback != NULL)
             uart_instance->uart_receive_instance.callback(uart_instance->uart_receive_instance.ctx);
@@ -100,7 +98,7 @@ static uart_device_number_t s_uart_debug_channel = UART_DEVICE_3;
 
 static int uart_channel_putc(char c, uart_device_number_t channel)
 {
-    while (uart[channel]->LSR & (1u << 5))
+    while(uart[channel]->LSR & (1u << 5))
         continue;
     uart[channel]->THR = c;
     return c & 0xff;
@@ -109,7 +107,7 @@ static int uart_channel_putc(char c, uart_device_number_t channel)
 static int uart_channel_getc(uart_device_number_t channel)
 {
     /* If received empty */
-    if (!(uart[channel]->LSR & 1))
+    if(!(uart[channel]->LSR & 1))
         return EOF;
     else
         return (char)(uart[channel]->RBR & 0xff);
@@ -140,8 +138,7 @@ void uart_debug_init(uart_device_number_t uart_channel)
     {
         sys_register_getchar(uart_debug_getchar);
         sys_register_putchar(uart_debug_putchar);
-    }
-    else
+    } else
     {
         if(sys_getchar == NULL)
             sys_register_getchar(uart_debug_getchar);
@@ -175,7 +172,7 @@ static int uart_dma_callback(void *ctx)
 int uart_receive_data(uart_device_number_t channel, char *buffer, size_t buf_len)
 {
     size_t i = 0;
-    for(i = 0;i < buf_len; i++)
+    for(i = 0; i < buf_len; i++)
     {
         if(uart[channel]->LSR & 1)
             buffer[i] = (char)(uart[channel]->RBR & 0xff);
@@ -188,11 +185,11 @@ int uart_receive_data(uart_device_number_t channel, char *buffer, size_t buf_len
 void uart_receive_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel, uint8_t *buffer, size_t buf_len)
 {
     uint32_t *v_recv_buf = malloc(buf_len * sizeof(uint32_t));
-        configASSERT(v_recv_buf!=NULL);
+    configASSERT(v_recv_buf != NULL);
 
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_RX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, (void *)(&uart[uart_channel]->RBR), v_recv_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-        DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
     dmac_wait_done(dmac_channel);
     for(uint32_t i = 0; i < buf_len; i++)
     {
@@ -202,11 +199,11 @@ void uart_receive_data_dma(uart_device_number_t uart_channel, dmac_channel_numbe
 }
 
 void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel,
-                                     uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
-                                     void *ctx, uint32_t priority)
+                               uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
+                               void *ctx, uint32_t priority)
 {
     uint32_t *v_recv_buf = malloc(buf_len * sizeof(uint32_t));
-        configASSERT(v_recv_buf!=NULL);
+    configASSERT(v_recv_buf != NULL);
 
     uart_recv_dma_instance[uart_channel].dmac_channel = dmac_channel;
     uart_recv_dma_instance[uart_channel].uart_num = uart_channel;
@@ -220,13 +217,13 @@ void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_n
     dmac_irq_register(dmac_channel, uart_dma_callback, &uart_recv_dma_instance[uart_channel], priority);
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_RX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, (void *)(&uart[uart_channel]->RBR), v_recv_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-        DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
 int uart_send_data(uart_device_number_t channel, const char *buffer, size_t buf_len)
 {
     g_write_count = 0;
-    while (g_write_count < buf_len)
+    while(g_write_count < buf_len)
     {
         uart_channel_putc(*buffer++, channel);
         g_write_count++;
@@ -237,12 +234,12 @@ int uart_send_data(uart_device_number_t channel, const char *buffer, size_t buf_
 void uart_send_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel, const uint8_t *buffer, size_t buf_len)
 {
     uint32_t *v_send_buf = malloc(buf_len * sizeof(uint32_t));
-    configASSERT(v_send_buf!=NULL);
+    configASSERT(v_send_buf != NULL);
     for(uint32_t i = 0; i < buf_len; i++)
         v_send_buf[i] = buffer[i];
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_TX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, v_send_buf, (void *)(&uart[uart_channel]->THR), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-        DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
     dmac_wait_done(dmac_channel);
     free((void *)v_send_buf);
 }
@@ -252,9 +249,9 @@ void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_numb
                             void *ctx, uint32_t priority)
 {
     uint32_t *v_send_buf = malloc(buf_len * sizeof(uint32_t));
-    configASSERT(v_send_buf!=NULL);
+    configASSERT(v_send_buf != NULL);
 
-    uart_send_dma_instance[uart_channel] = (uart_dma_instance_t) {
+    uart_send_dma_instance[uart_channel] = (uart_dma_instance_t){
         .dmac_channel = dmac_channel,
         .uart_num = uart_channel,
         .malloc_buffer = v_send_buf,
@@ -270,25 +267,23 @@ void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_numb
     dmac_irq_register(dmac_channel, uart_dma_callback, &uart_send_dma_instance[uart_channel], priority);
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_TX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, v_send_buf, (void *)(&uart[uart_channel]->THR), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-        DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
-
+                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
 void uart_configure(uart_device_number_t channel, uint32_t baud_rate, uart_bitwidth_t data_width, uart_stopbit_t stopbit, uart_parity_t parity)
 {
     configASSERT(data_width >= 5 && data_width <= 8);
-    if (data_width == 5)
+    if(data_width == 5)
     {
         configASSERT(stopbit != UART_STOP_2);
-    }
-    else
+    } else
     {
         configASSERT(stopbit != UART_STOP_1_5);
     }
 
     uint32_t stopbit_val = stopbit == UART_STOP_1 ? 0 : 1;
     uint32_t parity_val;
-    switch (parity)
+    switch(parity)
     {
         case UART_PARITY_NONE:
             parity_val = 0;
@@ -349,8 +344,7 @@ void uart_irq_register(uart_device_number_t channel, uart_interrupt_mode_t inter
         uart[channel]->IER |= 0x2;
         g_uart_instance[channel].uart_send_instance.callback = uart_callback;
         g_uart_instance[channel].uart_send_instance.ctx = ctx;
-    }
-    else if(interrupt_mode == UART_RECEIVE)
+    } else if(interrupt_mode == UART_RECEIVE)
     {
         uart[channel]->IER |= 0x1;
         g_uart_instance[channel].uart_receive_instance.callback = uart_callback;
@@ -369,8 +363,7 @@ void uart_irq_unregister(uart_device_number_t channel, uart_interrupt_mode_t int
         uart[channel]->IER &= ~(0x2);
         g_uart_instance[channel].uart_send_instance.callback = NULL;
         g_uart_instance[channel].uart_send_instance.ctx = NULL;
-    }
-    else if(interrupt_mode == UART_RECEIVE)
+    } else if(interrupt_mode == UART_RECEIVE)
     {
         uart[channel]->IER &= ~(0x1);
         g_uart_instance[channel].uart_receive_instance.callback = NULL;
@@ -388,7 +381,8 @@ int uart_dma_irq(void *ctx)
     dmac_irq_unregister(v_instance->dmac_channel);
     if(v_instance->transfer_mode == UART_SEND)
     {
-        while(!(uart[v_instance->uart_num]->LSR & (1u << 6)));
+        while(!(uart[v_instance->uart_num]->LSR & (1u << 6)))
+            ;
     }
     spinlock_unlock(&v_instance->lock);
     if(v_instance->uart_int_instance.callback)
@@ -398,7 +392,7 @@ int uart_dma_irq(void *ctx)
     return 0;
 }
 
-void uart_handle_data_dma(uart_device_number_t uart_channel ,uart_data_t data, plic_interrupt_t *cb)
+void uart_handle_data_dma(uart_device_number_t uart_channel, uart_data_t data, plic_interrupt_t *cb)
 {
     configASSERT(uart_channel < UART_DEVICE_MAX);
     if(data.transfer_mode == UART_SEND)
@@ -415,15 +409,15 @@ void uart_handle_data_dma(uart_device_number_t uart_channel ,uart_data_t data, p
         }
         sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_UART1_TX_REQ + uart_channel * 2);
         dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&uart[uart_channel]->THR), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-            DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.tx_len);
+                             DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.tx_len);
         if(!cb)
         {
             dmac_wait_done(data.tx_channel);
-            while(!(uart[uart_channel]->LSR & (1u << 6)));
+            while(!(uart[uart_channel]->LSR & (1u << 6)))
+                ;
             spinlock_unlock(&g_uart_send_instance_dma[uart_channel].lock);
         }
-    }
-    else
+    } else
     {
         configASSERT(data.rx_buf && data.rx_len && data.rx_channel < DMAC_CHANNEL_MAX);
         spinlock_lock(&g_uart_recv_instance_dma[uart_channel].lock);
@@ -437,7 +431,7 @@ void uart_handle_data_dma(uart_device_number_t uart_channel ,uart_data_t data, p
         }
         sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_UART1_RX_REQ + uart_channel * 2);
         dmac_set_single_mode(data.rx_channel, (void *)(&uart[uart_channel]->RBR), data.rx_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
+                             DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
         if(!cb)
         {
             dmac_wait_done(data.rx_channel);
@@ -518,13 +512,13 @@ void uart_set_det(uart_device_number_t uart_channel, uart_det_mode_t det_mode, s
     switch(det_mode)
     {
         case UART_DE_ASSERTION:
-            det ->de_assertion_time = v_clk_cnt;
+            det->de_assertion_time = v_clk_cnt;
             break;
         case UART_DE_DE_ASSERTION:
             det->de_de_assertion_time = v_clk_cnt;
             break;
         default:
-            det ->de_assertion_time = v_clk_cnt;
+            det->de_assertion_time = v_clk_cnt;
             det->de_de_assertion_time = v_clk_cnt;
             break;
     }
@@ -551,4 +545,3 @@ void uart_set_tat(uart_device_number_t uart_channel, uart_tat_mode_t tat_mode, s
             break;
     }
 }
-

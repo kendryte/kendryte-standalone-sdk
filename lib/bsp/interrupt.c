@@ -17,8 +17,8 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "interrupt.h"
 #include "dump.h"
+#include "interrupt.h"
 #include "syscalls.h"
 #include "syslog.h"
 
@@ -63,4 +63,3 @@ handle_irq(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[3
 #endif
     return irq_table[cause & CAUSE_MACHINE_IRQ_REASON_MASK](cause, epc, regs, fregs);
 }
-

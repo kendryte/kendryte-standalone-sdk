@@ -14,12 +14,12 @@
  */
 
 #include <syslog.h>
-#include "timer.h"
-#include "sysctl.h"
-#include "stddef.h"
-#include "utils.h"
-#include "plic.h"
 #include "io.h"
+#include "plic.h"
+#include "stddef.h"
+#include "sysctl.h"
+#include "timer.h"
+#include "utils.h"
 
 /**
  * @brief       Private definitions for the timer instance
@@ -34,18 +34,17 @@ typedef struct timer_instance
 volatile timer_instance_t timer_instance[TIMER_DEVICE_MAX][TIMER_CHANNEL_MAX];
 
 volatile kendryte_timer_t *const timer[3] =
-{
-    (volatile kendryte_timer_t *)TIMER0_BASE_ADDR,
-    (volatile kendryte_timer_t *)TIMER1_BASE_ADDR,
-    (volatile kendryte_timer_t *)TIMER2_BASE_ADDR
-};
+    {
+        (volatile kendryte_timer_t *)TIMER0_BASE_ADDR,
+        (volatile kendryte_timer_t *)TIMER1_BASE_ADDR,
+        (volatile kendryte_timer_t *)TIMER2_BASE_ADDR};
 
 void timer_init(timer_device_number_t timer_number)
 {
     for(size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
-        timer_instance[timer_number][i] = (const timer_instance_t) {
-            .callback    = NULL,
-            .ctx         = NULL,
+        timer_instance[timer_number][i] = (const timer_instance_t){
+            .callback = NULL,
+            .ctx = NULL,
             .single_shot = 0,
         };
 
@@ -54,9 +53,7 @@ void timer_init(timer_device_number_t timer_number)
 
 void timer_set_clock_div(timer_device_number_t timer_number, uint32_t div)
 {
-    sysctl_clock_set_threshold(timer_number == 0 ? SYSCTL_THRESHOLD_TIMER0 :
-        timer_number == 1 ? SYSCTL_THRESHOLD_TIMER1 :
-        SYSCTL_THRESHOLD_TIMER2, div);
+    sysctl_clock_set_threshold(timer_number == 0 ? SYSCTL_THRESHOLD_TIMER0 : timer_number == 1 ? SYSCTL_THRESHOLD_TIMER1 : SYSCTL_THRESHOLD_TIMER2, div);
 }
 
 void timer_enable(timer_device_number_t timer_number, timer_channel_number_t channel)
@@ -147,7 +144,7 @@ void timer_channel_clear_interrupt(timer_device_number_t timer_number, timer_cha
 
 void timer_set_enable(timer_device_number_t timer_number, timer_channel_number_t channel, uint32_t enable)
 {
-    if (enable)
+    if(enable)
         timer[timer_number]->channel[channel].control = TIMER_CR_USER_MODE | TIMER_CR_ENABLE;
     else
         timer[timer_number]->channel[channel].control = TIMER_CR_INTERRUPT_MASK;
@@ -164,25 +161,25 @@ size_t timer_set_interval(timer_device_number_t timer_number, timer_channel_numb
     return (size_t)(min_step * value);
 }
 
-typedef void(*timer_ontick)();
-timer_ontick time_irq[3][4] = { NULL };
+typedef void (*timer_ontick)();
+timer_ontick time_irq[3][4] = {NULL};
 
 static int timer_isr(void *parm)
 {
     uint32_t timer_number;
-    for (timer_number = 0; timer_number < 3; timer_number++)
+    for(timer_number = 0; timer_number < 3; timer_number++)
     {
-        if (parm == timer[timer_number])
+        if(parm == timer[timer_number])
             break;
     }
 
     uint32_t channel = timer[timer_number]->intr_stat;
     size_t i = 0;
-    for (i = 0; i < 4; i++)
+    for(i = 0; i < 4; i++)
     {
-        if (channel & 1)
+        if(channel & 1)
         {
-            if (time_irq[timer_number][i])
+            if(time_irq[timer_number][i])
                 (time_irq[timer_number][i])();
             break;
         }
@@ -194,16 +191,15 @@ static int timer_isr(void *parm)
     return 0;
 }
 
-void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void(*func)(), uint32_t priority)
+void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void (*func)(), uint32_t priority)
 {
     time_irq[timer_number][channel] = func;
-    if (channel < 2)
+    if(channel < 2)
     {
         plic_set_priority(IRQN_TIMER0A_INTERRUPT + timer_number * 2, priority);
         plic_irq_register(IRQN_TIMER0A_INTERRUPT + timer_number * 2, timer_isr, (void *)timer[timer_number]);
         plic_irq_enable(IRQN_TIMER0A_INTERRUPT + timer_number * 2);
-    }
-    else
+    } else
     {
         plic_set_priority(IRQN_TIMER0B_INTERRUPT + timer_number * 2, priority);
         plic_irq_register(IRQN_TIMER0B_INTERRUPT + timer_number * 2, timer_isr, (void *)timer[timer_number]);
@@ -221,7 +217,8 @@ void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t ch
  */
 static plic_irq_t get_timer_irqn_by_device_and_channel(timer_device_number_t device, timer_channel_number_t channel)
 {
-    if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
+    if(device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX)
+    {
         /*
          * Select timer interrupt part
          * Hierarchy of Timer interrupt to PLIC
@@ -256,11 +253,12 @@ static plic_irq_t get_timer_irqn_by_device_and_channel(timer_device_number_t dev
          *  +---------+       +-----------+
          *
          */
-        if (channel < 2) {
+        if(channel < 2)
+        {
             /* It is part A interrupt, offset + 0 */
             return IRQN_TIMER0A_INTERRUPT + device * 2;
-        }
-        else {
+        } else
+        {
             /* It is part B interrupt, offset + 1 */
             return IRQN_TIMER0B_INTERRUPT + device * 2;
         }
@@ -280,16 +278,18 @@ static int timer_interrupt_handler(timer_device_number_t device, void *ctx)
 {
     uint32_t channel_int_stat = timer[device]->intr_stat;
 
-    for (size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
+    for(size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
     {
         /* Check every bit for interrupt status */
-        if (channel_int_stat & 1)
+        if(channel_int_stat & 1)
         {
-            if (timer_instance[device][i].callback) {
+            if(timer_instance[device][i].callback)
+            {
                 /* Process user callback function */
                 timer_instance[device][i].callback(timer_instance[device][i].ctx);
                 /* Check if this timer is a single shot timer */
-                if (timer_instance[device][i].single_shot) {
+                if(timer_instance[device][i].single_shot)
+                {
                     /* Single shot timer, disable it */
                     timer_set_enable(device, i, 0);
                 }
@@ -347,7 +347,8 @@ static int timer2_interrupt_callback(void *ctx)
 
 int timer_irq_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx)
 {
-    if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
+    if(device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX)
+    {
         plic_irq_t irq_number = get_timer_irqn_by_device_and_channel(device, channel);
         plic_irq_callback_t plic_irq_callback[TIMER_DEVICE_MAX] = {
             timer0_interrupt_callback,
@@ -355,9 +356,9 @@ int timer_irq_register(timer_device_number_t device, timer_channel_number_t chan
             timer2_interrupt_callback,
         };
 
-        timer_instance[device][channel] = (const timer_instance_t) {
-            .callback    = callback,
-            .ctx         = ctx,
+        timer_instance[device][channel] = (const timer_instance_t){
+            .callback = callback,
+            .ctx = ctx,
             .single_shot = is_single_shot,
         };
         plic_set_priority(irq_number, priority);
@@ -370,18 +371,20 @@ int timer_irq_register(timer_device_number_t device, timer_channel_number_t chan
 
 int timer_irq_unregister(timer_device_number_t device, timer_channel_number_t channel)
 {
-    if (device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX) {
-        timer_instance[device][channel] = (const timer_instance_t) {
-            .callback    = NULL,
-            .ctx         = NULL,
+    if(device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX)
+    {
+        timer_instance[device][channel] = (const timer_instance_t){
+            .callback = NULL,
+            .ctx = NULL,
             .single_shot = 0,
         };
 
         /* Combine 0 and 1 to A interrupt, 2 and 3 to B interrupt */
-        if ((!(timer_instance[device][TIMER_CHANNEL_0].callback ||
+        if((!(timer_instance[device][TIMER_CHANNEL_0].callback ||
               timer_instance[device][TIMER_CHANNEL_1].callback)) ||
-            (!(timer_instance[device][TIMER_CHANNEL_2].callback ||
-              timer_instance[device][TIMER_CHANNEL_3].callback))) {
+           (!(timer_instance[device][TIMER_CHANNEL_2].callback ||
+              timer_instance[device][TIMER_CHANNEL_3].callback)))
+        {
             plic_irq_t irq_number = get_timer_irqn_by_device_and_channel(device, channel);
             plic_irq_unregister(irq_number);
         }

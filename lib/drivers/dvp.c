@@ -12,24 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "dvp.h"
-#include "utils.h"
 #include "fpioa.h"
 #include "sysctl.h"
-#include <math.h>
+#include "utils.h"
 
-volatile dvp_t* const dvp = (volatile dvp_t*)DVP_BASE_ADDR;
+volatile dvp_t *const dvp = (volatile dvp_t *)DVP_BASE_ADDR;
 static uint8_t g_sccb_reg_len = 8;
 
 static void mdelay(uint32_t ms)
 {
     uint32_t i;
 
-    while (ms && ms--)
+    while(ms && ms--)
     {
-        for (i = 0; i < 25000; i++)
+        for(i = 0; i < 25000; i++)
             __asm__ __volatile__("nop");
     }
 }
@@ -61,10 +61,10 @@ uint32_t dvp_sccb_set_clk_rate(uint32_t clk_rate)
 
 static void dvp_sccb_start_transfer(void)
 {
-    while (dvp->sts & DVP_STS_SCCB_EN)
+    while(dvp->sts & DVP_STS_SCCB_EN)
         ;
     dvp->sts = DVP_STS_SCCB_EN | DVP_STS_SCCB_EN_WE;
-    while (dvp->sts & DVP_STS_SCCB_EN)
+    while(dvp->sts & DVP_STS_SCCB_EN)
         ;
 }
 
@@ -78,11 +78,10 @@ void dvp_sccb_send_data(uint8_t dev_addr, uint16_t reg_addr, uint8_t reg_data)
 
     dvp->sccb_cfg = tmp;
 
-    if (g_sccb_reg_len == 8)
+    if(g_sccb_reg_len == 8)
     {
         dvp->sccb_ctl = DVP_SCCB_WRITE_DATA_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr) | DVP_SCCB_WDATA_BYTE0(reg_data);
-    }
-    else
+    } else
     {
         dvp->sccb_ctl = DVP_SCCB_WRITE_DATA_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr >> 8) | DVP_SCCB_WDATA_BYTE0(reg_addr & 0xff) | DVP_SCCB_WDATA_BYTE1(reg_data);
     }
@@ -95,18 +94,17 @@ uint8_t dvp_sccb_receive_data(uint8_t dev_addr, uint16_t reg_addr)
 
     tmp = dvp->sccb_cfg & (~DVP_SCCB_BYTE_NUM_MASK);
 
-    if (g_sccb_reg_len == 8)
+    if(g_sccb_reg_len == 8)
         tmp |= DVP_SCCB_BYTE_NUM_2;
     else
         tmp |= DVP_SCCB_BYTE_NUM_3;
 
     dvp->sccb_cfg = tmp;
 
-    if (g_sccb_reg_len == 8)
+    if(g_sccb_reg_len == 8)
     {
         dvp->sccb_ctl = DVP_SCCB_WRITE_DATA_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr);
-    }
-    else
+    } else
     {
         dvp->sccb_ctl = DVP_SCCB_WRITE_DATA_ENABLE | DVP_SCCB_DEVICE_ADDRESS(dev_addr) | DVP_SCCB_REG_ADDRESS(reg_addr >> 8) | DVP_SCCB_WDATA_BYTE0(reg_addr & 0xff);
     }
@@ -116,7 +114,7 @@ uint8_t dvp_sccb_receive_data(uint8_t dev_addr, uint16_t reg_addr)
 
     dvp_sccb_start_transfer();
 
-    return (uint8_t) DVP_SCCB_RDATA_BYTE(dvp->sccb_cfg);
+    return (uint8_t)DVP_SCCB_RDATA_BYTE(dvp->sccb_cfg);
 }
 
 static void dvp_reset(void)
@@ -193,7 +191,7 @@ void dvp_set_image_size(uint32_t width, uint32_t height)
 
     tmp |= DVP_CFG_LINE_NUM(height);
 
-    if (dvp->dvp_cfg & DVP_CFG_BURST_SIZE_4BEATS)
+    if(dvp->dvp_cfg & DVP_CFG_BURST_SIZE_4BEATS)
         tmp |= DVP_CFG_HREF_BURST_NUM(width / 8 / 4);
     else
         tmp |= DVP_CFG_HREF_BURST_NUM(width / 8 / 1);
@@ -215,7 +213,7 @@ void dvp_set_display_addr(uint32_t addr)
 
 void dvp_start_frame(void)
 {
-    while (!(dvp->sts & DVP_STS_FRAME_START))
+    while(!(dvp->sts & DVP_STS_FRAME_START))
         ;
     dvp->sts = (DVP_STS_FRAME_START | DVP_STS_FRAME_START_WE);
 }
@@ -227,26 +225,26 @@ void dvp_start_convert(void)
 
 void dvp_finish_convert(void)
 {
-    while (!(dvp->sts & DVP_STS_FRAME_FINISH))
+    while(!(dvp->sts & DVP_STS_FRAME_FINISH))
         ;
     dvp->sts = DVP_STS_FRAME_FINISH | DVP_STS_FRAME_FINISH_WE;
 }
 
 void dvp_get_image(void)
 {
-    while (!(dvp->sts & DVP_STS_FRAME_START))
+    while(!(dvp->sts & DVP_STS_FRAME_START))
         ;
     dvp->sts = DVP_STS_FRAME_START | DVP_STS_FRAME_START_WE;
-    while (!(dvp->sts & DVP_STS_FRAME_START))
+    while(!(dvp->sts & DVP_STS_FRAME_START))
         ;
     dvp->sts = DVP_STS_FRAME_FINISH | DVP_STS_FRAME_FINISH_WE | DVP_STS_FRAME_START | DVP_STS_FRAME_START_WE | DVP_STS_DVP_EN | DVP_STS_DVP_EN_WE;
-    while (!(dvp->sts & DVP_STS_FRAME_FINISH))
+    while(!(dvp->sts & DVP_STS_FRAME_FINISH))
         ;
 }
 
 void dvp_config_interrupt(uint32_t interrupt, uint8_t enable)
 {
-    if (enable)
+    if(enable)
         dvp->dvp_cfg |= interrupt;
     else
         dvp->dvp_cfg &= (~interrupt);
@@ -254,7 +252,7 @@ void dvp_config_interrupt(uint32_t interrupt, uint8_t enable)
 
 int dvp_get_interrupt(uint32_t interrupt)
 {
-    if (dvp->sts & interrupt)
+    if(dvp->sts & interrupt)
         return 1;
     return 0;
 }
@@ -279,19 +277,17 @@ void dvp_set_output_enable(dvp_output_mode_t index, int enable)
 {
     configASSERT(index < 2);
 
-    if (index == 0)
+    if(index == 0)
     {
-        if (enable)
+        if(enable)
             dvp->dvp_cfg |= DVP_CFG_AI_OUTPUT_ENABLE;
         else
             dvp->dvp_cfg &= ~DVP_CFG_AI_OUTPUT_ENABLE;
-    }
-    else
+    } else
     {
-        if (enable)
+        if(enable)
             dvp->dvp_cfg |= DVP_CFG_DISPLAY_OUTPUT_ENABLE;
         else
             dvp->dvp_cfg &= ~DVP_CFG_DISPLAY_OUTPUT_ENABLE;
     }
 }
-

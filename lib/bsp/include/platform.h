@@ -96,4 +96,3 @@ extern "C" {
 #endif
 
 #endif /* _BSP_PLATFORM_H */
-

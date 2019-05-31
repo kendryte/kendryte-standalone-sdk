@@ -12,15 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include "dmac.h"
-#include "sysctl.h"
 #include "fpioa.h"
-#include "utils.h"
 #include "plic.h"
 #include "stdlib.h"
+#include "sysctl.h"
+#include "utils.h"
 
 volatile dmac_t *const dmac = (dmac_t *)DMAC_BASE_ADDR;
 
@@ -35,7 +35,8 @@ dmac_context_t dmac_context[6];
 
 static int is_memory(uintptr_t address)
 {
-    enum {
+    enum
+    {
         mem_len = 6 * 1024 * 1024,
         mem_no_cache_len = 8 * 1024 * 1024,
     };
@@ -59,7 +60,7 @@ uint64_t dmac_read_channel_id(dmac_channel_number_t channel_num)
 
 static void dmac_enable(void)
 {
-    dmac_cfg_u_t  dmac_cfg;
+    dmac_cfg_u_t dmac_cfg;
 
     dmac_cfg.data = readq(&dmac->cfg);
     dmac_cfg.cfg.dmac_en = 1;
@@ -69,7 +70,7 @@ static void dmac_enable(void)
 
 void dmac_disable(void)
 {
-    dmac_cfg_u_t  dmac_cfg;
+    dmac_cfg_u_t dmac_cfg;
 
     dmac_cfg.data = readq(&dmac->cfg);
     dmac_cfg.cfg.dmac_en = 0;
@@ -79,7 +80,7 @@ void dmac_disable(void)
 
 void src_transaction_complete_int_enable(dmac_channel_number_t channel_num)
 {
-    dmac_ch_intstatus_enable_u_t  ch_intstat;
+    dmac_ch_intstatus_enable_u_t ch_intstat;
 
     ch_intstat.data = readq(&dmac->channel[channel_num].intstatus_en);
     ch_intstat.ch_intstatus_enable.enable_src_transcomp_intstat = 1;
@@ -93,33 +94,34 @@ void dmac_channel_enable(dmac_channel_number_t channel_num)
 
     chen.data = readq(&dmac->chen);
 
-    switch (channel_num) {
-    case DMAC_CHANNEL0:
-        chen.dmac_chen.ch1_en = 1;
-        chen.dmac_chen.ch1_en_we = 1;
-        break;
-    case DMAC_CHANNEL1:
-        chen.dmac_chen.ch2_en = 1;
-        chen.dmac_chen.ch2_en_we = 1;
-        break;
-    case DMAC_CHANNEL2:
-        chen.dmac_chen.ch3_en = 1;
-        chen.dmac_chen.ch3_en_we = 1;
-        break;
-    case DMAC_CHANNEL3:
-        chen.dmac_chen.ch4_en = 1;
-        chen.dmac_chen.ch4_en_we = 1;
-        break;
-    case DMAC_CHANNEL4:
-        chen.dmac_chen.ch5_en = 1;
-        chen.dmac_chen.ch5_en_we = 1;
-        break;
-    case DMAC_CHANNEL5:
-        chen.dmac_chen.ch6_en = 1;
-        chen.dmac_chen.ch6_en_we = 1;
-        break;
-    default:
-        break;
+    switch(channel_num)
+    {
+        case DMAC_CHANNEL0:
+            chen.dmac_chen.ch1_en = 1;
+            chen.dmac_chen.ch1_en_we = 1;
+            break;
+        case DMAC_CHANNEL1:
+            chen.dmac_chen.ch2_en = 1;
+            chen.dmac_chen.ch2_en_we = 1;
+            break;
+        case DMAC_CHANNEL2:
+            chen.dmac_chen.ch3_en = 1;
+            chen.dmac_chen.ch3_en_we = 1;
+            break;
+        case DMAC_CHANNEL3:
+            chen.dmac_chen.ch4_en = 1;
+            chen.dmac_chen.ch4_en_we = 1;
+            break;
+        case DMAC_CHANNEL4:
+            chen.dmac_chen.ch5_en = 1;
+            chen.dmac_chen.ch5_en_we = 1;
+            break;
+        case DMAC_CHANNEL5:
+            chen.dmac_chen.ch6_en = 1;
+            chen.dmac_chen.ch6_en_we = 1;
+            break;
+        default:
+            break;
     }
 
     writeq(chen.data, &dmac->chen);
@@ -131,34 +133,34 @@ void dmac_channel_disable(dmac_channel_number_t channel_num)
 
     chen.data = readq(&dmac->chen);
 
-    switch (channel_num)
+    switch(channel_num)
     {
-    case DMAC_CHANNEL0:
-        chen.dmac_chen.ch1_en = 0;
-        chen.dmac_chen.ch1_en_we = 1;
-        break;
-    case DMAC_CHANNEL1:
-        chen.dmac_chen.ch2_en = 0;
-        chen.dmac_chen.ch2_en_we = 1;
-        break;
-    case DMAC_CHANNEL2:
-        chen.dmac_chen.ch3_en = 0;
-        chen.dmac_chen.ch3_en_we = 1;
-        break;
-    case DMAC_CHANNEL3:
-        chen.dmac_chen.ch4_en = 0;
-        chen.dmac_chen.ch4_en_we = 1;
-        break;
-    case DMAC_CHANNEL4:
-        chen.dmac_chen.ch5_en = 0;
-        chen.dmac_chen.ch5_en_we = 1;
-        break;
-    case DMAC_CHANNEL5:
-        chen.dmac_chen.ch6_en = 0;
-        chen.dmac_chen.ch6_en_we = 1;
-        break;
-    default:
-        break;
+        case DMAC_CHANNEL0:
+            chen.dmac_chen.ch1_en = 0;
+            chen.dmac_chen.ch1_en_we = 1;
+            break;
+        case DMAC_CHANNEL1:
+            chen.dmac_chen.ch2_en = 0;
+            chen.dmac_chen.ch2_en_we = 1;
+            break;
+        case DMAC_CHANNEL2:
+            chen.dmac_chen.ch3_en = 0;
+            chen.dmac_chen.ch3_en_we = 1;
+            break;
+        case DMAC_CHANNEL3:
+            chen.dmac_chen.ch4_en = 0;
+            chen.dmac_chen.ch4_en_we = 1;
+            break;
+        case DMAC_CHANNEL4:
+            chen.dmac_chen.ch5_en = 0;
+            chen.dmac_chen.ch5_en_we = 1;
+            break;
+        case DMAC_CHANNEL5:
+            chen.dmac_chen.ch6_en = 0;
+            chen.dmac_chen.ch6_en_we = 1;
+            break;
+        default:
+            break;
     }
 
     writeq(chen.data, &dmac->chen);
@@ -170,33 +172,34 @@ int32_t dmac_check_channel_busy(dmac_channel_number_t channel_num)
     dmac_chen_u_t chen_u;
 
     chen_u.data = readq(&dmac->chen);
-    switch (channel_num) {
-    case DMAC_CHANNEL0:
-        if (chen_u.dmac_chen.ch1_en == 1)
-            ret = 1;
-        break;
-    case DMAC_CHANNEL1:
-        if (chen_u.dmac_chen.ch2_en == 1)
-            ret = 1;
-        break;
-    case DMAC_CHANNEL2:
-        if (chen_u.dmac_chen.ch3_en == 1)
-            ret = 1;
-        break;
-    case DMAC_CHANNEL3:
-        if (chen_u.dmac_chen.ch4_en == 1)
-            ret = 1;
-        break;
-    case DMAC_CHANNEL4:
-        if (chen_u.dmac_chen.ch5_en == 1)
-            ret = 1;
-        break;
-    case DMAC_CHANNEL5:
-        if (chen_u.dmac_chen.ch6_en == 1)
-            ret = 1;
-        break;
-    default:
-        break;
+    switch(channel_num)
+    {
+        case DMAC_CHANNEL0:
+            if(chen_u.dmac_chen.ch1_en == 1)
+                ret = 1;
+            break;
+        case DMAC_CHANNEL1:
+            if(chen_u.dmac_chen.ch2_en == 1)
+                ret = 1;
+            break;
+        case DMAC_CHANNEL2:
+            if(chen_u.dmac_chen.ch3_en == 1)
+                ret = 1;
+            break;
+        case DMAC_CHANNEL3:
+            if(chen_u.dmac_chen.ch4_en == 1)
+                ret = 1;
+            break;
+        case DMAC_CHANNEL4:
+            if(chen_u.dmac_chen.ch5_en == 1)
+                ret = 1;
+            break;
+        case DMAC_CHANNEL5:
+            if(chen_u.dmac_chen.ch6_en == 1)
+                ret = 1;
+            break;
+        default:
+            break;
     }
 
     writeq(chen_u.data, &dmac->chen);
@@ -205,7 +208,7 @@ int32_t dmac_check_channel_busy(dmac_channel_number_t channel_num)
 }
 
 int32_t dmac_set_list_master_select(dmac_channel_number_t channel_num,
-    dmac_src_dst_select_t sd_sel, dmac_master_number_t  mst_num)
+                                    dmac_src_dst_select_t sd_sel, dmac_master_number_t mst_num)
 {
     int32_t ret = 0;
     uint64_t tmp = 0;
@@ -213,11 +216,12 @@ int32_t dmac_set_list_master_select(dmac_channel_number_t channel_num,
 
     ctl.data = readq(&dmac->channel[channel_num].ctl);
     ret = dmac_check_channel_busy(channel_num);
-    if (ret == 0) {
-        if (sd_sel == DMAC_SRC || sd_sel == DMAC_SRC_DST)
+    if(ret == 0)
+    {
+        if(sd_sel == DMAC_SRC || sd_sel == DMAC_SRC_DST)
             ctl.ch_ctl.sms = mst_num;
 
-        if (sd_sel == DMAC_DST || sd_sel == DMAC_SRC_DST)
+        if(sd_sel == DMAC_DST || sd_sel == DMAC_SRC_DST)
             ctl.ch_ctl.dms = mst_num;
         tmp |= *(uint64_t *)&dmac->channel[channel_num].ctl;
         writeq(ctl.data, &dmac->channel[channel_num].ctl);
@@ -271,19 +275,19 @@ static void dmac_chanel_interrupt_clear(dmac_channel_number_t channel_num)
 }
 
 int dmac_set_channel_config(dmac_channel_number_t channel_num,
-        dmac_channel_config_t *cfg_param)
+                            dmac_channel_config_t *cfg_param)
 {
-    dmac_ch_ctl_u_t  ctl;
+    dmac_ch_ctl_u_t ctl;
     dmac_ch_cfg_u_t cfg;
     dmac_ch_llp_u_t ch_llp;
 
-    if (cfg_param->ctl_sms > DMAC_MASTER2)
+    if(cfg_param->ctl_sms > DMAC_MASTER2)
         return -1;
-    if (cfg_param->ctl_dms > DMAC_MASTER2)
+    if(cfg_param->ctl_dms > DMAC_MASTER2)
         return -1;
-    if (cfg_param->ctl_src_msize > DMAC_MSIZE_256)
+    if(cfg_param->ctl_src_msize > DMAC_MSIZE_256)
         return -1;
-    if (cfg_param->ctl_drc_msize > DMAC_MSIZE_256)
+    if(cfg_param->ctl_drc_msize > DMAC_MSIZE_256)
         return -1;
 
     /**
@@ -295,7 +299,7 @@ int dmac_set_channel_config(dmac_channel_number_t channel_num,
     cfg.ch_cfg.hs_sel_src = cfg_param->cfg_hs_sel_src;
     cfg.ch_cfg.hs_sel_dst = cfg_param->cfg_hs_sel_dst;
     cfg.ch_cfg.src_hwhs_pol = cfg_param->cfg_src_hs_pol;
-    cfg.ch_cfg.dst_hwhs_pol  = cfg_param->cfg_dst_hs_pol;
+    cfg.ch_cfg.dst_hwhs_pol = cfg_param->cfg_dst_hs_pol;
     cfg.ch_cfg.src_per = cfg_param->cfg_src_per;
     cfg.ch_cfg.dst_per = cfg_param->cfg_dst_per;
     cfg.ch_cfg.ch_prior = cfg_param->cfg_ch_prior;
@@ -314,7 +318,7 @@ int dmac_set_channel_config(dmac_channel_number_t channel_num,
     ctl.ch_ctl.dinc = cfg_param->ctl_dinc;
     /* address incrememt */
     ctl.ch_ctl.src_tr_width = cfg_param->ctl_src_tr_width;
-    ctl.ch_ctl.dst_tr_width  = cfg_param->ctl_dst_tr_width;
+    ctl.ch_ctl.dst_tr_width = cfg_param->ctl_dst_tr_width;
     /* transfer width */
     ctl.ch_ctl.src_msize = cfg_param->ctl_src_msize;
     ctl.ch_ctl.dst_msize = cfg_param->ctl_drc_msize;
@@ -341,22 +345,22 @@ int dmac_set_channel_config(dmac_channel_number_t channel_num,
 }
 
 int dmac_set_channel_param(dmac_channel_number_t channel_num,
-    const void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
-    dmac_burst_trans_length_t dmac_burst_size,
-    dmac_transfer_width_t dmac_trans_width,
-    uint32_t blockSize)
+                           const void *src, void *dest, dmac_address_increment_t src_inc, dmac_address_increment_t dest_inc,
+                           dmac_burst_trans_length_t dmac_burst_size,
+                           dmac_transfer_width_t dmac_trans_width,
+                           uint32_t blockSize)
 {
-    dmac_ch_ctl_u_t  ctl;
+    dmac_ch_ctl_u_t ctl;
     dmac_ch_cfg_u_t cfg_u;
 
     int mem_type_src = is_memory((uintptr_t)src), mem_type_dest = is_memory((uintptr_t)dest);
     dmac_transfer_flow_t flow_control;
-    if (mem_type_src == 0 && mem_type_dest == 0)
+    if(mem_type_src == 0 && mem_type_dest == 0)
     {
         flow_control = DMAC_PRF2PRF_DMA;
-    }else if (mem_type_src == 1 && mem_type_dest == 0)
+    } else if(mem_type_src == 1 && mem_type_dest == 0)
         flow_control = DMAC_MEM2PRF_DMA;
-    else if (mem_type_src == 0 && mem_type_dest == 1)
+    else if(mem_type_src == 0 && mem_type_dest == 1)
         flow_control = DMAC_PRF2MEM_DMA;
     else
         flow_control = DMAC_MEM2MEM_DMA;
@@ -388,7 +392,7 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
     ctl.ch_ctl.dinc = dest_inc;
     /* address incrememt */
     ctl.ch_ctl.src_tr_width = dmac_trans_width;
-    ctl.ch_ctl.dst_tr_width  = dmac_trans_width;
+    ctl.ch_ctl.dst_tr_width = dmac_trans_width;
     /* transfer width */
     ctl.ch_ctl.src_msize = dmac_burst_size;
     ctl.ch_ctl.dst_msize = dmac_burst_size;
@@ -402,16 +406,16 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
 }
 
 int dmac_get_channel_config(dmac_channel_number_t channel_num,
-        dmac_channel_config_t *cfg_param)
+                            dmac_channel_config_t *cfg_param)
 {
-    dmac_ch_ctl_u_t  ctl;
+    dmac_ch_ctl_u_t ctl;
     dmac_ch_cfg_u_t cfg;
     dmac_ch_llp_u_t ch_llp;
 
-    if (cfg_param == 0)
+    if(cfg_param == 0)
         return -1;
-    if (channel_num < DMAC_CHANNEL0 ||
-        channel_num > DMAC_CHANNEL3)
+    if(channel_num < DMAC_CHANNEL0 ||
+       channel_num > DMAC_CHANNEL3)
         return -1;
 
     ctl.data = readq(&dmac->channel[channel_num].ctl);
@@ -430,7 +434,7 @@ int dmac_get_channel_config(dmac_channel_number_t channel_num,
     cfg_param->cfg_hs_sel_src = cfg.ch_cfg.hs_sel_src;
     cfg_param->cfg_hs_sel_dst = cfg.ch_cfg.hs_sel_dst;
     cfg_param->cfg_src_hs_pol = cfg.ch_cfg.src_hwhs_pol;
-    cfg_param->cfg_dst_hs_pol =  cfg.ch_cfg.dst_hwhs_pol;
+    cfg_param->cfg_dst_hs_pol = cfg.ch_cfg.dst_hwhs_pol;
     cfg_param->cfg_src_per = cfg.ch_cfg.src_per;
     cfg_param->cfg_dst_per = cfg.ch_cfg.dst_per;
     cfg_param->cfg_ch_prior = cfg.ch_cfg.ch_prior;
@@ -450,14 +454,14 @@ int dmac_get_channel_config(dmac_channel_number_t channel_num,
 }
 
 void dmac_set_address(dmac_channel_number_t channel_num, uint64_t src_addr,
-        uint64_t dst_addr)
+                      uint64_t dst_addr)
 {
     writeq(src_addr, &dmac->channel[channel_num].sar);
     writeq(dst_addr, &dmac->channel[channel_num].dar);
 }
 
 void dmac_set_block_ts(dmac_channel_number_t channel_num,
-        uint32_t block_size)
+                       uint32_t block_size)
 {
     uint32_t block_ts;
 
@@ -466,10 +470,10 @@ void dmac_set_block_ts(dmac_channel_number_t channel_num,
 }
 
 void dmac_source_control(dmac_channel_number_t channel_num,
-        dmac_master_number_t master_select,
-        dmac_address_increment_t address_mode,
-        dmac_transfer_width_t tr_width,
-        dmac_burst_trans_length_t burst_length)
+                         dmac_master_number_t master_select,
+                         dmac_address_increment_t address_mode,
+                         dmac_transfer_width_t tr_width,
+                         dmac_burst_trans_length_t burst_length)
 {
     dmac_ch_ctl_u_t ctl_u;
 
@@ -483,10 +487,10 @@ void dmac_source_control(dmac_channel_number_t channel_num,
 }
 
 void dmac_master_control(dmac_channel_number_t channel_num,
-        dmac_master_number_t master_select,
-        dmac_address_increment_t address_mode,
-        dmac_transfer_width_t tr_width,
-        dmac_burst_trans_length_t burst_length)
+                         dmac_master_number_t master_select,
+                         dmac_address_increment_t address_mode,
+                         dmac_transfer_width_t tr_width,
+                         dmac_burst_trans_length_t burst_length)
 {
     dmac_ch_ctl_u_t ctl_u;
 
@@ -500,8 +504,8 @@ void dmac_master_control(dmac_channel_number_t channel_num,
 }
 
 void dmac_set_source_transfer_control(dmac_channel_number_t channel_num,
-                dmac_multiblk_transfer_type_t transfer_type,
-                dmac_sw_hw_hs_select_t handshak_select)
+                                      dmac_multiblk_transfer_type_t transfer_type,
+                                      dmac_sw_hw_hs_select_t handshak_select)
 {
     dmac_ch_cfg_u_t cfg_u;
 
@@ -513,8 +517,8 @@ void dmac_set_source_transfer_control(dmac_channel_number_t channel_num,
 }
 
 void dmac_set_destination_transfer_control(dmac_channel_number_t channel_num,
-                dmac_multiblk_transfer_type_t transfer_type,
-                dmac_sw_hw_hs_select_t handshak_select)
+                                           dmac_multiblk_transfer_type_t transfer_type,
+                                           dmac_sw_hw_hs_select_t handshak_select)
 {
     dmac_ch_cfg_u_t cfg_u;
 
@@ -526,7 +530,7 @@ void dmac_set_destination_transfer_control(dmac_channel_number_t channel_num,
 }
 
 void dmac_set_flow_control(dmac_channel_number_t channel_num,
-            dmac_transfer_flow_t flow_control)
+                           dmac_transfer_flow_t flow_control)
 {
     dmac_ch_cfg_u_t cfg_u;
 
@@ -537,7 +541,7 @@ void dmac_set_flow_control(dmac_channel_number_t channel_num,
 }
 
 void dmac_set_linked_list_addr_point(dmac_channel_number_t channel_num,
-            uint64_t *addr)
+                                     uint64_t *addr)
 {
     dmac_ch_llp_u_t llp_u;
 
@@ -559,7 +563,7 @@ void dmac_init(void)
     dmac_reset.data = readq(&dmac->reset);
     dmac_reset.reset.rst = 1;
     writeq(dmac_reset.data, &dmac->reset);
-    while (dmac_reset.reset.rst)
+    while(dmac_reset.reset.rst)
         dmac_reset.data = readq(&dmac->reset);
 
     /*reset dmac */
@@ -579,7 +583,7 @@ void dmac_init(void)
     writeq(dmac_cfg.data, &dmac->cfg);
     /* disable dmac and disable interrupt */
 
-    while (readq(&dmac->cfg))
+    while(readq(&dmac->cfg))
         ;
     tmp = readq(&dmac->chen);
     tmp &= ~0xf;
@@ -589,7 +593,7 @@ void dmac_init(void)
 }
 
 static void list_add(struct list_head_t *new, struct list_head_t *prev,
-        struct list_head_t *next)
+                     struct list_head_t *next)
 {
     next->prev = new;
     new->next = next;
@@ -609,12 +613,12 @@ void INIT_LIST_HEAD(struct list_head_t *list)
 }
 
 void dmac_link_list_item(dmac_channel_number_t channel_num,
-    uint8_t LLI_row_num, int8_t LLI_last_row,
-    dmac_lli_item_t *lli_item,
-    dmac_channel_config_t *cfg_param)
+                         uint8_t LLI_row_num, int8_t LLI_last_row,
+                         dmac_lli_item_t *lli_item,
+                         dmac_channel_config_t *cfg_param)
 {
     dmac_ch_ctl_u_t ctl;
-    dmac_ch_llp_u_t  llp_u;
+    dmac_ch_llp_u_t llp_u;
 
     lli_item[LLI_row_num].sar = cfg_param->sar;
     lli_item[LLI_row_num].dar = cfg_param->dar;
@@ -631,10 +635,12 @@ void dmac_link_list_item(dmac_channel_number_t channel_num,
     ctl.ch_ctl.src_stat_en = cfg_param->ctl_src_stat_en;
     ctl.ch_ctl.dst_stat_en = cfg_param->ctl_dst_stat_en;
 
-    if (LLI_last_row != LAST_ROW) {
+    if(LLI_last_row != LAST_ROW)
+    {
         ctl.ch_ctl.shadowreg_or_lli_valid = 1;
         ctl.ch_ctl.shadowreg_or_lli_last = 0;
-    } else {
+    } else
+    {
         ctl.ch_ctl.shadowreg_or_lli_valid = 1;
         ctl.ch_ctl.shadowreg_or_lli_last = 1;
     }
@@ -647,7 +653,7 @@ void dmac_link_list_item(dmac_channel_number_t channel_num,
 
     llp_u.data = readq(&dmac->channel[channel_num].llp);
 
-    if (LLI_last_row != LAST_ROW)
+    if(LLI_last_row != LAST_ROW)
         llp_u.llp.loc = ((uint64_t)&lli_item[LLI_row_num + 1]) >> 6;
     else
         llp_u.llp.loc = 0;
@@ -656,13 +662,14 @@ void dmac_link_list_item(dmac_channel_number_t channel_num,
 }
 
 void dmac_update_shandow_register(dmac_channel_number_t channel_num,
-        int8_t last_block, dmac_channel_config_t *cfg_param)
+                                  int8_t last_block, dmac_channel_config_t *cfg_param)
 {
     dmac_ch_ctl_u_t ctl_u;
 
-    do {
+    do
+    {
         ctl_u.data = readq(&dmac->channel[channel_num].ctl);
-    } while (ctl_u.ch_ctl.shadowreg_or_lli_valid);
+    } while(ctl_u.ch_ctl.shadowreg_or_lli_valid);
 
     writeq(cfg_param->sar, &dmac->channel[channel_num].sar);
     writeq(cfg_param->dar, &dmac->channel[channel_num].dar);
@@ -678,11 +685,12 @@ void dmac_update_shandow_register(dmac_channel_number_t channel_num,
     ctl_u.ch_ctl.dst_msize = cfg_param->ctl_drc_msize;
     ctl_u.ch_ctl.src_stat_en = cfg_param->ctl_src_stat_en;
     ctl_u.ch_ctl.dst_stat_en = cfg_param->ctl_dst_stat_en;
-    if (last_block != LAST_ROW)
+    if(last_block != LAST_ROW)
     {
         ctl_u.ch_ctl.shadowreg_or_lli_valid = 1;
         ctl_u.ch_ctl.shadowreg_or_lli_last = 0;
-    } else {
+    } else
+    {
         ctl_u.ch_ctl.shadowreg_or_lli_valid = 1;
         ctl_u.ch_ctl.shadowreg_or_lli_last = 1;
     }
@@ -706,7 +714,8 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
                           dmac_address_increment_t dest_inc,
                           dmac_burst_trans_length_t dmac_burst_size,
                           dmac_transfer_width_t dmac_trans_width,
-                          size_t block_size) {
+                          size_t block_size)
+{
     dmac_chanel_interrupt_clear(channel_num);
     dmac_channel_disable(channel_num);
     dmac_wait_idle(channel_num);
@@ -741,7 +750,8 @@ int dmac_is_idle(dmac_channel_number_t channel_num)
 
 void dmac_wait_idle(dmac_channel_number_t channel_num)
 {
-    while(!dmac_is_idle(channel_num));
+    while(!dmac_is_idle(channel_num))
+        ;
     dmac_chanel_interrupt_clear(channel_num); /* clear interrupt */
 }
 
@@ -767,7 +777,7 @@ static int dmac_irq_callback(void *ctx)
     return 0;
 }
 
-void dmac_irq_register(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority)
+void dmac_irq_register(dmac_channel_number_t channel_num, plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority)
 {
     dmac_context[channel_num].dmac_channel = channel_num;
     dmac_context[channel_num].callback = dmac_callback;
@@ -778,7 +788,7 @@ void dmac_irq_register(dmac_channel_number_t channel_num , plic_irq_callback_t d
     plic_irq_enable(IRQN_DMA0_INTERRUPT + channel_num);
 }
 
-void __attribute__((weak, alias("dmac_irq_register"))) dmac_set_irq(dmac_channel_number_t channel_num , plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
+void __attribute__((weak, alias("dmac_irq_register"))) dmac_set_irq(dmac_channel_number_t channel_num, plic_irq_callback_t dmac_callback, void *ctx, uint32_t priority);
 
 void dmac_irq_unregister(dmac_channel_number_t channel_num)
 {
@@ -789,4 +799,3 @@ void dmac_irq_unregister(dmac_channel_number_t channel_num)
 }
 
 void __attribute__((weak, alias("dmac_irq_unregister"))) dmac_free_irq(dmac_channel_number_t channel_num);
-

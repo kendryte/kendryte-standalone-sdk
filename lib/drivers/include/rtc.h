@@ -21,11 +21,11 @@
 #ifndef _DRIVER_RTC_H
 #define _DRIVER_RTC_H
 
-#include <stdint.h>
-#include <time.h>
 #include <plic.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
+#include <time.h>
 
 #include "platform.h"
 
@@ -78,14 +78,14 @@ typedef enum _rtc_tick_interrupt_mode_e
  */
 typedef struct _rtc_mask
 {
-    uint32_t resv : 1;	 /*!< Reserved */
+    uint32_t resv : 1;   /*!< Reserved */
     uint32_t second : 1; /*!< Second mask */
     uint32_t minute : 1; /*!< Minute mask */
-    uint32_t hour : 1;	 /*!< Hour mask */
-    uint32_t week : 1;	 /*!< Week mask */
-    uint32_t day : 1;	 /*!< Day mask */
-    uint32_t month : 1;	 /*!< Month mask */
-    uint32_t year : 1;	 /*!< Year mask */
+    uint32_t hour : 1;   /*!< Hour mask */
+    uint32_t week : 1;   /*!< Week mask */
+    uint32_t day : 1;    /*!< Day mask */
+    uint32_t month : 1;  /*!< Month mask */
+    uint32_t year : 1;   /*!< Year mask */
 } __attribute__((packed, aligned(1))) rtc_mask_t;
 
 /**
@@ -109,7 +109,6 @@ typedef struct _rtc_mask
  *
  */
 
-
 /**
  * @brief       Timer date information
  *
@@ -117,12 +116,12 @@ typedef struct _rtc_mask
  */
 typedef struct _rtc_date
 {
-    uint32_t week : 3;	/*!< Week. Range [0,6]. 0 is Sunday. */
-    uint32_t resv0 : 5;	/*!< Reserved */
-    uint32_t day : 5;	/*!< Day. Range [1,31] or [1,30] or [1,29] or [1,28] */
-    uint32_t resv1 : 3;	/*!< Reserved */
-    uint32_t month : 4;	/*!< Month. Range [1,12] */
-    uint32_t year : 12;	/*!< Year. Range [0,99] */
+    uint32_t week : 3;  /*!< Week. Range [0,6]. 0 is Sunday. */
+    uint32_t resv0 : 5; /*!< Reserved */
+    uint32_t day : 5;   /*!< Day. Range [1,31] or [1,30] or [1,29] or [1,28] */
+    uint32_t resv1 : 3; /*!< Reserved */
+    uint32_t month : 4; /*!< Month. Range [1,12] */
+    uint32_t year : 12; /*!< Year. Range [0,99] */
 } __attribute__((packed, aligned(4))) rtc_date_t;
 
 /**
@@ -132,12 +131,12 @@ typedef struct _rtc_date
  */
 typedef struct _rtc_time
 {
-    uint32_t resv0 : 10;	/*!< Reserved */
-    uint32_t second : 6;	/*!< Second. Range [0,59] */
-    uint32_t minute : 6;	/*!< Minute. Range [0,59] */
-    uint32_t resv1 : 2;    	/*!< Reserved */
-    uint32_t hour : 5;    	/*!< Hour. Range [0,23] */
-    uint32_t resv2 : 3;	    /*!< Reserved */
+    uint32_t resv0 : 10; /*!< Reserved */
+    uint32_t second : 6; /*!< Second. Range [0,59] */
+    uint32_t minute : 6; /*!< Minute. Range [0,59] */
+    uint32_t resv1 : 2;  /*!< Reserved */
+    uint32_t hour : 5;   /*!< Hour. Range [0,23] */
+    uint32_t resv2 : 3;  /*!< Reserved */
 } __attribute__((packed, aligned(4))) rtc_time_t;
 
 typedef struct _rtc_date_time
@@ -158,12 +157,12 @@ typedef struct _rtc_date_time
  */
 typedef struct _rtc_alarm_date
 {
-    uint32_t week : 3;	/*!< Alarm Week. Range [0,6]. 0 is Sunday. */
-    uint32_t resv0 : 5;	/*!< Reserved */
-    uint32_t day : 5;	/*!< Alarm Day. Range [1,31] or [1,30] or [1,29] or [1,28] */
-    uint32_t resv1 : 3;	/*!< Reserved */
-    uint32_t month : 4;	/*!< Alarm Month. Range [1,12] */
-    uint32_t year : 12;	/*!< Alarm Year. Range [0,99] */
+    uint32_t week : 3;  /*!< Alarm Week. Range [0,6]. 0 is Sunday. */
+    uint32_t resv0 : 5; /*!< Reserved */
+    uint32_t day : 5;   /*!< Alarm Day. Range [1,31] or [1,30] or [1,29] or [1,28] */
+    uint32_t resv1 : 3; /*!< Reserved */
+    uint32_t month : 4; /*!< Alarm Month. Range [1,12] */
+    uint32_t year : 12; /*!< Alarm Year. Range [0,99] */
 } __attribute__((packed, aligned(4))) rtc_alarm_date_t;
 
 /**
@@ -173,12 +172,12 @@ typedef struct _rtc_alarm_date
  */
 typedef struct _rtc_alarm_time
 {
-    uint32_t resv0 : 10;   	/*!< Reserved */
-    uint32_t second : 6;   	/*!< Alarm Second. Range [0,59] */
-    uint32_t minute : 6;   	/*!< Alarm Minute. Range [0,59] */
-    uint32_t resv1 : 2;   	/*!< Reserved */
-    uint32_t hour : 5;   	/*!< Alarm Hour. Range [0,23] */
-    uint32_t resv2 : 3;   	/*!< Reserved */
+    uint32_t resv0 : 10; /*!< Reserved */
+    uint32_t second : 6; /*!< Alarm Second. Range [0,59] */
+    uint32_t minute : 6; /*!< Alarm Minute. Range [0,59] */
+    uint32_t resv1 : 2;  /*!< Reserved */
+    uint32_t hour : 5;   /*!< Alarm Hour. Range [0,23] */
+    uint32_t resv2 : 3;  /*!< Reserved */
 } __attribute__((packed, aligned(4))) rtc_alarm_time_t;
 
 /**
@@ -208,11 +207,11 @@ typedef struct _rtc_current_count
  */
 typedef struct _rtc_interrupt_ctrl
 {
-    uint32_t tick_enable : 1;           	/*!< Reserved */
-    uint32_t alarm_enable : 1;           	/*!< Alarm interrupt enable */
-    uint32_t tick_int_mode : 2;           	/*!< Tick interrupt enable */
-    uint32_t resv : 20;                 	/*!< Reserved */
-    uint32_t alarm_compare_mask : 8;       	/*!< Alarm compare mask for interrupt */
+    uint32_t tick_enable : 1;        /*!< Reserved */
+    uint32_t alarm_enable : 1;       /*!< Alarm interrupt enable */
+    uint32_t tick_int_mode : 2;      /*!< Tick interrupt enable */
+    uint32_t resv : 20;              /*!< Reserved */
+    uint32_t alarm_compare_mask : 8; /*!< Alarm compare mask for interrupt */
 } __attribute__((packed, aligned(4))) rtc_interrupt_ctrl_t;
 
 /**
@@ -222,14 +221,14 @@ typedef struct _rtc_interrupt_ctrl
  */
 typedef struct _rtc_register_ctrl
 {
-    uint32_t read_enable : 1;        	   /*!< RTC timer read enable */
-    uint32_t write_enable : 1;        	   /*!< RTC timer write enable */
-    uint32_t resv0 : 11;        	       /*!< Reserved */
-    uint32_t timer_mask : 8;        	   /*!< RTC timer mask */
-    uint32_t alarm_mask : 8;        	   /*!< RTC alarm mask */
-    uint32_t initial_count_mask : 1;       /*!< RTC counter initial count value mask */
-    uint32_t interrupt_register_mask : 1;  /*!< RTC interrupt register mask */
-    uint32_t resv1 : 1;                    /*!< Reserved */
+    uint32_t read_enable : 1;             /*!< RTC timer read enable */
+    uint32_t write_enable : 1;            /*!< RTC timer write enable */
+    uint32_t resv0 : 11;                  /*!< Reserved */
+    uint32_t timer_mask : 8;              /*!< RTC timer mask */
+    uint32_t alarm_mask : 8;              /*!< RTC alarm mask */
+    uint32_t initial_count_mask : 1;      /*!< RTC counter initial count value mask */
+    uint32_t interrupt_register_mask : 1; /*!< RTC interrupt register mask */
+    uint32_t resv1 : 1;                   /*!< Reserved */
 } __attribute__((packed, aligned(4))) rtc_register_ctrl_t;
 
 /**
@@ -239,7 +238,7 @@ typedef struct _rtc_register_ctrl
  */
 typedef struct _rtc_reserved0
 {
-    uint32_t resv : 32;	/*!< Reserved */
+    uint32_t resv : 32; /*!< Reserved */
 } __attribute__((packed, aligned(4))) rtc_reserved0_t;
 
 /**
@@ -249,7 +248,7 @@ typedef struct _rtc_reserved0
  */
 typedef struct _rtc_reserved1
 {
-    uint32_t resv : 32;	/*!< Reserved */
+    uint32_t resv : 32; /*!< Reserved */
 } __attribute__((packed, aligned(4))) rtc_reserved1_t;
 
 /**
@@ -259,11 +258,11 @@ typedef struct _rtc_reserved1
  */
 typedef struct _rtc_extended
 {
-    uint32_t century : 5; 	/*!< Century. Range [0,31] */
+    uint32_t century : 5;   /*!< Century. Range [0,31] */
     uint32_t leap_year : 1; /*!< Is leap year. 1 is leap year, 0 is not leap year */
-    uint32_t resv : 26; 	/*!< Reserved */;
+    uint32_t resv : 26;     /*!< Reserved */
+    ;
 } __attribute__((packed, aligned(4))) rtc_extended_t;
-
 
 /**
  * @brief       Real-time clock struct
@@ -273,19 +272,18 @@ typedef struct _rtc_extended
  */
 typedef struct _rtc
 {
-    rtc_date_t date;                    	/*!< No. 0 (0x00): Timer date information */
-    rtc_time_t time;                    	/*!< No. 1 (0x04): Timer time information */
-    rtc_alarm_date_t alarm_date;          	/*!< No. 2 (0x08): Alarm date information */
-    rtc_alarm_time_t alarm_time;           	/*!< No. 3 (0x0c): Alarm time information */
-    rtc_initial_count_t initial_count;     	/*!< No. 4 (0x10): Timer counter initial value */
-    rtc_current_count_t current_count;      /*!< No. 5 (0x14): Timer counter current value */
-    rtc_interrupt_ctrl_t interrupt_ctrl;    /*!< No. 6 (0x18): RTC interrupt settings */
-    rtc_register_ctrl_t register_ctrl;      /*!< No. 7 (0x1c): RTC register settings */
-    rtc_reserved0_t reserved0;              /*!< No. 8 (0x20): Reserved */
-    rtc_reserved1_t reserved1;              /*!< No. 9 (0x24): Reserved */
-    rtc_extended_t extended;                /*!< No. 10 (0x28): Timer extended information */
+    rtc_date_t date;                     /*!< No. 0 (0x00): Timer date information */
+    rtc_time_t time;                     /*!< No. 1 (0x04): Timer time information */
+    rtc_alarm_date_t alarm_date;         /*!< No. 2 (0x08): Alarm date information */
+    rtc_alarm_time_t alarm_time;         /*!< No. 3 (0x0c): Alarm time information */
+    rtc_initial_count_t initial_count;   /*!< No. 4 (0x10): Timer counter initial value */
+    rtc_current_count_t current_count;   /*!< No. 5 (0x14): Timer counter current value */
+    rtc_interrupt_ctrl_t interrupt_ctrl; /*!< No. 6 (0x18): RTC interrupt settings */
+    rtc_register_ctrl_t register_ctrl;   /*!< No. 7 (0x1c): RTC register settings */
+    rtc_reserved0_t reserved0;           /*!< No. 8 (0x20): Reserved */
+    rtc_reserved1_t reserved1;           /*!< No. 9 (0x24): Reserved */
+    rtc_extended_t extended;             /*!< No. 10 (0x28): Timer extended information */
 } __attribute__((packed, aligned(4))) rtc_t;
-
 
 /**
  * @brief       Real-time clock object

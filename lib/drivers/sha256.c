@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 #include <string.h>
-#include "sysctl.h"
 #include "sha256.h"
+#include "sysctl.h"
 #include "utils.h"
 
 #define ROTL(x, n) (((x) << (n)) | ((x) >> (32 - (n))))
@@ -22,18 +22,17 @@
 #define BYTESWAP(x) ((ROTR((x), 8) & 0xff00ff00L) | (ROTL((x), 8) & 0x00ff00ffL))
 #define BYTESWAP64(x) byteswap64(x)
 
-volatile sha256_t* const sha256 = (volatile sha256_t*)SHA256_BASE_ADDR;
+volatile sha256_t *const sha256 = (volatile sha256_t *)SHA256_BASE_ADDR;
 static const uint8_t padding[64] =
-{
-    0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-};
+    {
+        0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static inline uint64_t byteswap64(uint64_t x)
 {
@@ -62,22 +61,22 @@ void sha256_update(sha256_context_t *context, const void *input, size_t input_le
     size_t bytes_to_copy;
     uint32_t i;
 
-    while (input_len)
+    while(input_len)
     {
         buffer_bytes_left = SHA256_BLOCK_LEN - context->buffer_len;
         bytes_to_copy = buffer_bytes_left;
-        if (bytes_to_copy > input_len)
+        if(bytes_to_copy > input_len)
             bytes_to_copy = input_len;
         memcpy(&context->buffer.bytes[context->buffer_len], data, bytes_to_copy);
         context->total_len += bytes_to_copy * 8L;
         context->buffer_len += bytes_to_copy;
         data += bytes_to_copy;
         input_len -= bytes_to_copy;
-        if (context->buffer_len == SHA256_BLOCK_LEN)
+        if(context->buffer_len == SHA256_BLOCK_LEN)
         {
-            for (i = 0; i < 16; i++)
+            for(i = 0; i < 16; i++)
             {
-                while (sha256->sha_function_reg_1.fifo_in_full)
+                while(sha256->sha_function_reg_1.fifo_in_full)
                     ;
                 sha256->sha_data_in1 = context->buffer.words[i];
             }
@@ -93,16 +92,16 @@ void sha256_final(sha256_context_t *context, uint8_t *output)
     uint32_t i;
 
     bytes_to_pad = 120L - context->buffer_len;
-    if (bytes_to_pad > 64L)
+    if(bytes_to_pad > 64L)
         bytes_to_pad -= 64L;
     length_pad = BYTESWAP64(context->total_len);
     sha256_update(context, padding, bytes_to_pad);
     sha256_update(context, &length_pad, 8L);
-    while (!(sha256->sha_function_reg_0.sha_en))
+    while(!(sha256->sha_function_reg_0.sha_en))
         ;
-    if (output)
+    if(output)
     {
-        for (i = 0; i < SHA256_HASH_WORDS; i++)
+        for(i = 0; i < SHA256_HASH_WORDS; i++)
         {
             *((uint32_t *)output) = sha256->sha_result[SHA256_HASH_WORDS - i - 1];
             output += 4;
@@ -117,4 +116,3 @@ void sha256_hard_calculate(const uint8_t *input, size_t input_len, uint8_t *outp
     sha256_update(&sha, input, input_len);
     sha256_final(&sha, output);
 }
-

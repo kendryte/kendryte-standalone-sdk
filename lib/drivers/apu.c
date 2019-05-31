@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <math.h>
+#include "apu.h"
 #include "syscalls.h"
 #include "sysctl.h"
-#include "apu.h"
 
-#define BEAFORMING_BASE_ADDR    (0x50250200)
+#define BEAFORMING_BASE_ADDR (0x50250200)
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288
 #endif
@@ -126,20 +126,16 @@ void apu_set_src_mode(uint8_t src_mode)
  */
 void apu_set_direction_delay(uint8_t dir_num, uint8_t *dir_bidx)
 {
-    apu->bf_dir_bidx[dir_num][0] =(apu_dir_bidx_t)
-    {
+    apu->bf_dir_bidx[dir_num][0] = (apu_dir_bidx_t){
         .dir_rd_idx0 = dir_bidx[0],
         .dir_rd_idx1 = dir_bidx[1],
         .dir_rd_idx2 = dir_bidx[2],
-        .dir_rd_idx3 = dir_bidx[3]
-    };
-    apu->bf_dir_bidx[dir_num][1] =(apu_dir_bidx_t)
-    {
+        .dir_rd_idx3 = dir_bidx[3]};
+    apu->bf_dir_bidx[dir_num][1] = (apu_dir_bidx_t){
         .dir_rd_idx0 = dir_bidx[4],
         .dir_rd_idx1 = dir_bidx[5],
         .dir_rd_idx2 = dir_bidx[6],
-        .dir_rd_idx3 = dir_bidx[7]
-    };
+        .dir_rd_idx3 = dir_bidx[7]};
 }
 
 /*
@@ -148,12 +144,12 @@ void apu_set_direction_delay(uint8_t dir_num, uint8_t *dir_bidx)
 void apu_set_delay(float radius, uint8_t mic_num_a_circle, uint8_t center)
 {
     uint8_t offsets[16][8];
-    int i,j;
+    int i, j;
     float seta[8], delay[8], hudu_jiao;
-    float cm_tick = (float)SOUND_SPEED * 100 / I2S_FS;/*distance per tick (cm)*/
+    float cm_tick = (float)SOUND_SPEED * 100 / I2S_FS; /*distance per tick (cm)*/
     float min;
 
-    for (i = 0; i < mic_num_a_circle; ++i)
+    for(i = 0; i < mic_num_a_circle; ++i)
     {
         seta[i] = 360 * i / mic_num_a_circle;
         hudu_jiao = 2 * M_PI * seta[i] / 360;
@@ -162,17 +158,16 @@ void apu_set_delay(float radius, uint8_t mic_num_a_circle, uint8_t center)
     if(center)
         delay[mic_num_a_circle] = radius / cm_tick;
 
-    for (i = 0; i < mic_num_a_circle + center; ++i)
+    for(i = 0; i < mic_num_a_circle + center; ++i)
     {
         offsets[0][i] = (int)(delay[i] + 0.5);
     }
     for(; i < 8; i++)
         offsets[0][i] = 0;
 
-
-    for (j = 1; j < DIRECTION_RES; ++j)
+    for(j = 1; j < DIRECTION_RES; ++j)
     {
-        for (i = 0; i < mic_num_a_circle; ++i)
+        for(i = 0; i < mic_num_a_circle; ++i)
         {
             seta[i] -= 360 / DIRECTION_RES;
             hudu_jiao = 2 * M_PI * seta[i] / 360;
@@ -182,27 +177,27 @@ void apu_set_delay(float radius, uint8_t mic_num_a_circle, uint8_t center)
             delay[mic_num_a_circle] = radius / cm_tick;
 
         min = 2 * radius;
-        for (i = 0; i < mic_num_a_circle; ++i)
+        for(i = 0; i < mic_num_a_circle; ++i)
         {
             if(delay[i] < min)
                 min = delay[i];
         }
         if(min)
         {
-            for (i = 0; i < mic_num_a_circle + center; ++i)
+            for(i = 0; i < mic_num_a_circle + center; ++i)
             {
                 delay[i] = delay[i] - min;
             }
         }
 
-        for (i = 0; i < mic_num_a_circle + center; ++i)
+        for(i = 0; i < mic_num_a_circle + center; ++i)
         {
             offsets[j][i] = (int)(delay[i] + 0.5);
         }
         for(; i < 8; i++)
             offsets[0][i] = 0;
     }
-    for (size_t i = 0; i < DIRECTION_RES; i++)
+    for(size_t i = 0; i < DIRECTION_RES; i++)
     {
         apu_set_direction_delay(i, offsets[i]);
     }
@@ -289,12 +284,12 @@ void apu_dir_set_prev_fir(uint16_t *fir_coef)
 {
     uint8_t i = 0;
 
-    for (i = 0; i < 9; i++) {
+    for(i = 0; i < 9; i++)
+    {
         apu->bf_pre_fir0_coef[i] =
-        (apu_fir_coef_t){
-            .fir_tap0 = fir_coef[i * 2],
-            .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]
-        };
+            (apu_fir_coef_t){
+                .fir_tap0 = fir_coef[i * 2],
+                .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
 }
 
@@ -302,12 +297,12 @@ void apu_dir_set_post_fir(uint16_t *fir_coef)
 {
     uint8_t i = 0;
 
-    for (i = 0; i < 9; i++) {
+    for(i = 0; i < 9; i++)
+    {
         apu->bf_post_fir0_coef[i] =
-        (apu_fir_coef_t){
-            .fir_tap0 = fir_coef[i * 2],
-            .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]
-        };
+            (apu_fir_coef_t){
+                .fir_tap0 = fir_coef[i * 2],
+                .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
 }
 
@@ -315,12 +310,12 @@ void apu_voc_set_prev_fir(uint16_t *fir_coef)
 {
     uint8_t i = 0;
 
-    for (i = 0; i < 9; i++) {
+    for(i = 0; i < 9; i++)
+    {
         apu->bf_pre_fir1_coef[i] =
-        (apu_fir_coef_t){
-            .fir_tap0 = fir_coef[i * 2],
-            .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]
-        };
+            (apu_fir_coef_t){
+                .fir_tap0 = fir_coef[i * 2],
+                .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
 }
 
@@ -328,22 +323,21 @@ void apu_voc_set_post_fir(uint16_t *fir_coef)
 {
     uint8_t i = 0;
 
-    for (i = 0; i < 9; i++) {
+    for(i = 0; i < 9; i++)
+    {
         apu->bf_post_fir1_coef[i] =
-        (apu_fir_coef_t){
-            .fir_tap0 = fir_coef[i * 2],
-            .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]
-        };
+            (apu_fir_coef_t){
+                .fir_tap0 = fir_coef[i * 2],
+                .fir_tap1 = i == 8 ? 0 : fir_coef[i * 2 + 1]};
     }
 }
 
 void apu_set_fft_shift_factor(uint8_t enable_flag, uint16_t shift_factor)
 {
     apu->bf_fft_cfg_reg =
-    (apu_fft_cfg_t){
-        .fft_enable = enable_flag,
-        .fft_shift_factor = shift_factor
-    };
+        (apu_fft_cfg_t){
+            .fft_enable = enable_flag,
+            .fft_shift_factor = shift_factor};
 
     apu_ch_cfg_t ch_cfg = apu->bf_ch_cfg_reg;
 
@@ -396,32 +390,29 @@ void apu_set_down_size(uint8_t dir_dwn_size, uint8_t voc_dwn_size)
 void apu_set_interrupt_mask(uint8_t dir_int_mask, uint8_t voc_int_mask)
 {
     apu->bf_int_mask_reg =
-    (apu_int_mask_t){
-        .dir_data_rdy_msk = dir_int_mask,
-        .voc_buf_rdy_msk = voc_int_mask
-    };
+        (apu_int_mask_t){
+            .dir_data_rdy_msk = dir_int_mask,
+            .voc_buf_rdy_msk = voc_int_mask};
 }
 
 void apu_dir_clear_int_state(void)
 {
     apu->bf_int_stat_reg =
-    (apu_int_stat_t){
-        .dir_search_data_rdy = 1
-    };
+        (apu_int_stat_t){
+            .dir_search_data_rdy = 1};
 }
 
 void apu_voc_clear_int_state(void)
 {
     apu->bf_int_stat_reg =
-    (apu_int_stat_t){
-        .voc_buf_data_rdy = 1
-    };
+        (apu_int_stat_t){
+            .voc_buf_data_rdy = 1};
 }
 
 /* reset saturation_counter */
 void apu_voc_reset_saturation_counter(void)
 {
-    apu->saturation_counter = 1<<31;
+    apu->saturation_counter = 1 << 31;
 }
 
 /*get saturation counter*/
@@ -434,7 +425,7 @@ uint32_t apu_voc_get_saturation_counter(void)
 /*set saturation limit*/
 void apu_voc_set_saturation_limit(uint16_t upper, uint16_t bottom)
 {
-    apu->saturation_limits = (uint32_t)bottom<<16 | upper;
+    apu->saturation_limits = (uint32_t)bottom << 16 | upper;
 }
 
 /*get saturation limit*/
@@ -447,7 +438,8 @@ uint32_t apu_voc_get_saturation_limit(void)
 static void print_fir(const char *member_name, volatile apu_fir_coef_t *pfir)
 {
     printf("  for(int i = 0; i < 9; i++){\n");
-    for (int i = 0; i < 9; i++) {
+    for(int i = 0; i < 9; i++)
+    {
         apu_fir_coef_t fir = pfir[i];
 
         printf("    apu->%s[%d] = (apu_fir_coef_t){\n", member_name, i);
@@ -478,7 +470,8 @@ void apu_print_setting(void)
     printf("  };\n");
 
     printf("  for(int i = 0; i < 16; i++){\n");
-    for (int i = 0; i < 16; i++) {
+    for(int i = 0; i < 16; i++)
+    {
         apu_dir_bidx_t bidx0 = apu->bf_dir_bidx[i][0];
         apu_dir_bidx_t bidx1 = apu->bf_dir_bidx[i][1];
 
@@ -501,7 +494,6 @@ void apu_print_setting(void)
     print_fir("bf_post_fir0_coef", apu->bf_post_fir0_coef);
     print_fir("bf_pre_fir1_coef", apu->bf_pre_fir1_coef);
     print_fir("bf_post_fir1_coef", apu->bf_post_fir1_coef);
-
 
     apu_dwsz_cfg_t bf_dwsz_cfg_reg = apu->bf_dwsz_cfg_reg;
 
@@ -526,4 +518,3 @@ void apu_print_setting(void)
 
     printf("}\n");
 }
-

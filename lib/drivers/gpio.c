@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "gpio.h"
-#include "utils.h"
 #include "fpioa.h"
+#include "gpio.h"
 #include "sysctl.h"
+#include "utils.h"
 #define GPIO_MAX_PINNO 8
 
-volatile gpio_t* const gpio = (volatile gpio_t*)GPIO_BASE_ADDR;
+volatile gpio_t *const gpio = (volatile gpio_t *)GPIO_BASE_ADDR;
 
 int gpio_init(void)
 {
@@ -34,26 +34,26 @@ void gpio_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
     fpioa_pull_t pull;
     uint32_t dir;
 
-    switch (mode)
+    switch(mode)
     {
-    case GPIO_DM_INPUT:
-        pull = FPIOA_PULL_NONE;
-        dir = 0;
-        break;
-    case GPIO_DM_INPUT_PULL_DOWN:
-        pull = FPIOA_PULL_DOWN;
-        dir = 0;
-        break;
-    case GPIO_DM_INPUT_PULL_UP:
-        pull = FPIOA_PULL_UP;
-        dir = 0;
-        break;
-    case GPIO_DM_OUTPUT:
-        pull = FPIOA_PULL_DOWN;
-        dir = 1;
-        break;
-    default:
-        configASSERT(!"GPIO drive mode is not supported.") break;
+        case GPIO_DM_INPUT:
+            pull = FPIOA_PULL_NONE;
+            dir = 0;
+            break;
+        case GPIO_DM_INPUT_PULL_DOWN:
+            pull = FPIOA_PULL_DOWN;
+            dir = 0;
+            break;
+        case GPIO_DM_INPUT_PULL_UP:
+            pull = FPIOA_PULL_UP;
+            dir = 0;
+            break;
+        case GPIO_DM_OUTPUT:
+            pull = FPIOA_PULL_DOWN;
+            dir = 1;
+            break;
+        default:
+            configASSERT(!"GPIO drive mode is not supported.") break;
     }
 
     fpioa_set_io_pull(io_number, pull);
@@ -76,4 +76,3 @@ void gpio_set_pin(uint8_t pin, gpio_pin_value_t value)
     configASSERT(dir == 1);
     set_gpio_bit(reg, pin, value);
 }
-

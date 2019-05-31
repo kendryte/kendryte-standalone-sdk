@@ -1033,4 +1033,3 @@ int fpioa_set_oe_inv(int number, uint8_t inv_enable);
 #endif
 
 #endif /* _DRIVER_FPIOA_H */
-

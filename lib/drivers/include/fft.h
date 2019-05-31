@@ -232,16 +232,15 @@ typedef struct _fft
  * @param[out]  output                      The output data
  */
 void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num,
-    dmac_channel_number_t dma_receive_channel_num,
-    uint16_t shift,
-    fft_direction_t direction,
-    const uint64_t *input,
-    size_t point_num,
-    uint64_t *output);
+                            dmac_channel_number_t dma_receive_channel_num,
+                            uint16_t shift,
+                            fft_direction_t direction,
+                            const uint64_t *input,
+                            size_t point_num,
+                            uint64_t *output);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* _DRIVER_FFT_H */
-

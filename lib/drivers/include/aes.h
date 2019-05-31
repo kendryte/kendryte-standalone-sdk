@@ -14,10 +14,10 @@
  */
 #ifndef _DRIVER_AES_H
 #define _DRIVER_AES_H
-#include <stdlib.h>
 #include <stdint.h>
-#include "platform.h"
+#include <stdlib.h>
 #include "dmac.h"
+#include "platform.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -396,10 +396,10 @@ void aes_gcm256_hard_encrypt(gcm_context_t *context, uint8_t *input_data, size_t
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    uint8_t *input_key,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 uint8_t *input_key,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-ECB-128 encryption by dma
@@ -414,10 +414,10 @@ void aes_ecb128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    uint8_t *input_key,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 uint8_t *input_key,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-ECB-192 decryption by dma
@@ -432,10 +432,10 @@ void aes_ecb128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    uint8_t *input_key,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 uint8_t *input_key,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-ECB-192 encryption by dma
@@ -450,10 +450,10 @@ void aes_ecb192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    uint8_t *input_key,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 uint8_t *input_key,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-ECB-256 decryption by dma
@@ -468,10 +468,10 @@ void aes_ecb192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    uint8_t *input_key,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 uint8_t *input_key,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-ECB-256 encryption by dma
@@ -486,10 +486,10 @@ void aes_ecb256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_ecb256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    uint8_t *input_key,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 uint8_t *input_key,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-CBC-128 decryption
@@ -505,10 +505,10 @@ void aes_ecb256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    cbc_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 cbc_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-CBC-128 encryption
@@ -524,10 +524,10 @@ void aes_cbc128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    cbc_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 cbc_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-CBC-192 decryption
@@ -543,10 +543,10 @@ void aes_cbc128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    cbc_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 cbc_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-CBC-192 encryption
@@ -562,10 +562,10 @@ void aes_cbc192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    cbc_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 cbc_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-CBC-256 decryption
@@ -581,10 +581,10 @@ void aes_cbc192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    cbc_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 cbc_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-CBC-256 encryption
@@ -600,10 +600,10 @@ void aes_cbc256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  *                                          The buffer size must be larger than the size after padding by 16 byte multiples.
  */
 void aes_cbc256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    cbc_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data);
+                                 cbc_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data);
 
 /**
  * @brief       AES-GCM-128 decryption
@@ -619,11 +619,11 @@ void aes_cbc256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
  */
 void aes_gcm128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    gcm_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data,
-    uint8_t *gcm_tag);
+                                 gcm_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data,
+                                 uint8_t *gcm_tag);
 
 /**
  * @brief       AES-GCM-128 encryption
@@ -639,11 +639,11 @@ void aes_gcm128_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
  */
 void aes_gcm128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    gcm_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data,
-    uint8_t *gcm_tag);
+                                 gcm_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data,
+                                 uint8_t *gcm_tag);
 
 /**
  * @brief       AES-GCM-192 decryption
@@ -659,11 +659,11 @@ void aes_gcm128_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
  */
 void aes_gcm192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    gcm_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data,
-    uint8_t *gcm_tag);
+                                 gcm_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data,
+                                 uint8_t *gcm_tag);
 
 /**
  * @brief       AES-GCM-192 encryption
@@ -679,11 +679,11 @@ void aes_gcm192_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
  */
 void aes_gcm192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    gcm_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data,
-    uint8_t *gcm_tag);
+                                 gcm_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data,
+                                 uint8_t *gcm_tag);
 
 /**
  * @brief       AES-GCM-256 decryption
@@ -699,11 +699,11 @@ void aes_gcm192_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
  */
 void aes_gcm256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    gcm_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data,
-    uint8_t *gcm_tag);
+                                 gcm_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data,
+                                 uint8_t *gcm_tag);
 
 /**
  * @brief       AES-GCM-256 encryption
@@ -719,11 +719,11 @@ void aes_gcm256_hard_decrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  * @param[out]  gcm_tag                     The buffer for holding the tag.The length of the tag must be 4 bytes.
  */
 void aes_gcm256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
-    gcm_context_t *context,
-    uint8_t *input_data,
-    size_t input_len,
-    uint8_t *output_data,
-    uint8_t *gcm_tag);
+                                 gcm_context_t *context,
+                                 uint8_t *input_data,
+                                 size_t input_len,
+                                 uint8_t *output_data,
+                                 uint8_t *gcm_tag);
 
 /**
  * @brief       This function initializes the AES hard module.
@@ -739,8 +739,8 @@ void aes_gcm256_hard_encrypt_dma(dmac_channel_number_t dma_receive_channel_num,
  * @param[in]   gcm_aad_len     The length of the gcm_aad.
  * @param[in]   input_data_len  The length of the input_data.
  */
-void aes_init(uint8_t *input_key, size_t input_key_len, uint8_t *iv,size_t iv_len, uint8_t *gcm_aad,
-                aes_cipher_mode_t cipher_mode, aes_encrypt_sel_t encrypt_sel, size_t gcm_aad_len, size_t input_data_len);
+void aes_init(uint8_t *input_key, size_t input_key_len, uint8_t *iv, size_t iv_len, uint8_t *gcm_aad,
+              aes_cipher_mode_t cipher_mode, aes_encrypt_sel_t encrypt_sel, size_t gcm_aad_len, size_t input_data_len);
 
 /**
  * @brief       This function feeds an input buffer into an encryption or decryption operation.

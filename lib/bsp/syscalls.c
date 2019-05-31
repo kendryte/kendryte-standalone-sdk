@@ -15,27 +15,27 @@
 
 /* Enable kernel-mode log API */
 
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/unistd.h>
-#include <machine/syscall.h>
-#include <stdbool.h>
 #include <errno.h>
 #include <limits.h>
+#include <machine/syscall.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "syscalls.h"
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/unistd.h>
 #include "atomic.h"
 #include "clint.h"
+#include "dump.h"
 #include "fpioa.h"
 #include "interrupt.h"
+#include "syscalls.h"
 #include "sysctl.h"
-#include "util.h"
 #include "syslog.h"
-#include "dump.h"
+#include "util.h"
 
 /**
  * @note       System call list
@@ -113,8 +113,8 @@ void sys_register_getchar(sys_getchar_t getchar)
 
 void sys_stdin_flush(void)
 {
-    if (sys_getchar)
-        while (sys_getchar() != EOF)
+    if(sys_getchar)
+        while(sys_getchar() != EOF)
             continue;
 }
 
@@ -124,7 +124,7 @@ void __attribute__((noreturn)) sys_exit(int code)
     unsigned long core_id = current_coreid();
     /* First print some diagnostic information. */
     LOGW(TAG, "sys_exit called by core %ld with 0x%lx\r\n", core_id, (uint64_t)code);
-    while (1)
+    while(1)
         continue;
 }
 
@@ -135,7 +135,7 @@ static int sys_nosys(long a0, long a1, long a2, long a3, long a4, long a5, unsig
     UNUSED(a5);
 
     LOGE(TAG, "Unsupported syscall %ld: a0=%lx, a1=%lx, a2=%lx!\r\n", n, a0, a1, a2);
-    while (1)
+    while(1)
         continue;
     return -ENOSYS;
 }
@@ -174,24 +174,22 @@ static size_t sys_brk(size_t pos)
      * Otherwise throw out of memory error, return -1.
      */
 
-    if (pos)
+    if(pos)
     {
         /* Call again */
-        if ((uintptr_t)pos > (uintptr_t)&_heap_end[0])
+        if((uintptr_t)pos > (uintptr_t)&_heap_end[0])
         {
             /* Memory out, return -ENOMEM */
             LOGE(TAG, "Out of memory\r\n");
             res = -ENOMEM;
-        }
-        else
+        } else
         {
             /* Adjust brk pointer. */
             _heap_cur = (char *)(uintptr_t)pos;
             /* Return current address. */
             res = (uintptr_t)_heap_cur;
         }
-    }
-    else
+    } else
     {
         /* First call, return initial address */
         res = (uintptr_t)&_heap_start[0];
@@ -217,18 +215,18 @@ static ssize_t sys_write(int file, const void *ptr, size_t len)
     /* Get data pointer */
     register char *data = (char *)ptr;
 
-    if (STDOUT_FILENO == file || STDERR_FILENO == file)
+    if(STDOUT_FILENO == file || STDERR_FILENO == file)
     {
         /* Write data */
-        while (length-- > 0 && data != NULL) {
-            if (sys_putchar)
+        while(length-- > 0 && data != NULL)
+        {
+            if(sys_putchar)
                 sys_putchar(*(data++));
         }
 
         /* Return the actual size written */
         res = len;
-    }
-    else
+    } else
     {
         /* Not support yet */
         res = -ENOSYS;
@@ -257,37 +255,40 @@ static ssize_t sys_read(int file, void *ptr, size_t len)
     /* Actual size to read */
     register size_t actual_length = 0;
 
-    if (STDIN_FILENO == file)
+    if(STDIN_FILENO == file)
     {
         /* Read data */
         actual_length = 0;
-        while (length-- > 0 && data != NULL) {
-            if (sys_getchar) {
+        while(length-- > 0 && data != NULL)
+        {
+            if(sys_getchar)
+            {
                 int getchar_result = sys_getchar();
                 /* Get char until not EOF */
-                while (getchar_result == EOF)
+                while(getchar_result == EOF)
                     getchar_result = sys_getchar();
-                if (getchar_result != EOF) {
+                if(getchar_result != EOF)
+                {
                     /* Not EOF, read data to buffer */
                     *(data++) = (char)getchar_result;
                     actual_length++;
                     /* Echo back this char to user */
-                    if (sys_putchar)
+                    if(sys_putchar)
                         sys_putchar((char)getchar_result);
                     /* User press RETURN, break. This is the last step in stdin */
-                    if ((char)getchar_result == '\r')
+                    if((char)getchar_result == '\r')
                         break;
-                    if ((char)getchar_result == '\n')
+                    if((char)getchar_result == '\n')
                         break;
-                } else {
+                } else
+                {
                     /* EOF, do nothing */
                 }
             }
         }
         /* Return the actual size read */
         res = actual_length;
-    }
-    else
+    } else
     {
         /* Not support yet */
         res = -ENOSYS;
@@ -315,7 +316,7 @@ static int sys_fstat(int file, struct stat *st)
 
     UNUSED(file);
 
-    if (st != NULL)
+    if(st != NULL)
         memset(st, 0, sizeof(struct stat));
     /* Return the result */
     res = -ENOSYS;
@@ -364,11 +365,11 @@ static int sys_gettimeofday(struct timeval *tp, void *tzp)
      */
     UNUSED(tzp);
 
-    if (tp != NULL)
+    if(tp != NULL)
     {
         uint64_t clint_usec = clint->mtime / (sysctl_clock_get_freq(SYSCTL_CLOCK_CPU) / CLINT_CLOCK_DIV / 1000000UL);
 
-        tp->tv_sec  = clint_usec / 1000000UL;
+        tp->tv_sec = clint_usec / 1000000UL;
         tp->tv_usec = clint_usec % 1000000UL;
     }
     /* Return the result */
@@ -394,73 +395,113 @@ handle_ecall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs
         SYS_ID_MAX
     };
 
-    static uintptr_t (* const syscall_table[])(long a0, long a1, long a2, long a3, long a4, long a5, unsigned long n) =
-    {
-        [SYS_ID_NOSYS]         = (void *)sys_nosys,
-        [SYS_ID_SUCCESS]       = (void *)sys_success,
-        [SYS_ID_EXIT]          = (void *)sys_exit,
-        [SYS_ID_BRK]           = (void *)sys_brk,
-        [SYS_ID_WRITE]         = (void *)sys_write,
-        [SYS_ID_READ]          = (void *)sys_read,
-        [SYS_ID_FSTAT]         = (void *)sys_fstat,
-        [SYS_ID_CLOSE]         = (void *)sys_close,
-        [SYS_ID_GETTIMEOFDAY]  = (void *)sys_gettimeofday,
-    };
+    static uintptr_t (*const syscall_table[])(long a0, long a1, long a2, long a3, long a4, long a5, unsigned long n) =
+        {
+            [SYS_ID_NOSYS] = (void *)sys_nosys,
+            [SYS_ID_SUCCESS] = (void *)sys_success,
+            [SYS_ID_EXIT] = (void *)sys_exit,
+            [SYS_ID_BRK] = (void *)sys_brk,
+            [SYS_ID_WRITE] = (void *)sys_write,
+            [SYS_ID_READ] = (void *)sys_read,
+            [SYS_ID_FSTAT] = (void *)sys_fstat,
+            [SYS_ID_CLOSE] = (void *)sys_close,
+            [SYS_ID_GETTIMEOFDAY] = (void *)sys_gettimeofday,
+        };
 
 #if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Woverride-init"
 #endif
     static const uint8_t syscall_id_table[0x100] =
-    {
-        [0x00 ... 0xFF]            = SYS_ID_NOSYS,
-        [0xFF & SYS_exit]          = SYS_ID_EXIT,
-        [0xFF & SYS_exit_group]    = SYS_ID_EXIT,
-        [0xFF & SYS_getpid]        = SYS_ID_NOSYS,
-        [0xFF & SYS_kill]          = SYS_ID_NOSYS,
-        [0xFF & SYS_read]          = SYS_ID_READ,
-        [0xFF & SYS_write]         = SYS_ID_WRITE,
-        [0xFF & SYS_open]          = SYS_ID_NOSYS,
-        [0xFF & SYS_openat]        = SYS_ID_NOSYS,
-        [0xFF & SYS_close]         = SYS_ID_CLOSE,
-        [0xFF & SYS_lseek]         = SYS_ID_NOSYS,
-        [0xFF & SYS_brk]           = SYS_ID_BRK,
-        [0xFF & SYS_link]          = SYS_ID_NOSYS,
-        [0xFF & SYS_unlink]        = SYS_ID_NOSYS,
-        [0xFF & SYS_mkdir]         = SYS_ID_NOSYS,
-        [0xFF & SYS_chdir]         = SYS_ID_NOSYS,
-        [0xFF & SYS_getcwd]        = SYS_ID_NOSYS,
-        [0xFF & SYS_stat]          = SYS_ID_NOSYS,
-        [0xFF & SYS_fstat]         = SYS_ID_FSTAT,
-        [0xFF & SYS_lstat]         = SYS_ID_NOSYS,
-        [0xFF & SYS_fstatat]       = SYS_ID_NOSYS,
-        [0xFF & SYS_access]        = SYS_ID_NOSYS,
-        [0xFF & SYS_faccessat]     = SYS_ID_NOSYS,
-        [0xFF & SYS_pread]         = SYS_ID_NOSYS,
-        [0xFF & SYS_pwrite]        = SYS_ID_NOSYS,
-        [0xFF & SYS_uname]         = SYS_ID_NOSYS,
-        [0xFF & SYS_getuid]        = SYS_ID_NOSYS,
-        [0xFF & SYS_geteuid]       = SYS_ID_NOSYS,
-        [0xFF & SYS_getgid]        = SYS_ID_NOSYS,
-        [0xFF & SYS_getegid]       = SYS_ID_NOSYS,
-        [0xFF & SYS_mmap]          = SYS_ID_NOSYS,
-        [0xFF & SYS_munmap]        = SYS_ID_NOSYS,
-        [0xFF & SYS_mremap]        = SYS_ID_NOSYS,
-        [0xFF & SYS_time]          = SYS_ID_NOSYS,
-        [0xFF & SYS_getmainvars]   = SYS_ID_NOSYS,
-        [0xFF & SYS_rt_sigaction]  = SYS_ID_NOSYS,
-        [0xFF & SYS_writev]        = SYS_ID_NOSYS,
-        [0xFF & SYS_gettimeofday]  = SYS_ID_GETTIMEOFDAY,
-        [0xFF & SYS_times]         = SYS_ID_NOSYS,
-        [0xFF & SYS_fcntl]         = SYS_ID_NOSYS,
-        [0xFF & SYS_getdents]      = SYS_ID_NOSYS,
-        [0xFF & SYS_dup]           = SYS_ID_NOSYS,
-    };
+        {
+            [0x00 ... 0xFF] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_exit] = SYS_ID_EXIT,
+            [0xFF &
+                SYS_exit_group] = SYS_ID_EXIT,
+            [0xFF &
+                SYS_getpid] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_kill] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_read] = SYS_ID_READ,
+            [0xFF &
+                SYS_write] = SYS_ID_WRITE,
+            [0xFF &
+                SYS_open] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_openat] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_close] = SYS_ID_CLOSE,
+            [0xFF &
+                SYS_lseek] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_brk] = SYS_ID_BRK,
+            [0xFF &
+                SYS_link] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_unlink] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_mkdir] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_chdir] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_getcwd] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_stat] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_fstat] = SYS_ID_FSTAT,
+            [0xFF &
+                SYS_lstat] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_fstatat] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_access] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_faccessat] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_pread] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_pwrite] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_uname] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_getuid] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_geteuid] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_getgid] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_getegid] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_mmap] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_munmap] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_mremap] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_time] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_getmainvars] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_rt_sigaction] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_writev] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_gettimeofday] = SYS_ID_GETTIMEOFDAY,
+            [0xFF &
+                SYS_times] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_fcntl] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_getdents] = SYS_ID_NOSYS,
+            [0xFF &
+                SYS_dup] = SYS_ID_NOSYS,
+        };
 #if defined(__GNUC__)
 #pragma GCC diagnostic warning "-Woverride-init"
 #endif
 
-    regs[10] = syscall_table[syscall_id_table[0xFF & regs[17]]]
-    (
+    regs[10] = syscall_table[syscall_id_table[0xFF & regs[17]]](
         regs[10], /* a0 */
         regs[11], /* a1 */
         regs[12], /* a2 */
@@ -523,36 +564,35 @@ handle_misaligned_load(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintp
     /* notice this function only support 16bit or 32bit instruction */
 
     bool compressed = (*(unsigned short *)epc & 3) != 3;
-    bool fpu = 0;          /* load to fpu ? */
-    uintptr_t addr = 0;    /* src addr */
-    uint8_t src = 0;       /* src register */
-    uint8_t dst = 0;       /* dst register */
-    uint8_t len = 0;       /* data length */
-    int offset = 0;        /* addr offset to addr in reg */
-    bool unsigned_ = 0;    /* unsigned */
-    uint64_t data_load = 0;/* real data load */
+    bool fpu = 0;           /* load to fpu ? */
+    uintptr_t addr = 0;     /* src addr */
+    uint8_t src = 0;        /* src register */
+    uint8_t dst = 0;        /* dst register */
+    uint8_t len = 0;        /* data length */
+    int offset = 0;         /* addr offset to addr in reg */
+    bool unsigned_ = 0;     /* unsigned */
+    uint64_t data_load = 0; /* real data load */
 
-    if (compressed)
+    if(compressed)
     {
         /* compressed instruction should not get this fault. */
         goto on_error;
-    }
-    else
+    } else
     {
         uint32_t instruct = *(uint32_t *)epc;
-        uint8_t opcode = instruct&0x7F;
+        uint8_t opcode = instruct & 0x7F;
 
-        dst = (instruct >> 7)&0x1F;
-        len = (instruct >> 12)&3;
-        unsigned_ = (instruct >> 14)&1;
-        src = (instruct >> 15)&0x1F;
+        dst = (instruct >> 7) & 0x1F;
+        len = (instruct >> 12) & 3;
+        unsigned_ = (instruct >> 14) & 1;
+        src = (instruct >> 15) & 0x1F;
         offset = (instruct >> 20);
         len = 1 << len;
-        switch (opcode)
+        switch(opcode)
         {
-            case 3:/* load */
+            case 3: /* load */
                 break;
-            case 7:/* fpu load */
+            case 7: /* fpu load */
                 fpu = 1;
                 break;
             default:
@@ -560,19 +600,18 @@ handle_misaligned_load(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintp
         }
     }
 
-    if (offset >> 11)
+    if(offset >> 11)
         offset = -((offset & 0x3FF) + 1);
 
     addr = (uint64_t)((uint64_t)regs[src] + offset);
 
-    for (int i = 0; i < len; ++i)
-        data_load |= ((uint64_t)*((uint8_t *)addr + i)) << (8 * i);
+    for(int i = 0; i < len; ++i)
+        data_load |= ((uint64_t) * ((uint8_t *)addr + i)) << (8 * i);
 
-
-    if (!unsigned_ & !fpu)
+    if(!unsigned_ & !fpu)
     {
         /* adjust sign */
-        switch (len)
+        switch(len)
         {
             case 1:
                 data_load = (uint64_t)(int64_t)((int8_t)data_load);
@@ -588,7 +627,7 @@ handle_misaligned_load(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintp
         }
     }
 
-    if (fpu)
+    if(fpu)
         fregs[dst] = data_load;
     else
         regs[dst] = data_load;
@@ -616,34 +655,33 @@ handle_misaligned_store(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uint
     /* notice this function only support 16bit or 32bit instruction */
 
     bool compressed = (*(unsigned short *)epc & 3) != 3;
-    bool fpu = 0;           /* store to fpu*/
-    uintptr_t addr = 0;     /* src addr*/
-    uint8_t src = 0;        /* src register*/
-    uint8_t dst = 0;        /* dst register*/
-    uint8_t len = 0;        /* data length*/
-    int offset = 0;         /* addr offset to addr in reg*/
-    uint64_t data_store = 0;/* real data store*/
+    bool fpu = 0;            /* store to fpu*/
+    uintptr_t addr = 0;      /* src addr*/
+    uint8_t src = 0;         /* src register*/
+    uint8_t dst = 0;         /* dst register*/
+    uint8_t len = 0;         /* data length*/
+    int offset = 0;          /* addr offset to addr in reg*/
+    uint64_t data_store = 0; /* real data store*/
 
-    if (compressed)
+    if(compressed)
     {
         /* compressed instruction should not get this fault. */
         goto on_error;
-    }
-    else
+    } else
     {
         uint32_t instruct = *(uint32_t *)epc;
-        uint8_t opcode = instruct&0x7F;
+        uint8_t opcode = instruct & 0x7F;
 
-        len = (instruct >> 12)&7;
-        dst = (instruct >> 15)&0x1F;
-        src = (instruct >> 20)&0x1F;
-        offset = ((instruct >> 7)&0x1F) | ((instruct >> 20)&0xFE0);
+        len = (instruct >> 12) & 7;
+        dst = (instruct >> 15) & 0x1F;
+        src = (instruct >> 20) & 0x1F;
+        offset = ((instruct >> 7) & 0x1F) | ((instruct >> 20) & 0xFE0);
         len = 1 << len;
-        switch (opcode)
+        switch(opcode)
         {
-            case 0x23:/* store */
+            case 0x23: /* store */
                 break;
-            case 0x27:/* fpu store */
+            case 0x27: /* fpu store */
                 fpu = 1;
                 break;
             default:
@@ -651,19 +689,18 @@ handle_misaligned_store(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uint
         }
     }
 
-    if (offset >> 11)
+    if(offset >> 11)
         offset = -((offset & 0x3FF) + 1);
 
     addr = (uint64_t)((uint64_t)regs[dst] + offset);
 
-
-    if (fpu)
+    if(fpu)
         data_store = fregs[src];
     else
         data_store = regs[src];
 
-    for (int i = 0; i < len; ++i)
-        *((uint8_t *)addr + i) = (data_store >> (i*8)) & 0xFF;
+    for(int i = 0; i < len; ++i)
+        *((uint8_t *)addr + i) = (data_store >> (i * 8)) & 0xFF;
 
     LOGV(TAG, "misaligned store recovered at %08lx. len:%02d,addr:%08lx,reg:%02d,data:%016lx,float:%1d", (uint64_t)epc, len, (uint64_t)addr, src, data_store, fpu);
 
@@ -685,21 +722,21 @@ handle_fault_store(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t
 uintptr_t handle_syscall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
 {
 
-    static uintptr_t (* const cause_table[])(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]) =
-    {
-        [CAUSE_MISALIGNED_FETCH]      = handle_misaligned_fetch,
-        [CAUSE_FAULT_FETCH]           = handle_fault_fetch,
-        [CAUSE_ILLEGAL_INSTRUCTION]   = handle_illegal_instruction,
-        [CAUSE_BREAKPOINT]            = handle_breakpoint,
-        [CAUSE_MISALIGNED_LOAD]       = handle_misaligned_load,
-        [CAUSE_FAULT_LOAD]            = handle_fault_load,
-        [CAUSE_MISALIGNED_STORE]      = handle_misaligned_store,
-        [CAUSE_FAULT_STORE]           = handle_fault_store,
-        [CAUSE_USER_ECALL]            = handle_ecall_u,
-        [CAUSE_SUPERVISOR_ECALL]      = handle_ecall_h,
-        [CAUSE_HYPERVISOR_ECALL]      = handle_ecall_s,
-        [CAUSE_MACHINE_ECALL]         = handle_ecall_m,
-    };
+    static uintptr_t (*const cause_table[])(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32]) =
+        {
+            [CAUSE_MISALIGNED_FETCH] = handle_misaligned_fetch,
+            [CAUSE_FAULT_FETCH] = handle_fault_fetch,
+            [CAUSE_ILLEGAL_INSTRUCTION] = handle_illegal_instruction,
+            [CAUSE_BREAKPOINT] = handle_breakpoint,
+            [CAUSE_MISALIGNED_LOAD] = handle_misaligned_load,
+            [CAUSE_FAULT_LOAD] = handle_fault_load,
+            [CAUSE_MISALIGNED_STORE] = handle_misaligned_store,
+            [CAUSE_FAULT_STORE] = handle_fault_store,
+            [CAUSE_USER_ECALL] = handle_ecall_u,
+            [CAUSE_SUPERVISOR_ECALL] = handle_ecall_h,
+            [CAUSE_HYPERVISOR_ECALL] = handle_ecall_s,
+            [CAUSE_MACHINE_ECALL] = handle_ecall_m,
+        };
 
     return cause_table[cause](cause, epc, regs, fregs);
 }
@@ -708,4 +745,3 @@ size_t get_free_heap_size(void)
 {
     return (size_t)(&_heap_end[0] - _heap_cur);
 }
-

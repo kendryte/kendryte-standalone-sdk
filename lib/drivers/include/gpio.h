@@ -15,10 +15,10 @@
 #ifndef _DRIVER_GPIO_H
 #define _DRIVER_GPIO_H
 
-#include "platform.h"
 #include <inttypes.h>
 #include <stddef.h>
 #include "gpio_common.h"
+#include "platform.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -165,4 +165,3 @@ void gpio_set_pin(uint8_t pin, gpio_pin_value_t value);
 #endif
 
 #endif /* _DRIVER_GPIO_H */
-

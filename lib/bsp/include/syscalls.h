@@ -88,4 +88,3 @@ size_t get_free_heap_size(void);
 #endif
 
 #endif /* _BSP_SYSCALLS_H */
-

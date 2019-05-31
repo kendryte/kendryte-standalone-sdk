@@ -14,9 +14,9 @@
  */
 #include <stddef.h>
 #include "dmac.h"
-#include "utils.h"
-#include "sysctl.h"
 #include "fft.h"
+#include "sysctl.h"
+#include "utils.h"
 
 static volatile fft_t *const fft = (volatile fft_t *)FFT_BASE_ADDR;
 
@@ -32,7 +32,7 @@ static void fft_init(uint8_t point, uint8_t mode, uint16_t shift, uint8_t is_dma
 }
 
 void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
-                        uint16_t shift, fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output)
+                            uint16_t shift, fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output)
 {
     fft_point_t point = FFT_512;
     switch(point_num)
@@ -59,10 +59,8 @@ void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_cha
     sysctl_dma_select(dma_receive_channel_num, SYSCTL_DMA_SELECT_FFT_RX_REQ);
     sysctl_dma_select(dma_send_channel_num, SYSCTL_DMA_SELECT_FFT_TX_REQ);
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&fft->fft_output_fifo), output, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-        DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num>>1);
+                         DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num >> 1);
     dmac_set_single_mode(dma_send_channel_num, input, (void *)(&fft->fft_input_fifo), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-        DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num>>1);
+                         DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num >> 1);
     dmac_wait_done(dma_receive_channel_num);
 }
-
-

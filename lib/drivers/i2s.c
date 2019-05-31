@@ -12,20 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <math.h>
 #include "i2s.h"
-#include "sysctl.h"
 #include "stdlib.h"
+#include "sysctl.h"
 #include "utils.h"
 
 volatile i2s_t *const i2s[3] =
-{
-    (volatile i2s_t *)I2S0_BASE_ADDR,
-    (volatile i2s_t *)I2S1_BASE_ADDR,
-    (volatile i2s_t *)I2S2_BASE_ADDR
-};
+    {
+        (volatile i2s_t *)I2S0_BASE_ADDR,
+        (volatile i2s_t *)I2S1_BASE_ADDR,
+        (volatile i2s_t *)I2S2_BASE_ADDR};
 
 typedef struct _i2s_instance
 {
@@ -39,11 +38,11 @@ static i2s_instance_t g_i2s_send_instance[3];
 static i2s_instance_t g_i2s_recv_instance[3];
 
 static int i2s_recv_channel_enable(i2s_device_number_t device_num,
-                            i2s_channel_num_t channel_num, uint32_t enable)
+                                   i2s_channel_num_t channel_num, uint32_t enable)
 {
     rer_t u_rer;
 
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
     u_rer.reg_data = readl(&i2s[device_num]->channel[channel_num].rer);
     u_rer.rer.rxchenx = enable;
@@ -52,11 +51,11 @@ static int i2s_recv_channel_enable(i2s_device_number_t device_num,
 }
 
 static int i2s_transmit_channel_enable(i2s_device_number_t device_num,
-    i2s_channel_num_t channel_num, uint32_t enable)
+                                       i2s_channel_num_t channel_num, uint32_t enable)
 {
     ter_t u_ter;
 
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
 
     u_ter.reg_data = readl(&i2s[device_num]->channel[channel_num].ter);
@@ -105,14 +104,13 @@ static void i2s_disable_block(i2s_device_number_t device_num, i2s_transmit_t rxt
     irer_t u_irer;
     iter_t u_iter;
 
-    if (rxtx_mode == I2S_RECEIVER)
+    if(rxtx_mode == I2S_RECEIVER)
     {
         u_irer.reg_data = readl(&i2s[device_num]->irer);
         u_irer.irer.rxen = 0;
         writel(u_irer.reg_data, &i2s[device_num]->irer);
         /* Receiver block disable */
-    }
-    else
+    } else
     {
         u_iter.reg_data = readl(&i2s[device_num]->iter);
         u_iter.iter.txen = 0;
@@ -122,14 +120,14 @@ static void i2s_disable_block(i2s_device_number_t device_num, i2s_transmit_t rxt
 }
 
 static int i2s_set_rx_word_length(i2s_device_number_t device_num,
-               i2s_word_length_t word_length,
-               i2s_channel_num_t channel_num)
+                                  i2s_word_length_t word_length,
+                                  i2s_channel_num_t channel_num)
 {
     rcr_tcr_t u_rcr;
 
-    if (word_length > RESOLUTION_32_BIT || word_length < IGNORE_WORD_LENGTH)
+    if(word_length > RESOLUTION_32_BIT || word_length < IGNORE_WORD_LENGTH)
         return -1;
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
 
     u_rcr.reg_data = readl(&i2s[device_num]->channel[channel_num].rcr);
@@ -139,14 +137,14 @@ static int i2s_set_rx_word_length(i2s_device_number_t device_num,
 }
 
 static int i2s_set_tx_word_length(i2s_device_number_t device_num,
-               i2s_word_length_t word_length,
-               i2s_channel_num_t channel_num)
+                                  i2s_word_length_t word_length,
+                                  i2s_channel_num_t channel_num)
 {
     rcr_tcr_t u_tcr;
 
-    if (word_length > RESOLUTION_32_BIT || word_length < IGNORE_WORD_LENGTH)
+    if(word_length > RESOLUTION_32_BIT || word_length < IGNORE_WORD_LENGTH)
         return -1;
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
 
     u_tcr.reg_data = readl(&i2s[device_num]->channel[channel_num].tcr);
@@ -156,14 +154,14 @@ static int i2s_set_tx_word_length(i2s_device_number_t device_num,
 }
 
 static void i2s_master_configure(i2s_device_number_t device_num,
-                          i2s_word_select_cycles_t word_select_size,
-                          i2s_sclk_gating_cycles_t gating_cycles,
-                          i2s_work_mode_t word_mode)
+                                 i2s_word_select_cycles_t word_select_size,
+                                 i2s_sclk_gating_cycles_t gating_cycles,
+                                 i2s_work_mode_t word_mode)
 {
     configASSERT(!(word_select_size < SCLK_CYCLES_16 ||
-                 word_select_size > SCLK_CYCLES_32));
+                   word_select_size > SCLK_CYCLES_32));
     configASSERT(!(gating_cycles < NO_CLOCK_GATING ||
-                  gating_cycles > CLOCK_CYCLES_24));
+                   gating_cycles > CLOCK_CYCLES_24));
 
     ccr_t u_ccr;
     cer_t u_cer;
@@ -178,18 +176,17 @@ static void i2s_master_configure(i2s_device_number_t device_num,
     u_cer.cer.clken = 1;
     writel(u_cer.reg_data, &i2s[device_num]->cer);
     /* Clock generation enable */
-
 }
 
 static int i2s_set_rx_threshold(i2s_device_number_t device_num,
-             i2s_fifo_threshold_t threshold,
-             i2s_channel_num_t channel_num)
+                                i2s_fifo_threshold_t threshold,
+                                i2s_channel_num_t channel_num)
 {
     rfcr_t u_rfcr;
 
-    if (threshold < TRIGGER_LEVEL_1 || threshold > TRIGGER_LEVEL_16)
+    if(threshold < TRIGGER_LEVEL_1 || threshold > TRIGGER_LEVEL_16)
         return -1;
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
 
     u_rfcr.reg_data = readl(&i2s[device_num]->channel[channel_num].rfcr);
@@ -200,14 +197,14 @@ static int i2s_set_rx_threshold(i2s_device_number_t device_num,
 }
 
 static int i2s_set_tx_threshold(i2s_device_number_t device_num,
-             i2s_fifo_threshold_t threshold,
-             i2s_channel_num_t channel_num)
+                                i2s_fifo_threshold_t threshold,
+                                i2s_channel_num_t channel_num)
 {
     tfcr_t u_tfcr;
 
-    if (threshold < TRIGGER_LEVEL_1 || threshold > TRIGGER_LEVEL_16)
+    if(threshold < TRIGGER_LEVEL_1 || threshold > TRIGGER_LEVEL_16)
         return -1;
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
 
     u_tfcr.reg_data = readl(&i2s[device_num]->channel[channel_num].tfcr);
@@ -217,30 +214,30 @@ static int i2s_set_tx_threshold(i2s_device_number_t device_num,
 }
 
 static int i2s_set_mask_interrupt(i2s_device_number_t device_num,
-               i2s_channel_num_t channel_num,
-               uint32_t rx_available_int, uint32_t rx_overrun_int,
-               uint32_t tx_empty_int, uint32_t tx_overrun_int)
+                                  i2s_channel_num_t channel_num,
+                                  uint32_t rx_available_int, uint32_t rx_overrun_int,
+                                  uint32_t tx_empty_int, uint32_t tx_overrun_int)
 {
     imr_t u_imr;
 
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
     u_imr.reg_data = readl(&i2s[device_num]->channel[channel_num].imr);
 
-    if (rx_available_int == 1)
+    if(rx_available_int == 1)
         u_imr.imr.rxdam = 1;
     else
         u_imr.imr.rxdam = 0;
-    if (rx_overrun_int == 1)
+    if(rx_overrun_int == 1)
         u_imr.imr.rxfom = 1;
     else
         u_imr.imr.rxfom = 0;
 
-    if (tx_empty_int == 1)
+    if(tx_empty_int == 1)
         u_imr.imr.txfem = 1;
     else
         u_imr.imr.txfem = 0;
-    if (tx_overrun_int == 1)
+    if(tx_overrun_int == 1)
         u_imr.imr.txfom = 1;
     else
         u_imr.imr.txfom = 0;
@@ -252,7 +249,7 @@ static int i2s_transmit_dma_enable(i2s_device_number_t device_num, uint32_t enab
 {
     ccr_t u_ccr;
 
-    if (device_num >= I2S_DEVICE_MAX)
+    if(device_num >= I2S_DEVICE_MAX)
         return -1;
 
     u_ccr.reg_data = readl(&i2s[device_num]->ccr);
@@ -266,7 +263,7 @@ static int i2s_receive_dma_enable(i2s_device_number_t device_num, uint32_t enabl
 {
     ccr_t u_ccr;
 
-    if (device_num >= I2S_DEVICE_MAX)
+    if(device_num >= I2S_DEVICE_MAX)
         return -1;
 
     u_ccr.reg_data = readl(&i2s[device_num]->ccr);
@@ -280,7 +277,7 @@ int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable)
 {
     ccr_t u_ccr;
 
-    if (device_num >= I2S_DEVICE_MAX)
+    if(device_num >= I2S_DEVICE_MAX)
         return -1;
 
     u_ccr.reg_data = readl(&i2s[device_num]->ccr);
@@ -292,7 +289,7 @@ int i2s_set_dma_divide_16(i2s_device_number_t device_num, uint32_t enable)
 
 int i2s_get_dma_divide_16(i2s_device_number_t device_num)
 {
-    if (device_num >= I2S_DEVICE_MAX)
+    if(device_num >= I2S_DEVICE_MAX)
         return -1;
     ccr_t u_ccr;
     u_ccr.reg_data = readl(&i2s[device_num]->ccr);
@@ -307,10 +304,10 @@ int i2s_receive_data(i2s_device_number_t device_num, i2s_channel_num_t channel_n
     readl(&i2s[device_num]->channel[channel_num].ror);
     /*clear over run*/
 
-    for (i = 0; i < buf_len;)
+    for(i = 0; i < buf_len;)
     {
         u_isr.reg_data = readl(&i2s[device_num]->channel[channel_num].isr);
-        if (u_isr.isr.rxda == 1)
+        if(u_isr.isr.rxda == 1)
         {
             buf[i] = readl(&i2s[device_num]->channel[channel_num].left_rxtx);
             buf[i] <<= 32;
@@ -326,20 +323,20 @@ void i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf,
     dmac_wait_idle(channel_num);
     sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
     dmac_set_single_mode(channel_num, (void *)(&i2s[device_num]->rxdma), buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
 int i2s_rx_to_tx(i2s_device_number_t device_src_num, i2s_device_number_t device_dest_num,
-    size_t buf_len, dmac_channel_number_t channel_num)
+                 size_t buf_len, dmac_channel_number_t channel_num)
 {
-    static uint8_t dmac_recv_flag[6] = {0,0,0,0,0,0};
+    static uint8_t dmac_recv_flag[6] = {0, 0, 0, 0, 0, 0};
     if(dmac_recv_flag[channel_num])
         dmac_wait_done(channel_num);
     else
         dmac_recv_flag[channel_num] = 1;
     sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_src_num * 2);
     dmac_set_single_mode(channel_num, (void *)(&i2s[device_src_num]->rxdma), (void *)(&i2s[device_dest_num]->txdma), DMAC_ADDR_NOCHANGE, DMAC_ADDR_NOCHANGE,
-                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
     return 0;
 }
 
@@ -351,17 +348,17 @@ int i2s_send_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num,
     uint32_t right_buffer = 0;
     uint32_t i = 0;
     uint32_t j = 0;
-    if (channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
+    if(channel_num < I2S_CHANNEL_0 || channel_num > I2S_CHANNEL_3)
         return -1;
 
     buf_len = buf_len / (single_length / 8) / 2; /* sample num */
     readl(&i2s[device_num]->channel[channel_num].tor);
     /* read clear overrun flag */
 
-    for (j = 0; j < buf_len;)
+    for(j = 0; j < buf_len;)
     {
         u_isr.reg_data = readl(&i2s[device_num]->channel[channel_num].isr);
-        if (u_isr.isr.txfe == 1)
+        if(u_isr.isr.txfe == 1)
         {
             switch(single_length)
             {
@@ -405,33 +402,33 @@ void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t b
                          DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
-static void i2s_parse_voice(i2s_device_number_t device_num, uint32_t *buf, const uint8_t *pcm, size_t length,  size_t bits_per_sample,
-    uint8_t track_num, size_t *send_len)
+static void i2s_parse_voice(i2s_device_number_t device_num, uint32_t *buf, const uint8_t *pcm, size_t length, size_t bits_per_sample,
+                            uint8_t track_num, size_t *send_len)
 {
-    uint32_t i,j=0;
+    uint32_t i, j = 0;
     *send_len = length * 2;
     switch(bits_per_sample)
     {
         case 16:
             for(i = 0; i < length; i++)
             {
-                buf[2*i] = ((uint16_t *)pcm)[i];
-                buf[2*i+1] = 0;
+                buf[2 * i] = ((uint16_t *)pcm)[i];
+                buf[2 * i + 1] = 0;
             }
             break;
         case 24:
             for(i = 0; i < length; i++)
             {
-                buf[2*i] = 0;
-                buf[2*i] |= pcm[j++];
-                buf[2*i] |= pcm[j++] << 8;
-                buf[2*i] |= pcm[j++] << 16;
-                buf[2*i+1] = 0;
+                buf[2 * i] = 0;
+                buf[2 * i] |= pcm[j++];
+                buf[2 * i] |= pcm[j++] << 8;
+                buf[2 * i] |= pcm[j++] << 16;
+                buf[2 * i + 1] = 0;
                 if(track_num == 2)
                 {
-                    buf[2*i+1] |= pcm[j++];
-                    buf[2*i+1] |= pcm[j++] << 8;
-                    buf[2*i+1] |= pcm[j++] << 16;
+                    buf[2 * i + 1] |= pcm[j++];
+                    buf[2 * i + 1] |= pcm[j++] << 8;
+                    buf[2 * i + 1] |= pcm[j++] << 16;
                 }
             }
             break;
@@ -439,66 +436,63 @@ static void i2s_parse_voice(i2s_device_number_t device_num, uint32_t *buf, const
         default:
             for(i = 0; i < length; i++)
             {
-                buf[2*i] = ((uint32_t *)pcm)[i];
-                buf[2*i+1] = 0;
+                buf[2 * i] = ((uint32_t *)pcm)[i];
+                buf[2 * i + 1] = 0;
             }
             break;
     }
 }
-
 
 void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
               const uint8_t *buf, size_t buf_len, size_t frame, size_t bits_per_sample, uint8_t track_num)
 {
     const uint8_t *trans_buf;
     uint32_t i;
-    size_t sample_cnt = buf_len / ( bits_per_sample / 8 ) / track_num;
+    size_t sample_cnt = buf_len / (bits_per_sample / 8) / track_num;
     size_t frame_cnt = sample_cnt / frame;
     size_t frame_remain = sample_cnt % frame;
     i2s_set_dma_divide_16(device_num, 0);
 
-    if (bits_per_sample == 16 && track_num == 2)
+    if(bits_per_sample == 16 && track_num == 2)
     {
         i2s_set_dma_divide_16(device_num, 1);
-        for (i = 0; i < frame_cnt; i++)
+        for(i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
-            i2s_send_data_dma(device_num,trans_buf, frame, channel_num);
+            i2s_send_data_dma(device_num, trans_buf, frame, channel_num);
         }
         if(frame_remain)
         {
             trans_buf = buf + frame_cnt * frame * (bits_per_sample / 8) * track_num;
             i2s_send_data_dma(device_num, trans_buf, frame_remain, channel_num);
         }
-    }
-    else if (bits_per_sample == 32 && track_num == 2)
+    } else if(bits_per_sample == 32 && track_num == 2)
     {
-        for (i = 0; i < frame_cnt; i++)
+        for(i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
-            i2s_send_data_dma(device_num,trans_buf, frame * 2, channel_num);
+            i2s_send_data_dma(device_num, trans_buf, frame * 2, channel_num);
         }
         if(frame_remain)
         {
             trans_buf = buf + frame_cnt * frame * (bits_per_sample / 8) * track_num;
             i2s_send_data_dma(device_num, trans_buf, frame_remain * 2, channel_num);
         }
-    }
-    else
+    } else
     {
         uint32_t *buff[2];
         buff[0] = malloc(frame * 2 * sizeof(uint32_t) * 2);
         buff[1] = buff[0] + frame * 2;
         uint8_t flag = 0;
         size_t send_len = 0;
-        for (i = 0; i < frame_cnt; i++)
+        for(i = 0; i < frame_cnt; i++)
         {
             trans_buf = buf + i * frame * (bits_per_sample / 8) * track_num;
             i2s_parse_voice(device_num, buff[flag], trans_buf, frame, bits_per_sample, track_num, &send_len);
-            i2s_send_data_dma(device_num,buff[flag], send_len, channel_num);
+            i2s_send_data_dma(device_num, buff[flag], send_len, channel_num);
             flag = !flag;
         }
-        if (frame_remain)
+        if(frame_remain)
         {
             trans_buf = buf + frame_cnt * frame * (bits_per_sample / 8) * track_num;
             i2s_parse_voice(device_num, buff[flag], trans_buf, frame_remain, bits_per_sample, track_num, &send_len);
@@ -517,11 +511,11 @@ static inline void i2s_set_sign_expand_en(i2s_device_number_t device_num, uint32
 }
 
 void i2s_rx_channel_config(i2s_device_number_t device_num,
-    i2s_channel_num_t channel_num,
-    i2s_word_length_t word_length,
-    i2s_word_select_cycles_t word_select_size,
-    i2s_fifo_threshold_t trigger_level,
-    i2s_work_mode_t word_mode)
+                           i2s_channel_num_t channel_num,
+                           i2s_word_length_t word_length,
+                           i2s_word_select_cycles_t word_select_size,
+                           i2s_fifo_threshold_t trigger_level,
+                           i2s_work_mode_t word_mode)
 {
     i2s_recv_channel_enable(device_num, channel_num, 0);
     /* Receive channel disable */
@@ -539,7 +533,7 @@ void i2s_rx_channel_config(i2s_device_number_t device_num,
     /* Word buf_len is RESOLUTION_32_BIT */
 
     i2s_master_configure(device_num,
-        word_select_size, NO_CLOCK_GATING, word_mode);
+                         word_select_size, NO_CLOCK_GATING, word_mode);
     /* word select size is 32 bits,no clock gating */
 
     i2s_set_rx_threshold(device_num, trigger_level, channel_num);
@@ -552,11 +546,11 @@ void i2s_rx_channel_config(i2s_device_number_t device_num,
 }
 
 void i2s_tx_channel_config(i2s_device_number_t device_num,
-    i2s_channel_num_t channel_num,
-    i2s_word_length_t word_length,
-    i2s_word_select_cycles_t word_select_size,
-    i2s_fifo_threshold_t trigger_level,
-    i2s_work_mode_t word_mode)
+                           i2s_channel_num_t channel_num,
+                           i2s_word_length_t word_length,
+                           i2s_word_select_cycles_t word_select_size,
+                           i2s_fifo_threshold_t trigger_level,
+                           i2s_work_mode_t word_mode)
 {
     writel(0, &i2s[device_num]->channel[channel_num].rer);
     /* disable rx */
@@ -584,41 +578,38 @@ void i2s_tx_channel_config(i2s_device_number_t device_num,
 void i2s_init(i2s_device_number_t device_num, i2s_transmit_t rxtx_mode, uint32_t channel_mask)
 {
     sysctl_clock_enable(SYSCTL_CLOCK_I2S0 + device_num);
-    sysctl_reset(SYSCTL_RESET_I2S0  + device_num);
-    sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2S0  + device_num, 7);
+    sysctl_reset(SYSCTL_RESET_I2S0 + device_num);
+    sysctl_clock_set_threshold(SYSCTL_THRESHOLD_I2S0 + device_num, 7);
     /*96k:5,44k:12,24k:23,22k:25 16k:35 sampling*/
     /*sample rate*32bit*2 =75MHz/((N+1)*2) */
     i2s_set_enable(device_num, 1);
     i2s_disable_block(device_num, I2S_TRANSMITTER);
     i2s_disable_block(device_num, I2S_RECEIVER);
 
-    if (rxtx_mode == I2S_TRANSMITTER)
+    if(rxtx_mode == I2S_TRANSMITTER)
     {
-        for (int i=0; i<4; i++)
+        for(int i = 0; i < 4; i++)
         {
-            if ((channel_mask & 0x3) == 0x3)
+            if((channel_mask & 0x3) == 0x3)
             {
                 i2s_set_mask_interrupt(device_num, I2S_CHANNEL_0 + i, 1, 1, 1, 1);
                 i2s_transimit_enable(device_num, I2S_CHANNEL_0 + i);
-            }
-            else
+            } else
             {
                 i2s_transmit_channel_enable(device_num, I2S_CHANNEL_0 + i, 0);
             }
             channel_mask >>= 2;
         }
         i2s_transmit_dma_enable(device_num, 1);
-    }
-    else
+    } else
     {
-        for (int i=0; i<4; i++)
+        for(int i = 0; i < 4; i++)
         {
-            if ((channel_mask & 0x3) == 0x3)
+            if((channel_mask & 0x3) == 0x3)
             {
                 i2s_set_mask_interrupt(device_num, I2S_CHANNEL_0 + i, 1, 1, 1, 1);
                 i2s_receive_enable(device_num, I2S_CHANNEL_0 + i);
-            }
-            else
+            } else
             {
                 i2s_recv_channel_enable(device_num, I2S_CHANNEL_0 + i, 0);
             }
@@ -680,8 +671,7 @@ void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_i
         {
             dmac_wait_done(data.tx_channel);
         }
-    }
-    else
+    } else
     {
         configASSERT(data.rx_buf && data.rx_len);
         if(!data.nowait_dma_idle)
@@ -698,11 +688,10 @@ void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_i
         }
         sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
         dmac_set_single_mode(data.rx_channel, (void *)(&i2s[device_num]->rxdma), data.rx_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                              DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
+                             DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
         if(!cb && data.wait_dma_done)
         {
             dmac_wait_done(data.rx_channel);
         }
     }
 }
-

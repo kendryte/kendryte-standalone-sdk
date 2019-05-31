@@ -151,7 +151,7 @@
 extern "C" {
 #endif
 
-typedef void (*putcf)(void*, char);
+typedef void (*putcf)(void *, char);
 
 /**
  * 'tfp_format' really is the central function for all tinyprintf. For
@@ -189,12 +189,12 @@ void tfp_printf(char *fmt, ...) _TFP_SPECIFY_PRINTF_FMT(1, 2);
 #include <forward_list>
 namespace std
 {
-    template <typename... Args>
-    auto tfp_printf(Args&&... args) -> decltype(::tfp_printf(std::forward<Args>(args)...))
-    {
-        return ::tfp_printf(std::forward<Args>(args)...);
-    }
+template <typename... Args>
+auto tfp_printf(Args &&... args) -> decltype(::tfp_printf(std::forward<Args>(args)...))
+{
+    return ::tfp_printf(std::forward<Args>(args)...);
 }
+} // namespace std
 #endif
 #endif
 #endif
@@ -206,4 +206,3 @@ int printk(const char *format, ...) _TFP_SPECIFY_PRINTF_FMT(1, 2);
 #endif
 
 #endif /* _BSP_PRINTF_H */
-

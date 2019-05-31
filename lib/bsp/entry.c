@@ -34,4 +34,3 @@ void __attribute__((weak)) _fini(void)
      * These don't have to do anything since we use init_array/fini_array.
      */
 }
-

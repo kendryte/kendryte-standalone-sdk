@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "gpiohs.h"
-#include "utils.h"
 #include "fpioa.h"
+#include "gpiohs.h"
 #include "sysctl.h"
+#include "utils.h"
 #define GPIOHS_MAX_PINNO 32
 
-volatile gpiohs_t* const gpiohs = (volatile gpiohs_t*)GPIOHS_BASE_ADDR;
+volatile gpiohs_t *const gpiohs = (volatile gpiohs_t *)GPIOHS_BASE_ADDR;
 
 typedef struct _gpiohs_pin_instance
 {
@@ -40,26 +40,26 @@ void gpiohs_set_drive_mode(uint8_t pin, gpio_drive_mode_t mode)
     fpioa_pull_t pull;
     uint32_t dir;
 
-    switch (mode)
+    switch(mode)
     {
-    case GPIO_DM_INPUT:
-        pull = FPIOA_PULL_NONE;
-        dir = 0;
-        break;
-    case GPIO_DM_INPUT_PULL_DOWN:
-        pull = FPIOA_PULL_DOWN;
-        dir = 0;
-        break;
-    case GPIO_DM_INPUT_PULL_UP:
-        pull = FPIOA_PULL_UP;
-        dir = 0;
-        break;
-    case GPIO_DM_OUTPUT:
-        pull = FPIOA_PULL_DOWN;
-        dir = 1;
-        break;
-    default:
-        configASSERT(!"GPIO drive mode is not supported.") break;
+        case GPIO_DM_INPUT:
+            pull = FPIOA_PULL_NONE;
+            dir = 0;
+            break;
+        case GPIO_DM_INPUT_PULL_DOWN:
+            pull = FPIOA_PULL_DOWN;
+            dir = 0;
+            break;
+        case GPIO_DM_INPUT_PULL_UP:
+            pull = FPIOA_PULL_UP;
+            dir = 0;
+            break;
+        case GPIO_DM_OUTPUT:
+            pull = FPIOA_PULL_DOWN;
+            dir = 1;
+            break;
+        default:
+            configASSERT(!"GPIO drive mode is not supported.") break;
     }
 
     fpioa_set_io_pull(io_number, pull);
@@ -98,8 +98,7 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
     if(edge & GPIO_PE_FALLING)
     {
         set_gpio_bit(gpiohs->fall_ie.u32, pin, 1);
-    }
-    else
+    } else
     {
         set_gpio_bit(gpiohs->fall_ie.u32, pin, 0);
     }
@@ -107,8 +106,7 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
     if(edge & GPIO_PE_RISING)
     {
         set_gpio_bit(gpiohs->rise_ie.u32, pin, 1);
-    }
-    else
+    } else
     {
         set_gpio_bit(gpiohs->rise_ie.u32, pin, 0);
     }
@@ -116,8 +114,7 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
     if(edge & GPIO_PE_LOW)
     {
         set_gpio_bit(gpiohs->low_ie.u32, pin, 1);
-    }
-    else
+    } else
     {
         set_gpio_bit(gpiohs->low_ie.u32, pin, 0);
     }
@@ -125,8 +122,7 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge)
     if(edge & GPIO_PE_HIGH)
     {
         set_gpio_bit(gpiohs->high_ie.u32, pin, 1);
-    }
-    else
+    } else
     {
         set_gpio_bit(gpiohs->high_ie.u32, pin, 0);
     }
@@ -167,7 +163,7 @@ int gpiohs_pin_onchange_isr(void *userdata)
         set_gpio_bit(gpiohs->high_ie.u32, pin, 1);
     }
 
-    if (ctx->callback)
+    if(ctx->callback)
         ctx->callback();
     if(ctx->gpiohs_callback)
         ctx->gpiohs_callback(ctx->context);
@@ -215,4 +211,3 @@ void gpiohs_irq_disable(size_t pin)
 {
     plic_irq_disable(IRQN_GPIOHS0_INTERRUPT + pin);
 }
-
