@@ -1,6 +1,65 @@
 {
-    "name": "framework-kendryte210-standalone-sdk",
-    "description": "This SDK is for Kendryte K210 without OS support.",
-    "version": "0.5.4",
-    "url": "https://github.com/kendryte/kendryte-standalone-sdk"
+    "$schema": "vscode://schemas/CMakeLists",
+    "name": "kendryte-standalone-sdk",
+    "version": "0.5.6",
+    "type": "library",
+    "extraList": "asm.cmake",
+    "include": [
+        "lib/drivers/include",
+        "lib/bsp/include",
+        "lib/utils/include",
+        "lib/freertos/include",
+        "lib/freertos/conf",
+        "lib/freertos/portable"
+    ],
+    "source": [
+        "lib/**/*.c",
+        "lib/**/*.cpp",
+        "lib/**/*.s",
+        "lib/**/*.S"
+    ],
+    "c_flags": [
+        "-std=gnu11",
+        "-Wno-pointer-to-int-cast",
+        "-Wno-old-style-declaration"
+    ],
+    "cpp_flags": [
+        "-std=gnu++17"
+    ],
+    "c_cpp_flags": [
+        "-mcmodel=medany",
+        "-fno-common",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fstrict-volatile-bitfields",
+        "-fno-zero-initialized-in-bss",
+        "-Os",
+        "-ggdb",
+        "-Wall",
+        "-Werror=all",
+        "-Wno-error=unused-function",
+        "-Wno-error=unused-but-set-variable",
+        "-Wno-error=unused-variable",
+        "-Wno-error=deprecated-declarations",
+        "-Wextra",
+        "-Werror=frame-larger-than=65536",
+        "-Wno-unused-parameter",
+        "-Wno-sign-compare",
+        "-Wno-error=missing-braces",
+        "-Wno-error=return-type",
+        "-Wno-error=pointer-sign",
+        "-Wno-missing-braces",
+        "-Wno-strict-aliasing",
+        "-Wno-implicit-fallthrough",
+        "-Wno-missing-field-initializers"
+    ],
+    "link_flags": [
+        "-static",
+        "-Wl,-static",
+        "-Wl,-EL"
+    ],
+    "ld_file": "lds/kendryte.ld",
+    "properties": {
+        "LINKER_LANGUAGE": "C"
+    }
 }
