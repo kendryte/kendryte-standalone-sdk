@@ -20,7 +20,6 @@
 extern "C" {
 #endif
 
-
 #define SPINLOCK_INIT \
     {                 \
         0             \
@@ -33,7 +32,6 @@ extern "C" {
         .core = -1             \
     }
 
-
 /* Defination of memory barrier macro */
 #define mb()                          \
     {                                 \
@@ -41,8 +39,8 @@ extern "C" {
                          : "memory"); \
     }
 
-#define atomic_set(ptr, val) (*(volatile typeof(*(ptr))*)(ptr) = val)
-#define atomic_read(ptr) (*(volatile typeof(*(ptr))*)(ptr))
+#define atomic_set(ptr, val) (*(volatile typeof(*(ptr)) *)(ptr) = val)
+#define atomic_read(ptr) (*(volatile typeof(*(ptr)) *)(ptr))
 
 #ifndef __riscv_atomic
 #error "atomic extension is required."
@@ -64,7 +62,6 @@ typedef struct _semaphore
     int waiting;
 } semaphore_t;
 
-
 typedef struct _corelock
 {
     spinlock_t lock;
@@ -82,7 +79,8 @@ static inline int spinlock_trylock(spinlock_t *lock)
 
 static inline void spinlock_lock(spinlock_t *lock)
 {
-    while (spinlock_trylock(lock));
+    while(spinlock_trylock(lock))
+        ;
 }
 
 static inline void spinlock_unlock(spinlock_t *lock)
@@ -90,7 +88,7 @@ static inline void spinlock_unlock(spinlock_t *lock)
     /* Use memory barrier to keep coherency */
     mb();
     atomic_set(&lock->lock, 0);
-    asm volatile ("nop");
+    asm volatile("nop");
 }
 
 static inline void semaphore_signal(semaphore_t *semaphore, int i)
@@ -103,10 +101,10 @@ static inline void semaphore_signal(semaphore_t *semaphore, int i)
 static inline void semaphore_wait(semaphore_t *semaphore, int i)
 {
     atomic_add(&(semaphore->waiting), 1);
-    while (1)
+    while(1)
     {
         spinlock_lock(&(semaphore->lock));
-        if (semaphore->count >= i)
+        if(semaphore->count >= i)
         {
             semaphore->count -= i;
             atomic_add(&(semaphore->waiting), -1);
@@ -144,20 +142,18 @@ static inline int corelock_trylock(corelock_t *lock)
         return -1;
     }
 
-    if (lock->count == 0)
+    if(lock->count == 0)
     {
         /* First time get lock */
         lock->count++;
         lock->core = core;
         res = 0;
-    }
-    else if (lock->core == core)
+    } else if(lock->core == core)
     {
         /* Same core get lock */
         lock->count++;
         res = 0;
-    }
-    else
+    } else
     {
         /* Different core get lock */
         res = -1;
@@ -175,27 +171,25 @@ static inline void corelock_lock(corelock_t *lock)
                  : "=r"(core));
     spinlock_lock(&lock->lock);
 
-    if (lock->count == 0)
+    if(lock->count == 0)
     {
         /* First time get lock */
         lock->count++;
         lock->core = core;
-    }
-    else if (lock->core == core)
+    } else if(lock->core == core)
     {
         /* Same core get lock */
         lock->count++;
-    }
-    else
+    } else
     {
         /* Different core get lock */
         spinlock_unlock(&lock->lock);
 
         do
         {
-            while (atomic_read(&lock->count))
+            while(atomic_read(&lock->count))
                 ;
-        } while (corelock_trylock(lock));
+        } while(corelock_trylock(lock));
         return;
     }
     spinlock_unlock(&lock->lock);
@@ -209,17 +203,16 @@ static inline void corelock_unlock(corelock_t *lock)
                  : "=r"(core));
     spinlock_lock(&lock->lock);
 
-    if (lock->core == core)
+    if(lock->core == core)
     {
         /* Same core release lock */
         lock->count--;
-        if (lock->count <= 0)
+        if(lock->count <= 0)
         {
             lock->core = -1;
             lock->count = 0;
         }
-    }
-    else
+    } else
     {
         /* Different core release lock */
         spinlock_unlock(&lock->lock);
@@ -241,4 +234,3 @@ static inline void corelock_unlock(corelock_t *lock)
 #endif
 
 #endif /* _BSP_ATOMIC_H */
-

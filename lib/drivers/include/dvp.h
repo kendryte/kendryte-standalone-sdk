@@ -105,7 +105,7 @@ typedef enum _dvp_output_mode
 /**
  * @brief       DVP object instance
  */
-extern volatile dvp_t* const dvp;
+extern volatile dvp_t *const dvp;
 
 /**
  * @brief       Initialize DVP

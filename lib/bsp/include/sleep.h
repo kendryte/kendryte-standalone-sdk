@@ -16,8 +16,8 @@
 #ifndef _BSP_SLEEP_H
 #define _BSP_SLEEP_H
 
-#include "encoding.h"
 #include "clint.h"
+#include "encoding.h"
 #include "syscalls.h"
 
 #ifdef __cplusplus
@@ -33,4 +33,3 @@ unsigned int sleep(unsigned int seconds);
 #endif
 
 #endif /* _BSP_SLEEP_H */
-

@@ -12,42 +12,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>
-#include <stdlib.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
-#include "sysctl.h"
-#include "string.h"
-#include "encoding.h"
+#include <stdlib.h>
 #include "bsp.h"
+#include "encoding.h"
+#include "string.h"
+#include "sysctl.h"
 #include "uart.h"
 
 #define SYSCTRL_CLOCK_FREQ_IN0 (26000000UL)
 
 const uint8_t get_select_pll2[] =
-{
-    [SYSCTL_SOURCE_IN0] = 0,
-    [SYSCTL_SOURCE_PLL0] = 1,
-    [SYSCTL_SOURCE_PLL1] = 2,
+    {
+        [SYSCTL_SOURCE_IN0] = 0,
+        [SYSCTL_SOURCE_PLL0] = 1,
+        [SYSCTL_SOURCE_PLL1] = 2,
 };
 
 const uint8_t get_source_pll2[] =
-{
-    [0] = SYSCTL_SOURCE_IN0,
-    [1] = SYSCTL_SOURCE_PLL0,
-    [2] = SYSCTL_SOURCE_PLL1,
+    {
+        [0] = SYSCTL_SOURCE_IN0,
+        [1] = SYSCTL_SOURCE_PLL0,
+        [2] = SYSCTL_SOURCE_PLL1,
 };
 
 const uint8_t get_select_aclk[] =
-{
-    [SYSCTL_SOURCE_IN0] = 0,
-    [SYSCTL_SOURCE_PLL0] = 1,
+    {
+        [SYSCTL_SOURCE_IN0] = 0,
+        [SYSCTL_SOURCE_PLL0] = 1,
 };
 
 const uint8_t get_source_aclk[] =
-{
-    [0] = SYSCTL_SOURCE_IN0,
-    [1] = SYSCTL_SOURCE_PLL0,
+    {
+        [0] = SYSCTL_SOURCE_IN0,
+        [1] = SYSCTL_SOURCE_PLL0,
 };
 
 volatile sysctl_t *const sysctl = (volatile sysctl_t *)SYSCTL_BASE_ADDR;
@@ -64,7 +64,7 @@ uint32_t sysctl_get_freq(void)
 
 static void sysctl_reset_ctl(sysctl_reset_t reset, uint8_t rst_value)
 {
-    switch (reset)
+    switch(reset)
     {
         case SYSCTL_RESET_SOC:
             sysctl->soft_reset.soft_reset = rst_value;
@@ -178,9 +178,9 @@ static int sysctl_clock_bus_en(sysctl_clock_t clock, uint8_t en)
      */
 
     /* The APB clock should carefully disable */
-    if (en)
+    if(en)
     {
-        switch (clock)
+        switch(clock)
         {
             /*
              * These peripheral devices are under APB0
@@ -238,7 +238,7 @@ static int sysctl_clock_bus_en(sysctl_clock_t clock, uint8_t en)
 
 static int sysctl_clock_device_en(sysctl_clock_t clock, uint8_t en)
 {
-    switch (clock)
+    switch(clock)
     {
         /*
          * These devices are PLL
@@ -388,7 +388,7 @@ static int sysctl_clock_device_en(sysctl_clock_t clock, uint8_t en)
 
 int sysctl_clock_enable(sysctl_clock_t clock)
 {
-    if (clock >= SYSCTL_CLOCK_MAX)
+    if(clock >= SYSCTL_CLOCK_MAX)
         return -1;
     sysctl_clock_bus_en(clock, 1);
     sysctl_clock_device_en(clock, 1);
@@ -397,7 +397,7 @@ int sysctl_clock_enable(sysctl_clock_t clock)
 
 int sysctl_clock_disable(sysctl_clock_t clock)
 {
-    if (clock >= SYSCTL_CLOCK_MAX)
+    if(clock >= SYSCTL_CLOCK_MAX)
         return -1;
     sysctl_clock_device_en(clock, 0);
     return 0;
@@ -406,7 +406,7 @@ int sysctl_clock_disable(sysctl_clock_t clock)
 int sysctl_clock_set_threshold(sysctl_threshold_t which, int threshold)
 {
     int result = 0;
-    switch (which)
+    switch(which)
     {
         /*
          * These threshold is 2 bit width
@@ -520,7 +520,7 @@ int sysctl_clock_get_threshold(sysctl_threshold_t which)
 {
     int threshold = 0;
 
-    switch (which)
+    switch(which)
     {
         /*
          * Select and get threshold value
@@ -617,7 +617,7 @@ int sysctl_clock_get_threshold(sysctl_threshold_t which)
 int sysctl_clock_set_clock_select(sysctl_clock_select_t which, int select)
 {
     int result = 0;
-    switch (which)
+    switch(which)
     {
         /*
          * These clock select is 1 bit width
@@ -669,7 +669,7 @@ int sysctl_clock_get_clock_select(sysctl_clock_select_t which)
 {
     int clock_select = 0;
 
-    switch (which)
+    switch(which)
     {
         /*
          * Select and get clock select value
@@ -716,7 +716,7 @@ uint32_t sysctl_clock_source_get_freq(sysctl_clock_source_t input)
 {
     uint32_t result;
 
-    switch (input)
+    switch(input)
     {
         case SYSCTL_SOURCE_IN0:
             result = SYSCTRL_CLOCK_FREQ_IN0;
@@ -754,10 +754,10 @@ static int sysctl_pll_is_lock(sysctl_pll_t pll)
      *
      */
 
-    if (pll >= SYSCTL_PLL_MAX)
+    if(pll >= SYSCTL_PLL_MAX)
         return 0;
 
-    switch (pll)
+    switch(pll)
     {
         case SYSCTL_PLL0:
             return sysctl->pll_lock.pll_lock0 == 3;
@@ -777,10 +777,10 @@ static int sysctl_pll_is_lock(sysctl_pll_t pll)
 
 static int sysctl_pll_clear_slip(sysctl_pll_t pll)
 {
-    if (pll >= SYSCTL_PLL_MAX)
+    if(pll >= SYSCTL_PLL_MAX)
         return -1;
 
-    switch (pll)
+    switch(pll)
     {
         case SYSCTL_PLL0:
             sysctl->pll_lock.pll_slip_clear0 = 1;
@@ -820,10 +820,10 @@ int sysctl_pll_enable(sysctl_pll_t pll)
      *                 t2                 t3                             t4
      */
 
-    if (pll >= SYSCTL_PLL_MAX)
+    if(pll >= SYSCTL_PLL_MAX)
         return -1;
 
-    switch (pll)
+    switch(pll)
     {
         case SYSCTL_PLL0:
             /* Do not bypass PLL */
@@ -841,8 +841,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll0.pll_reset0 = 0;
             sysctl->pll0.pll_reset0 = 1;
-            asm volatile ("nop");
-            asm volatile ("nop");
+            asm volatile("nop");
+            asm volatile("nop");
             sysctl->pll0.pll_reset0 = 0;
             break;
 
@@ -862,8 +862,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll1.pll_reset1 = 0;
             sysctl->pll1.pll_reset1 = 1;
-            asm volatile ("nop");
-            asm volatile ("nop");
+            asm volatile("nop");
+            asm volatile("nop");
             sysctl->pll1.pll_reset1 = 0;
             break;
 
@@ -883,8 +883,8 @@ int sysctl_pll_enable(sysctl_pll_t pll)
              */
             sysctl->pll2.pll_reset2 = 0;
             sysctl->pll2.pll_reset2 = 1;
-            asm volatile ("nop");
-            asm volatile ("nop");
+            asm volatile("nop");
+            asm volatile("nop");
             sysctl->pll2.pll_reset2 = 0;
             break;
 
@@ -897,10 +897,10 @@ int sysctl_pll_enable(sysctl_pll_t pll)
 
 int sysctl_pll_disable(sysctl_pll_t pll)
 {
-    if (pll >= SYSCTL_PLL_MAX)
+    if(pll >= SYSCTL_PLL_MAX)
         return -1;
 
-    switch (pll)
+    switch(pll)
     {
         case SYSCTL_PLL0:
             /* Bypass PLL */
@@ -948,23 +948,23 @@ uint32_t sysctl_pll_get_freq(sysctl_pll_t pll)
     uint32_t nr = 0, nf = 0, od = 0;
     uint8_t select = 0;
 
-    if (pll >= SYSCTL_PLL_MAX)
+    if(pll >= SYSCTL_PLL_MAX)
         return 0;
 
-    switch (pll)
+    switch(pll)
     {
         case SYSCTL_PLL0:
             freq_in = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
-            nr      = sysctl->pll0.clkr0 + 1;
-            nf      = sysctl->pll0.clkf0 + 1;
-            od      = sysctl->pll0.clkod0 + 1;
+            nr = sysctl->pll0.clkr0 + 1;
+            nf = sysctl->pll0.clkf0 + 1;
+            od = sysctl->pll0.clkod0 + 1;
             break;
 
         case SYSCTL_PLL1:
             freq_in = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
-            nr      = sysctl->pll1.clkr1 + 1;
-            nf      = sysctl->pll1.clkf1 + 1;
-            od      = sysctl->pll1.clkod1 + 1;
+            nr = sysctl->pll1.clkr1 + 1;
+            nf = sysctl->pll1.clkf1 + 1;
+            od = sysctl->pll1.clkod1 + 1;
             break;
 
         case SYSCTL_PLL2:
@@ -972,14 +972,14 @@ uint32_t sysctl_pll_get_freq(sysctl_pll_t pll)
              * Get input freq accroding select register
              */
             select = sysctl->pll2.pll_ckin_sel2;
-            if (select < sizeof(get_source_pll2))
+            if(select < sizeof(get_source_pll2))
                 freq_in = sysctl_clock_source_get_freq(get_source_pll2[select]);
             else
                 return 0;
 
-            nr      = sysctl->pll2.clkr2 + 1;
-            nf      = sysctl->pll2.clkf2 + 1;
-            od      = sysctl->pll2.clkod2 + 1;
+            nr = sysctl->pll2.clkr2 + 1;
+            nf = sysctl->pll2.clkf2 + 1;
+            od = sysctl->pll2.clkod2 + 1;
             break;
 
         default:
@@ -998,26 +998,26 @@ static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source
 {
     uint32_t freq_in = 0;
 
-    if (pll >= SYSCTL_PLL_MAX)
+    if(pll >= SYSCTL_PLL_MAX)
         return 0;
 
-    if (source >= SYSCTL_SOURCE_MAX)
+    if(source >= SYSCTL_SOURCE_MAX)
         return 0;
 
-    switch (pll)
+    switch(pll)
     {
         case SYSCTL_PLL0:
         case SYSCTL_PLL1:
             /*
              * Check input clock source
              */
-            if (source != SYSCTL_SOURCE_IN0)
+            if(source != SYSCTL_SOURCE_IN0)
                 return 0;
             freq_in = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
             /*
              * Check input clock freq
              */
-            if (freq_in == 0)
+            if(freq_in == 0)
                 return 0;
             break;
 
@@ -1025,12 +1025,12 @@ static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source
             /*
              * Check input clock source
              */
-            if (source < sizeof(get_select_pll2))
+            if(source < sizeof(get_select_pll2))
                 freq_in = sysctl_clock_source_get_freq(source);
             /*
              * Check input clock freq
              */
-            if (freq_in == 0)
+            if(freq_in == 0)
                 return 0;
             break;
 
@@ -1047,31 +1047,31 @@ static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source
     const double vco_max = 1.75e+09;
     const double ref_min = 1.36719e+07;
     const double ref_max = 1.75e+09;
-    const int nr_min     = 1;
-    const int nr_max     = 16;
-    const int nf_min     = 1;
-    const int nf_max     = 64;
-    const int no_min     = 1;
-    const int no_max     = 16;
-    const int nb_min     = 1;
-    const int nb_max     = 64;
-    const int max_vco    = 1;
-    const int ref_rng    = 1;
+    const int nr_min = 1;
+    const int nr_max = 16;
+    const int nf_min = 1;
+    const int nf_max = 64;
+    const int no_min = 1;
+    const int no_max = 16;
+    const int nb_min = 1;
+    const int nb_max = 64;
+    const int max_vco = 1;
+    const int ref_rng = 1;
 
     /* variables */
-    int nr     = 0;
-    int nrx    = 0;
-    int nf     = 0;
-    int nfi    = 0;
-    int no     = 0;
-    int noe    = 0;
-    int not    = 0;
-    int nor    = 0;
-    int nore   = 0;
-    int nb     = 0;
-    int first  = 0;
+    int nr = 0;
+    int nrx = 0;
+    int nf = 0;
+    int nfi = 0;
+    int no = 0;
+    int noe = 0;
+    int not = 0;
+    int nor = 0;
+    int nore = 0;
+    int nb = 0;
+    int first = 0;
     int firstx = 0;
-    int found  = 0;
+    int found = 0;
 
     long long nfx = 0;
     double fin = 0, fout = 0, fvco = 0;
@@ -1080,131 +1080,130 @@ static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source
     long long x_nfx = 0;
     double x_fvco = 0, x_err = 0;
 
-    fin   = freq_in;
-    fout  = freq;
-    val   = fout / fin;
-    terr  = 0.5 / ((double)(nf_max / 2));
+    fin = freq_in;
+    fout = freq;
+    val = fout / fin;
+    terr = 0.5 / ((double)(nf_max / 2));
     first = firstx = 1;
-    if (terr != -2)
+    if(terr != -2)
     {
         first = 0;
-        if (terr == 0)
+        if(terr == 0)
             terr = 1e-16;
         merr = fabs(terr);
     }
     found = 0;
-    for (nfi = val; nfi < nf_max; ++nfi)
+    for(nfi = val; nfi < nf_max; ++nfi)
     {
         nr = rint(((double)nfi) / val);
-        if (nr == 0)
+        if(nr == 0)
             continue;
-        if ((ref_rng) && (nr < nr_min))
+        if((ref_rng) && (nr < nr_min))
             continue;
-        if (fin / ((double)nr) > ref_max)
+        if(fin / ((double)nr) > ref_max)
             continue;
         nrx = nr;
         nf = nfx = nfi;
         nval = ((double)nfx) / ((double)nr);
-        if (nf == 0)
+        if(nf == 0)
             nf = 1;
         err = 1 - nval / val;
 
-        if ((first) || (fabs(err) < merr * (1 + 1e-6)) || (fabs(err) < 1e-16))
+        if((first) || (fabs(err) < merr * (1 + 1e-6)) || (fabs(err) < 1e-16))
         {
             not = floor(vco_max / fout);
-            for (no = (not > no_max) ? no_max : not; no > no_min; --no)
+            for(no = (not > no_max) ? no_max : not; no > no_min; --no)
             {
-                if ((ref_rng) && ((nr / no) < nr_min))
+                if((ref_rng) && ((nr / no) < nr_min))
                     continue;
-                if ((nr % no) == 0)
+                if((nr % no) == 0)
                     break;
             }
-            if ((nr % no) != 0)
+            if((nr % no) != 0)
                 continue;
-            nor  = ((not > no_max) ? no_max : not) / no;
+            nor = ((not > no_max) ? no_max : not) / no;
             nore = nf_max / nf;
-            if (nor > nore)
+            if(nor > nore)
                 nor = nore;
-            noe  = ceil(vco_min / fout);
-            if (!max_vco)
+            noe = ceil(vco_min / fout);
+            if(!max_vco)
             {
                 nore = (noe - 1) / no + 1;
-                nor  = nore;
-                not  = 0; /* force next if to fail */
+                nor = nore;
+                not = 0; /* force next if to fail */
             }
-            if ((((no * nor) < (not >> 1)) || ((no * nor) < noe)) && ((no * nor) < (nf_max / nf)))
+            if((((no * nor) < (not >> 1)) || ((no * nor) < noe)) && ((no * nor) < (nf_max / nf)))
             {
                 no = nf_max / nf;
-                if (no > no_max)
+                if(no > no_max)
                     no = no_max;
-                if (no > not)
+                if(no > not)
                     no = not;
                 nfx *= no;
                 nf *= no;
-                if ((no > 1) && (!firstx))
+                if((no > 1) && (!firstx))
                     continue;
                 /* wait for larger nf in later iterations */
-            }
-            else
+            } else
             {
                 nrx /= no;
                 nfx *= nor;
                 nf *= nor;
                 no *= nor;
-                if (no > no_max)
+                if(no > no_max)
                     continue;
-                if ((nor > 1) && (!firstx))
+                if((nor > 1) && (!firstx))
                     continue;
                 /* wait for larger nf in later iterations */
             }
 
             nb = nfx;
-            if (nb < nb_min)
+            if(nb < nb_min)
                 nb = nb_min;
-            if (nb > nb_max)
+            if(nb > nb_max)
                 continue;
 
             fvco = fin / ((double)nrx) * ((double)nfx);
-            if (fvco < vco_min)
+            if(fvco < vco_min)
                 continue;
-            if (fvco > vco_max)
+            if(fvco > vco_max)
                 continue;
-            if (nf < nf_min)
+            if(nf < nf_min)
                 continue;
-            if ((ref_rng) && (fin / ((double)nrx) < ref_min))
+            if((ref_rng) && (fin / ((double)nrx) < ref_min))
                 continue;
-            if ((ref_rng) && (nrx > nr_max))
+            if((ref_rng) && (nrx > nr_max))
                 continue;
-            if (!(((firstx) && (terr < 0)) || (fabs(err) < merr * (1 - 1e-6)) || ((max_vco) && (no > x_no))))
+            if(!(((firstx) && (terr < 0)) || (fabs(err) < merr * (1 - 1e-6)) || ((max_vco) && (no > x_no))))
                 continue;
-            if ((!firstx) && (terr >= 0) && (nrx > x_nrx))
+            if((!firstx) && (terr >= 0) && (nrx > x_nrx))
                 continue;
 
-            found  = 1;
-            x_no   = no;
-            x_nrx  = nrx;
-            x_nfx  = nfx;
-            x_nb   = nb;
+            found = 1;
+            x_no = no;
+            x_nrx = nrx;
+            x_nfx = nfx;
+            x_nb = nb;
             x_fvco = fvco;
-            x_err  = err;
-            first  = firstx = 0;
-            merr   = fabs(err);
-            if (terr != -1)
+            x_err = err;
+            first = firstx = 0;
+            merr = fabs(err);
+            if(terr != -1)
                 continue;
         }
     }
-    if (!found)
+    if(!found)
     {
         return 0;
     }
 
-    nrx  = x_nrx;
-    nfx  = x_nfx;
-    no   = x_no;
-    nb   = x_nb;
+    nrx = x_nrx;
+    nfx = x_nfx;
+    no = x_no;
+    nb = x_nb;
     fvco = x_fvco;
-    err  = x_err;
-    if ((terr != -2) && (fabs(err) >= terr * (1 - 1e-6)))
+    err = x_err;
+    if((terr != -2) && (fabs(err) >= terr * (1 - 1e-6)))
     {
         return 0;
     }
@@ -1217,14 +1216,14 @@ static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source
     sysctl_pll1_t pll1;
     sysctl_pll2_t pll2;
 
-    switch (pll)
+    switch(pll)
     {
         case SYSCTL_PLL0:
             /* Read register from bus */
             pll0 = sysctl->pll0;
             /* Set register temporary value */
-            pll0.clkr0  = nrx - 1;
-            pll0.clkf0  = nfx - 1;
+            pll0.clkr0 = nrx - 1;
+            pll0.clkf0 = nfx - 1;
             pll0.clkod0 = no - 1;
             pll0.bwadj0 = nb - 1;
             /* Write register back to bus */
@@ -1235,8 +1234,8 @@ static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source
             /* Read register from bus */
             pll1 = sysctl->pll1;
             /* Set register temporary value */
-            pll1.clkr1  = nrx - 1;
-            pll1.clkf1  = nfx - 1;
+            pll1.clkr1 = nrx - 1;
+            pll1.clkf1 = nfx - 1;
             pll1.clkod1 = no - 1;
             pll1.bwadj1 = nb - 1;
             /* Write register back to bus */
@@ -1247,11 +1246,11 @@ static uint32_t sysctl_pll_source_set_freq(sysctl_pll_t pll, sysctl_clock_source
             /* Read register from bus */
             pll2 = sysctl->pll2;
             /* Set register temporary value */
-            if (source < sizeof(get_select_pll2))
+            if(source < sizeof(get_select_pll2))
                 pll2.pll_ckin_sel2 = get_select_pll2[source];
 
-            pll2.clkr2  = nrx - 1;
-            pll2.clkf2  = nfx - 1;
+            pll2.clkr2 = nrx - 1;
+            pll2.clkf2 = nfx - 1;
             pll2.clkod2 = no - 1;
             pll2.bwadj2 = nb - 1;
             /* Write register back to bus */
@@ -1270,7 +1269,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
     uint32_t source = 0;
     uint32_t result = 0;
 
-    switch (clock)
+    switch(clock)
     {
         /*
          * The clock IN0
@@ -1301,14 +1300,14 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
          * These clock directly under ACLK clock domain
          */
         case SYSCTL_CLOCK_CPU:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
                     break;
                 case 1:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_PLL0) /
-                        (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
+                             (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
                     break;
                 default:
                     break;
@@ -1316,14 +1315,14 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source;
             break;
         case SYSCTL_CLOCK_DMA:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
                     break;
                 case 1:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_PLL0) /
-                        (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
+                             (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
                     break;
                 default:
                     break;
@@ -1331,14 +1330,14 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source;
             break;
         case SYSCTL_CLOCK_FFT:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
                     break;
                 case 1:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_PLL0) /
-                        (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
+                             (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
                     break;
                 default:
                     break;
@@ -1346,14 +1345,14 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source;
             break;
         case SYSCTL_CLOCK_ACLK:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
                     break;
                 case 1:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_PLL0) /
-                        (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
+                             (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
                     break;
                 default:
                     break;
@@ -1361,14 +1360,14 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source;
             break;
         case SYSCTL_CLOCK_HCLK:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_ACLK))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
                     break;
                 case 1:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_PLL0) /
-                        (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
+                             (2ULL << sysctl_clock_get_threshold(SYSCTL_THRESHOLD_ACLK));
                     break;
                 default:
                     break;
@@ -1487,7 +1486,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
          * They are using even divider.
          */
         case SYSCTL_CLOCK_SPI3:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_SPI3))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_SPI3))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
@@ -1502,7 +1501,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source / ((sysctl_clock_get_threshold(SYSCTL_THRESHOLD_SPI3) + 1) * 2);
             break;
         case SYSCTL_CLOCK_TIMER0:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_TIMER0))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_TIMER0))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
@@ -1517,7 +1516,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source / ((sysctl_clock_get_threshold(SYSCTL_THRESHOLD_TIMER0) + 1) * 2);
             break;
         case SYSCTL_CLOCK_TIMER1:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_TIMER1))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_TIMER1))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
@@ -1532,7 +1531,7 @@ uint32_t sysctl_clock_get_freq(sysctl_clock_t clock)
             result = source / ((sysctl_clock_get_threshold(SYSCTL_THRESHOLD_TIMER1) + 1) * 2);
             break;
         case SYSCTL_CLOCK_TIMER2:
-            switch (sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_TIMER2))
+            switch(sysctl_clock_get_clock_select(SYSCTL_CLOCK_SELECT_TIMER2))
             {
                 case 0:
                     source = sysctl_clock_source_get_freq(SYSCTL_SOURCE_IN0);
@@ -1619,7 +1618,7 @@ int sysctl_dma_select(sysctl_dma_channel_t channel, sysctl_dma_select_t select)
     /* Read register from bus */
     dma_sel0 = sysctl->dma_sel0;
     dma_sel1 = sysctl->dma_sel1;
-    switch (channel)
+    switch(channel)
     {
         case SYSCTL_DMA_CHANNEL_0:
             dma_sel0.dma_sel0 = select;
@@ -1674,20 +1673,20 @@ uint32_t sysctl_pll_fast_enable_pll(void)
     /* PLL VCO MAX freq: 1.8GHz */
 
     /* PLL0: 26M reference clk get 793M output clock */
-    pll0.clkr0  = 0;
-    pll0.clkf0  = 60;
+    pll0.clkr0 = 0;
+    pll0.clkf0 = 60;
     pll0.clkod0 = 1;
     pll0.bwadj0 = 60;
 
     /* PLL1: 26M reference clk get 390M output clock */
-    pll1.clkr1  = 0;
-    pll1.clkf1  = 59;
+    pll1.clkr1 = 0;
+    pll1.clkf1 = 59;
     pll1.clkod1 = 3;
     pll1.bwadj1 = 59;
 
     /* PLL2: 26M reference clk get 390M output clock */
-    pll2.clkr2  = 0;
-    pll2.clkf2  = 59;
+    pll2.clkr2 = 0;
+    pll2.clkf2 = 59;
     pll2.clkod2 = 3;
     pll2.bwadj2 = 59;
 
@@ -1700,11 +1699,11 @@ uint32_t sysctl_pll_fast_enable_pll(void)
     sysctl_pll_enable(SYSCTL_PLL1);
     sysctl_pll_enable(SYSCTL_PLL2);
 
-    while (sysctl_pll_is_lock(SYSCTL_PLL0) == 0)
+    while(sysctl_pll_is_lock(SYSCTL_PLL0) == 0)
         sysctl_pll_clear_slip(SYSCTL_PLL0);
-    while (sysctl_pll_is_lock(SYSCTL_PLL1) == 0)
+    while(sysctl_pll_is_lock(SYSCTL_PLL1) == 0)
         sysctl_pll_clear_slip(SYSCTL_PLL1);
-    while (sysctl_pll_is_lock(SYSCTL_PLL2) == 0)
+    while(sysctl_pll_is_lock(SYSCTL_PLL2) == 0)
         sysctl_pll_clear_slip(SYSCTL_PLL2);
 
     sysctl_clock_enable(SYSCTL_CLOCK_PLL0);
@@ -1783,7 +1782,7 @@ uint32_t sysctl_pll_set_freq(sysctl_pll_t pll, uint32_t pll_freq)
     v_pll_t->pll_reset = 0;
 
     /* 7. Get lock status, wait PLL stable */
-    while (sysctl_pll_is_lock(pll) == 0)
+    while(sysctl_pll_is_lock(pll) == 0)
         sysctl_pll_clear_slip(pll);
 
     /* 8. Enable PLL output */
@@ -1843,16 +1842,13 @@ sysctl_reset_enum_status_t sysctl_get_reset_status(void)
     if(sysctl->reset_status.wdt0_reset_sts)
     {
         s_reset_status = SYSCTL_RESET_STATUS_WDT0;
-    }
-    else if(sysctl->reset_status.wdt1_reset_sts)
+    } else if(sysctl->reset_status.wdt1_reset_sts)
     {
         s_reset_status = SYSCTL_RESET_STATUS_WDT1;
-    }
-    else if(sysctl->reset_status.soft_reset_sts)
+    } else if(sysctl->reset_status.soft_reset_sts)
     {
         s_reset_status = SYSCTL_RESET_STATUS_SOFT;
-    }
-    else
+    } else
     {
         s_reset_status = SYSCTL_RESET_STATUS_HARD;
     }
@@ -1860,4 +1856,3 @@ sysctl_reset_enum_status_t sysctl_get_reset_status(void)
 
     return s_reset_status;
 }
-

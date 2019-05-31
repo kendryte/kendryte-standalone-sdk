@@ -17,8 +17,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "printf.h"
 #include "encoding.h"
+#include "printf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,7 +105,7 @@ typedef enum _kendryte_log_level
 #endif /* CONFIG_LOG_COLORS */
 /* clang-format on */
 
-#define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%lu) %s: " format LOG_RESET_COLOR "\n"
+#define LOG_FORMAT(letter, format) LOG_COLOR_##letter #letter " (%lu) %s: " format LOG_RESET_COLOR "\n"
 
 #ifdef LOG_LEVEL
 #undef CONFIG_LOG_LEVEL
@@ -119,23 +119,46 @@ typedef enum _kendryte_log_level
 #endif
 
 #ifdef CONFIG_LOG_ENABLE
-#define LOGE(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_ERROR)   LOG_PRINTF(LOG_FORMAT(E, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
-#define LOGW(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_WARN)    LOG_PRINTF(LOG_FORMAT(W, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
-#define LOGI(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_INFO)    LOG_PRINTF(LOG_FORMAT(I, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
-#define LOGD(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_DEBUG)   LOG_PRINTF(LOG_FORMAT(D, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
-#define LOGV(tag, format, ...)  do {if (CONFIG_LOG_LEVEL >= LOG_VERBOSE) LOG_PRINTF(LOG_FORMAT(V, format), read_cycle(), tag, ##__VA_ARGS__); } while (0)
+#define LOGE(tag, format, ...)                                                   \
+    do                                                                           \
+    {                                                                            \
+        if(CONFIG_LOG_LEVEL >= LOG_ERROR)                                        \
+            LOG_PRINTF(LOG_FORMAT(E, format), read_cycle(), tag, ##__VA_ARGS__); \
+    } while(0)
+#define LOGW(tag, format, ...)                                                   \
+    do                                                                           \
+    {                                                                            \
+        if(CONFIG_LOG_LEVEL >= LOG_WARN)                                         \
+            LOG_PRINTF(LOG_FORMAT(W, format), read_cycle(), tag, ##__VA_ARGS__); \
+    } while(0)
+#define LOGI(tag, format, ...)                                                   \
+    do                                                                           \
+    {                                                                            \
+        if(CONFIG_LOG_LEVEL >= LOG_INFO)                                         \
+            LOG_PRINTF(LOG_FORMAT(I, format), read_cycle(), tag, ##__VA_ARGS__); \
+    } while(0)
+#define LOGD(tag, format, ...)                                                   \
+    do                                                                           \
+    {                                                                            \
+        if(CONFIG_LOG_LEVEL >= LOG_DEBUG)                                        \
+            LOG_PRINTF(LOG_FORMAT(D, format), read_cycle(), tag, ##__VA_ARGS__); \
+    } while(0)
+#define LOGV(tag, format, ...)                                                   \
+    do                                                                           \
+    {                                                                            \
+        if(CONFIG_LOG_LEVEL >= LOG_VERBOSE)                                      \
+            LOG_PRINTF(LOG_FORMAT(V, format), read_cycle(), tag, ##__VA_ARGS__); \
+    } while(0)
 #else
 #define LOGE(tag, format, ...)
 #define LOGW(tag, format, ...)
 #define LOGI(tag, format, ...)
 #define LOGD(tag, format, ...)
 #define LOGV(tag, format, ...)
-#endif  /* LOG_ENABLE */
+#endif /* LOG_ENABLE */
 
 #ifdef __cplusplus
 }
 #endif
 
-
 #endif /* _SYSLOG_H */
-

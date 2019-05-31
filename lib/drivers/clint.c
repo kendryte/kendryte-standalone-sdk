@@ -14,11 +14,11 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include "encoding.h"
 #include "clint.h"
+#include "encoding.h"
 #include "sysctl.h"
 
-volatile clint_t* const clint = (volatile clint_t*)CLINT_BASE_ADDR;
+volatile clint_t *const clint = (volatile clint_t *)CLINT_BASE_ADDR;
 static clint_timer_instance_t clint_timer_instance[CLINT_NUM_CORES];
 static clint_ipi_instance_t clint_ipi_instance[CLINT_NUM_CORES];
 
@@ -68,16 +68,16 @@ int clint_timer_start(uint64_t interval, int single_shot)
     /* Read core id */
     unsigned long core_id = current_coreid();
     /* Set timer interval */
-    if (clint_timer_set_interval(interval) != 0)
+    if(clint_timer_set_interval(interval) != 0)
         return -1;
     /* Set timer single shot */
-    if (clint_timer_set_single_shot(single_shot) != 0)
+    if(clint_timer_set_single_shot(single_shot) != 0)
         return -1;
     /* Check settings to prevent interval is 0 */
-    if (clint_timer_instance[core_id].interval == 0)
+    if(clint_timer_instance[core_id].interval == 0)
         return -1;
     /* Check settings to prevent cycles is 0 */
-    if (clint_timer_instance[core_id].cycles == 0)
+    if(clint_timer_instance[core_id].cycles == 0)
         return -1;
     /* Add cycle interval to mtimecmp */
     uint64_t now = clint->mtime;
@@ -103,7 +103,7 @@ int clint_timer_set_interval(uint64_t interval)
     /* Read core id */
     unsigned long core_id = current_coreid();
     /* Check parameter */
-    if (interval == 0)
+    if(interval == 0)
         return -1;
 
     /* Assign user interval with Millisecond(ms) */
@@ -182,7 +182,7 @@ int clint_ipi_disable(void)
 
 int clint_ipi_send(size_t core_id)
 {
-    if (core_id >= CLINT_NUM_CORES)
+    if(core_id >= CLINT_NUM_CORES)
         return -1;
     clint->msip[core_id].msip = 1;
     return 0;
@@ -190,9 +190,9 @@ int clint_ipi_send(size_t core_id)
 
 int clint_ipi_clear(size_t core_id)
 {
-    if (core_id >= CLINT_NUM_CORES)
+    if(core_id >= CLINT_NUM_CORES)
         return -1;
-    if (clint->msip[core_id].msip)
+    if(clint->msip[core_id].msip)
     {
         clint->msip[core_id].msip = 0;
         return 1;
@@ -225,19 +225,18 @@ uintptr_t handle_irq_m_timer(uintptr_t cause, uintptr_t epc)
 
     clear_csr(mie, MIP_MTIP | MIP_MSIP);
     set_csr(mstatus, MSTATUS_MIE);
-    if (clint_timer_instance[core_id].callback != NULL)
+    if(clint_timer_instance[core_id].callback != NULL)
         clint_timer_instance[core_id].callback(
             clint_timer_instance[core_id].ctx);
     clear_csr(mstatus, MSTATUS_MIE);
     set_csr(mstatus, MSTATUS_MPIE | MSTATUS_MPP);
     write_csr(mie, ie_flag);
     /* If not single shot and cycle interval is not 0, repeat this timer */
-    if (!clint_timer_instance[core_id].single_shot && clint_timer_instance[core_id].cycles != 0)
+    if(!clint_timer_instance[core_id].single_shot && clint_timer_instance[core_id].cycles != 0)
     {
         /* Set mtimecmp by core id */
         clint->mtimecmp[core_id] += clint_timer_instance[core_id].cycles;
-    }
-    else
+    } else
         clear_csr(mie, MIP_MTIP);
     return epc;
 }
@@ -251,11 +250,10 @@ uintptr_t handle_irq_m_soft(uintptr_t cause, uintptr_t epc)
     set_csr(mstatus, MSTATUS_MIE);
     /* Clear ipi flag */
     clint_ipi_clear(core_id);
-    if (clint_ipi_instance[core_id].callback != NULL)
+    if(clint_ipi_instance[core_id].callback != NULL)
         clint_ipi_instance[core_id].callback(clint_ipi_instance[core_id].ctx);
     clear_csr(mstatus, MSTATUS_MIE);
     set_csr(mstatus, MSTATUS_MPIE | MSTATUS_MPP);
     set_csr(mie, MIP_MSIP);
     return epc;
 }
-

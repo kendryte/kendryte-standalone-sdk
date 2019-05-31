@@ -38,9 +38,9 @@
 #define _DRIVER_APBUART_H
 
 #include <stdint.h>
+#include "dmac.h"
 #include "platform.h"
 #include "plic.h"
-#include "dmac.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -363,7 +363,6 @@ void uart_send_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t
  */
 void uart_receive_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel, uint8_t *buffer, size_t buf_len);
 
-
 /**
  * @brief       Send data by dma
  *
@@ -404,7 +403,7 @@ void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_n
  * @param[in]   buffer              Uart DMA callback
  *
  */
-void uart_handle_data_dma(uart_device_number_t uart_channel ,uart_data_t data, plic_interrupt_t *cb);
+void uart_handle_data_dma(uart_device_number_t uart_channel, uart_data_t data, plic_interrupt_t *cb);
 
 /**
  * @brief       Set uart work mode

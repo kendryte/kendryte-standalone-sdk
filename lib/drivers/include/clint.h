@@ -129,7 +129,7 @@ typedef struct _clint
 /**
  * @brief       Clint object instanse
  */
-extern volatile clint_t* const clint;
+extern volatile clint_t *const clint;
 
 /**
  * @brief       Definitions for the timer callbacks
@@ -335,4 +335,3 @@ int clint_ipi_unregister(void);
 #endif
 
 #endif /* _DRIVER_CLINT_H */
-

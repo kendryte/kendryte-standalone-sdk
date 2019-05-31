@@ -658,7 +658,7 @@ typedef struct _sysctl_misc
 {
     uint32_t debug_sel : 6;
     uint32_t reserved0 : 4;
-    uint32_t spi_dvp_data_enable: 1;
+    uint32_t spi_dvp_data_enable : 1;
     uint32_t reserved1 : 21;
 } __attribute__((packed, aligned(4))) sysctl_misc_t;
 

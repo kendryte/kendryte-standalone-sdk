@@ -15,10 +15,10 @@
 #ifndef _DRIVER_GPIOHS_H
 #define _DRIVER_GPIOHS_H
 
-#include <stdint.h>
-#include "platform.h"
 #include <stddef.h>
+#include <stdint.h>
 #include "gpio_common.h"
+#include "platform.h"
 #include "plic.h"
 #ifdef __cplusplus
 extern "C" {
@@ -240,7 +240,7 @@ void gpiohs_set_pin_edge(uint8_t pin, gpio_pin_edge_t edge);
  * @param[in]   priority        Gpiohs pin interrupt priority
  * @param[in]   func            Gpiohs pin interrupt service routine
  */
-void gpiohs_set_irq(uint8_t pin, uint32_t priority, void(*func)());
+void gpiohs_set_irq(uint8_t pin, uint32_t priority, void (*func)());
 
 /**
  * @brief      Set Gpiohs pin interrupt
@@ -264,4 +264,3 @@ void gpiohs_irq_unregister(uint8_t pin);
 #endif
 
 #endif /* _DRIVER_GPIOHS_H */
-

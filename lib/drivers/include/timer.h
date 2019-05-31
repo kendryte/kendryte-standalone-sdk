@@ -15,8 +15,8 @@
 #ifndef _DRIVER_TIMER_H
 #define _DRIVER_TIMER_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -114,7 +114,7 @@ void timer_init(timer_device_number_t timer_number);
  * @param[in]   priority        interrupt priority
  *
  */
-void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void(*func)(),  uint32_t priority);
+void timer_set_irq(timer_device_number_t timer_number, timer_channel_number_t channel, void (*func)(), uint32_t priority);
 
 /**
  * @brief      Register timer interrupt user callback function

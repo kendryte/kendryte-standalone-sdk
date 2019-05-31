@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 #include <stddef.h>
-#include "i2c.h"
-#include "utils.h"
+#include "bsp.h"
 #include "fpioa.h"
+#include "i2c.h"
 #include "platform.h"
 #include "stdlib.h"
 #include "string.h"
 #include "sysctl.h"
-#include "bsp.h"
+#include "utils.h"
 
 typedef struct _i2c_slave_instance
 {
@@ -41,12 +41,11 @@ typedef struct _i2c_instance
 
 static i2c_instance_t g_i2c_instance[3];
 
-volatile i2c_t* const i2c[3] =
-{
-    (volatile i2c_t*)I2C0_BASE_ADDR,
-    (volatile i2c_t*)I2C1_BASE_ADDR,
-    (volatile i2c_t*)I2C2_BASE_ADDR
-};
+volatile i2c_t *const i2c[3] =
+    {
+        (volatile i2c_t *)I2C0_BASE_ADDR,
+        (volatile i2c_t *)I2C1_BASE_ADDR,
+        (volatile i2c_t *)I2C2_BASE_ADDR};
 
 static void i2c_clk_init(i2c_device_number_t i2c_num)
 {
@@ -90,21 +89,21 @@ static int i2c_slave_irq(void *userdata)
     i2c_slave_instance_t *instance = (i2c_slave_instance_t *)userdata;
     volatile i2c_t *i2c_adapter = i2c[instance->i2c_num];
     uint32_t status = i2c_adapter->intr_stat;
-    if (status & I2C_INTR_STAT_START_DET)
+    if(status & I2C_INTR_STAT_START_DET)
     {
         instance->slave_handler->on_event(I2C_EV_START);
         readl(&i2c_adapter->clr_start_det);
     }
-    if (status & I2C_INTR_STAT_STOP_DET)
+    if(status & I2C_INTR_STAT_STOP_DET)
     {
         instance->slave_handler->on_event(I2C_EV_STOP);
         readl(&i2c_adapter->clr_stop_det);
     }
-    if (status & I2C_INTR_STAT_RX_FULL)
+    if(status & I2C_INTR_STAT_RX_FULL)
     {
         instance->slave_handler->on_receive(i2c_adapter->data_cmd);
     }
-    if (status & I2C_INTR_STAT_RD_REQ)
+    if(status & I2C_INTR_STAT_RD_REQ)
     {
         i2c_adapter->data_cmd = instance->slave_handler->on_transmit();
         readl(&i2c_adapter->clr_rd_req);
@@ -113,7 +112,7 @@ static int i2c_slave_irq(void *userdata)
 }
 
 void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t address_width,
-    const i2c_slave_handler_t *handler)
+                       const i2c_slave_handler_t *handler)
 {
     configASSERT(address_width == 7 || address_width == 10);
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
@@ -140,23 +139,23 @@ void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint
 int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t send_buf_len)
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
-    volatile i2c_t* i2c_adapter = i2c[i2c_num];
+    volatile i2c_t *i2c_adapter = i2c[i2c_num];
     size_t fifo_len, index;
     i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
-    while (send_buf_len)
+    while(send_buf_len)
     {
         fifo_len = 8 - i2c_adapter->txflr;
         fifo_len = send_buf_len < fifo_len ? send_buf_len : fifo_len;
-        for (index = 0; index < fifo_len; index++)
+        for(index = 0; index < fifo_len; index++)
             i2c_adapter->data_cmd = I2C_DATA_CMD_DATA(*send_buf++);
-        if (i2c_adapter->tx_abrt_source != 0)
+        if(i2c_adapter->tx_abrt_source != 0)
             return 1;
         send_buf_len -= fifo_len;
     }
-    while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
+    while((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
         ;
 
-    if (i2c_adapter->tx_abrt_source != 0)
+    if(i2c_adapter->tx_abrt_source != 0)
         return 1;
 
     return 0;
@@ -166,25 +165,25 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
                        size_t send_buf_len)
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
-    volatile i2c_t* i2c_adapter = i2c[i2c_num];
+    volatile i2c_t *i2c_adapter = i2c[i2c_num];
     i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
     int i;
-    for (i = 0; i < send_buf_len; i++)
+    for(i = 0; i < send_buf_len; i++)
     {
         buf[i] = send_buf[i];
     }
 
     sysctl_dma_select((sysctl_dma_channel_t)dma_channel_num, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
     dmac_set_single_mode(dma_channel_num, buf, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-        DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, send_buf_len);
+                         DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, send_buf_len);
 
     dmac_wait_done(dma_channel_num);
     free((void *)buf);
 
-    while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
+    while((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
     {
-        if (i2c_adapter->tx_abrt_source != 0)
+        if(i2c_adapter->tx_abrt_source != 0)
             return;
     }
 }
@@ -196,31 +195,31 @@ int i2c_recv_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
 
     size_t fifo_len, index;
     size_t rx_len = receive_buf_len;
-    volatile i2c_t* i2c_adapter = i2c[i2c_num];
+    volatile i2c_t *i2c_adapter = i2c[i2c_num];
 
-    while (send_buf_len)
+    while(send_buf_len)
     {
         fifo_len = 8 - i2c_adapter->txflr;
         fifo_len = send_buf_len < fifo_len ? send_buf_len : fifo_len;
-        for (index = 0; index < fifo_len; index++)
+        for(index = 0; index < fifo_len; index++)
             i2c_adapter->data_cmd = I2C_DATA_CMD_DATA(*send_buf++);
-        if (i2c_adapter->tx_abrt_source != 0)
+        if(i2c_adapter->tx_abrt_source != 0)
             return 1;
         send_buf_len -= fifo_len;
     }
 
-    while (receive_buf_len || rx_len)
+    while(receive_buf_len || rx_len)
     {
         fifo_len = i2c_adapter->rxflr;
         fifo_len = rx_len < fifo_len ? rx_len : fifo_len;
-        for (index = 0; index < fifo_len; index++)
+        for(index = 0; index < fifo_len; index++)
             *receive_buf++ = (uint8_t)i2c_adapter->data_cmd;
         rx_len -= fifo_len;
         fifo_len = 8 - i2c_adapter->txflr;
         fifo_len = receive_buf_len < fifo_len ? receive_buf_len : fifo_len;
-        for (index = 0; index < fifo_len; index++)
+        for(index = 0; index < fifo_len; index++)
             i2c_adapter->data_cmd = I2C_DATA_CMD_CMD;
-        if (i2c_adapter->tx_abrt_source != 0)
+        if(i2c_adapter->tx_abrt_source != 0)
             return 1;
         receive_buf_len -= fifo_len;
     }
@@ -233,28 +232,28 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
 {
     configASSERT(i2c_num < I2C_MAX_NUM);
 
-    volatile i2c_t* i2c_adapter = i2c[i2c_num];
+    volatile i2c_t *i2c_adapter = i2c[i2c_num];
 
     uint32_t *write_cmd = malloc(sizeof(uint32_t) * (send_buf_len + receive_buf_len));
     size_t i;
     for(i = 0; i < send_buf_len; i++)
         write_cmd[i] = *send_buf++;
-    for (i = 0; i < receive_buf_len; i++)
+    for(i = 0; i < receive_buf_len; i++)
         write_cmd[i + send_buf_len] = I2C_DATA_CMD_CMD;
 
     sysctl_dma_select((sysctl_dma_channel_t)dma_send_channel_num, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
     sysctl_dma_select((sysctl_dma_channel_t)dma_receive_channel_num, SYSCTL_DMA_SELECT_I2C0_RX_REQ + i2c_num * 2);
 
     dmac_set_single_mode(dma_receive_channel_num, (void *)(&i2c_adapter->data_cmd), write_cmd, DMAC_ADDR_NOCHANGE,
-         DMAC_ADDR_INCREMENT,DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, receive_buf_len);
+                         DMAC_ADDR_INCREMENT, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, receive_buf_len);
 
     dmac_set_single_mode(dma_send_channel_num, write_cmd, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT,
-         DMAC_ADDR_NOCHANGE,DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, receive_buf_len + send_buf_len);
+                         DMAC_ADDR_NOCHANGE, DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, receive_buf_len + send_buf_len);
 
     dmac_wait_done(dma_send_channel_num);
     dmac_wait_done(dma_receive_channel_num);
 
-    for (i = 0; i < receive_buf_len; i++)
+    for(i = 0; i < receive_buf_len; i++)
     {
         receive_buf[i] = (uint8_t)write_cmd[i];
     }
@@ -265,13 +264,13 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
 static int i2c_dma_irq(void *ctx)
 {
     i2c_instance_t *v_instance = (i2c_instance_t *)ctx;
-    volatile i2c_t* i2c_adapter = i2c[v_instance->i2c_num];
+    volatile i2c_t *i2c_adapter = i2c[v_instance->i2c_num];
     dmac_irq_unregister(v_instance->dmac_channel);
     if(v_instance->transfer_mode == I2C_SEND)
     {
-        while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
+        while((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
         {
-            if (i2c_adapter->tx_abrt_source != 0)
+            if(i2c_adapter->tx_abrt_source != 0)
             {
                 spinlock_unlock(&v_instance->lock);
                 return -1;
@@ -298,7 +297,7 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
         g_i2c_instance[i2c_num].i2c_int_instance.ctx = cb->ctx;
     }
 
-    volatile i2c_t* i2c_adapter = i2c[i2c_num];
+    volatile i2c_t *i2c_adapter = i2c[i2c_num];
     if(data.transfer_mode == I2C_SEND)
     {
         configASSERT(data.tx_buf && data.tx_len);
@@ -312,18 +311,17 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
         }
         sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
         dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-            DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
+                             DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
         if(!cb)
         {
             dmac_wait_done(data.tx_channel);
-            while ((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
+            while((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
             {
-                if (i2c_adapter->tx_abrt_source != 0)
+                if(i2c_adapter->tx_abrt_source != 0)
                     configASSERT(!"source abort");
             }
         }
-    }
-    else
+    } else
     {
         configASSERT(data.rx_buf && data.rx_len);
         if(data.tx_len)
@@ -336,19 +334,19 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
         }
         sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2C0_RX_REQ + i2c_num * 2);
         dmac_set_single_mode(data.rx_channel, (void *)(&i2c_adapter->data_cmd), data.rx_buf, DMAC_ADDR_NOCHANGE,
-             DMAC_ADDR_INCREMENT,DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
+                             DMAC_ADDR_INCREMENT, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
 
         sysctl_dma_select((sysctl_dma_channel_t)data.tx_channel, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
         if(data.tx_len)
         {
             configASSERT(data.tx_buf);
             dmac_set_single_mode(data.tx_channel, data.tx_buf, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT,
-                 DMAC_ADDR_NOCHANGE,DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
+                                 DMAC_ADDR_NOCHANGE, DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);
             dmac_wait_done(data.tx_channel);
         }
         static uint32_t s_read_cmd = I2C_DATA_CMD_CMD;
         dmac_set_single_mode(data.tx_channel, &s_read_cmd, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_NOCHANGE,
-                     DMAC_ADDR_NOCHANGE,DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
+                             DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
 
         if(!cb)
         {

@@ -15,8 +15,8 @@
 #ifndef _DRIVER_I2C_H
 #define _DRIVER_I2C_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include "dmac.h"
 
 #ifdef __cplusplus
@@ -349,9 +349,9 @@ typedef enum _i2c_event
 
 typedef struct _i2c_slave_handler
 {
-    void(*on_receive)(uint32_t data);
-    uint32_t(*on_transmit)();
-    void(*on_event)(i2c_event_t event);
+    void (*on_receive)(uint32_t data);
+    uint32_t (*on_transmit)();
+    void (*on_event)(i2c_event_t event);
 } i2c_slave_handler_t;
 
 typedef enum _i2c_transfer_mode
@@ -404,7 +404,7 @@ int i2c_send_data(i2c_device_number_t i2c_num, const uint8_t *send_buf, size_t s
  * @param[in]   handler             Handle of i2c slave interrupt function.
  */
 void i2c_init_as_slave(i2c_device_number_t i2c_num, uint32_t slave_address, uint32_t address_width,
-    const i2c_slave_handler_t *handler);
+                       const i2c_slave_handler_t *handler);
 
 /**
  * @brief       I2c send data by dma

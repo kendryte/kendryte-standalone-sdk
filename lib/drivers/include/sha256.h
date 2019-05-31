@@ -14,19 +14,19 @@
  */
 #ifndef _SHA256_H
 #define _SHA256_H
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define ENABLE_SHA          (0x1)
-#define SHA256_BIG_ENDIAN   (0x1)
+#define ENABLE_SHA (0x1)
+#define SHA256_BIG_ENDIAN (0x1)
 
-#define SHA256_HASH_LEN    32
-#define SHA256_HASH_WORDS   8
-#define SHA256_BLOCK_LEN   64L
+#define SHA256_HASH_LEN 32
+#define SHA256_HASH_WORDS 8
+#define SHA256_BLOCK_LEN 64L
 
 typedef struct _sha_num_reg
 {
@@ -125,4 +125,3 @@ void sha256_hard_calculate(const uint8_t *input, size_t input_len, uint8_t *outp
 #endif
 
 #endif
-

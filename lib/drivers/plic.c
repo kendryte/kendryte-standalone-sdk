@@ -19,7 +19,7 @@
 #include "syscalls.h"
 #include "syslog.h"
 
-volatile plic_t* const plic = (volatile plic_t*)PLIC_BASE_ADDR;
+volatile plic_t *const plic = (volatile plic_t *)PLIC_BASE_ADDR;
 
 static plic_instance_t plic_instance[PLIC_NUM_CORES][IRQN_MAX];
 
@@ -31,14 +31,14 @@ void plic_init(void)
     unsigned long core_id = current_coreid();
 
     /* Disable all interrupts for the current core. */
-    for (i = 0; i < ((PLIC_NUM_SOURCES + 32u) / 32u); i++)
+    for(i = 0; i < ((PLIC_NUM_SOURCES + 32u) / 32u); i++)
         plic->target_enables.target[core_id].enable[i] = 0;
 
     static uint8_t s_plic_priorities_init_flag = 0;
     /* Set priorities to zero. */
     if(s_plic_priorities_init_flag == 0)
     {
-        for (i = 0; i < PLIC_NUM_SOURCES; i++)
+        for(i = 0; i < PLIC_NUM_SOURCES; i++)
             plic->source_priorities.priority[i] = 0;
         s_plic_priorities_init_flag = 1;
     }
@@ -47,7 +47,7 @@ void plic_init(void)
     plic->targets.target[core_id].priority_threshold = 0;
 
     /* Clear PLIC instance for every cores */
-    for (i = 0; i < IRQN_MAX; i++)
+    for(i = 0; i < IRQN_MAX; i++)
     {
         /* clang-format off */
         plic_instance[core_id][i] = (const plic_instance_t){
@@ -63,7 +63,7 @@ void plic_init(void)
      * at any time, even if the EIP is not set.
      */
     i = 0;
-    while (plic->targets.target[core_id].claim_complete > 0 && i < 100)
+    while(plic->targets.target[core_id].claim_complete > 0 && i < 100)
     {
         /* This loop will clear pending bit on the interrupt source */
         i++;
@@ -76,7 +76,7 @@ void plic_init(void)
 int plic_irq_enable(plic_irq_t irq_number)
 {
     /* Check parameters */
-    if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
+    if(PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
     unsigned long core_id = current_coreid();
     /* Get current enable bit array by IRQ number */
@@ -91,7 +91,7 @@ int plic_irq_enable(plic_irq_t irq_number)
 int plic_irq_disable(plic_irq_t irq_number)
 {
     /* Check parameters */
-    if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
+    if(PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
     unsigned long core_id = current_coreid();
     /* Get current enable bit array by IRQ number */
@@ -106,7 +106,7 @@ int plic_irq_disable(plic_irq_t irq_number)
 int plic_set_priority(plic_irq_t irq_number, uint32_t priority)
 {
     /* Check parameters */
-    if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
+    if(PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return -1;
     /* Set interrupt priority by IRQ number */
     plic->source_priorities.priority[irq_number] = priority;
@@ -116,7 +116,7 @@ int plic_set_priority(plic_irq_t irq_number, uint32_t priority)
 uint32_t plic_get_priority(plic_irq_t irq_number)
 {
     /* Check parameters */
-    if (PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
+    if(PLIC_NUM_SOURCES < irq_number || 0 > irq_number)
         return 0;
     /* Get interrupt priority by IRQ number */
     return plic->source_priorities.priority[irq_number];
@@ -174,7 +174,7 @@ handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
      * without first restoring the interrupted context and taking another
      * interrupt trap.
      */
-    if (read_csr(mip) & MIP_MEIP)
+    if(read_csr(mip) & MIP_MEIP)
     {
         /* Get current core id */
         uint64_t core_id = current_coreid();
@@ -190,7 +190,7 @@ handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
         clear_csr(mie, MIP_MTIP | MIP_MSIP);
         /* Enable global interrupt */
         set_csr(mstatus, MSTATUS_MIE);
-        if (plic_instance[core_id][int_num].callback)
+        if(plic_instance[core_id][int_num].callback)
             plic_instance[core_id][int_num].callback(
                 plic_instance[core_id][int_num].ctx);
         /* Perform IRQ complete */

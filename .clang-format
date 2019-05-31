@@ -1,0 +1,42 @@
+---
+Language:        Cpp
+BasedOnStyle:  LLVM
+UseTab: Never
+#AlignConsecutiveMacros: true
+AlignTrailingComments: true
+IndentWidth: 4
+TabWidth: 4
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 0
+AccessModifierOffset: -4
+BreakBeforeBraces: Custom
+IncludeCategories:
+  - Regex:           '^<'
+    Priority:        1
+  - Regex:           '.*'
+    Priority:        50
+  - Regex:           '^"'
+    Priority:        99
+IncludeIsMainRegex: "^$"
+IndentCaseLabels: true
+SpaceBeforeParens: Never
+BraceWrapping:
+    # AfterCaseLabel: true
+    AfterClass: true
+    AfterControlStatement: true
+    AfterEnum: true
+    AfterFunction: true
+    AfterNamespace: true
+    AfterObjCDeclaration: true
+    AfterStruct: true
+    AfterUnion: true
+    AfterExternBlock: false
+    BeforeCatch: false
+    BeforeElse: false
+    IndentBraces: false
+    SplitEmptyFunction: true
+    SplitEmptyRecord: true
+    SplitEmptyNamespace: true
+...
+

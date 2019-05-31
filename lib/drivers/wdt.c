@@ -12,19 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "wdt.h"
-#include "platform.h"
-#include "stddef.h"
-#include "utils.h"
-#include "sysctl.h"
-#include "plic.h"
 #include "math.h"
+#include "platform.h"
+#include "plic.h"
+#include "stddef.h"
+#include "sysctl.h"
+#include "utils.h"
+#include "wdt.h"
 
 volatile wdt_t *const wdt[2] =
-{
-    (volatile wdt_t *)WDT0_BASE_ADDR,
-    (volatile wdt_t *)WDT1_BASE_ADDR
-};
+    {
+        (volatile wdt_t *)WDT0_BASE_ADDR,
+        (volatile wdt_t *)WDT1_BASE_ADDR};
 
 static void wdt_enable(wdt_device_number_t id)
 {
@@ -58,9 +57,9 @@ static uint8_t wdt_get_top(wdt_device_number_t id, uint64_t timeout_ms)
 {
     uint64_t wdt_clk = wdt_get_pclk(id);
     uint64_t ret = (timeout_ms * wdt_clk / 1000) >> 16;
-    if (ret)
+    if(ret)
         ret = (uint32_t)log2(ret);
-    if (ret > 0xf)
+    if(ret > 0xf)
         ret = 0xf;
     return (uint8_t)ret;
 }
@@ -112,4 +111,3 @@ void wdt_stop(wdt_device_number_t id)
 {
     wdt_disable(id);
 }
-

@@ -42,7 +42,7 @@ static inline void init_lma(void)
 
     src = &_data_lma;
     dst = &_data;
-    while (dst < &_edata)
+    while(dst < &_edata)
         *dst++ = *src++;
 }
 
@@ -53,7 +53,7 @@ static inline void init_bss(void)
     unsigned int *dst;
 
     dst = &_bss;
-    while (dst < &_ebss)
+    while(dst < &_ebss)
         *dst++ = 0;
 }
 
@@ -78,4 +78,3 @@ static inline void init_tls(void)
 #endif
 
 #endif /* _BSP_ENTRY_H */
-
