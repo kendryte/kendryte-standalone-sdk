@@ -757,6 +757,27 @@ static void kpu_kmodel_input_with_padding(const kpu_layer_argument_t *layer, con
     kpu_upload_core(width, height, channels, src, layer->image_addr.data.image_src_addr);
 }
 
+static void kpu_kmodel_input_float(const float* src, float* dest, size_t count)
+{
+    memcpy(dest, src, count * sizeof(float));
+}
+
+static void kpu_float_activation(float *data, size_t count, kpu_model_activation_t act)
+{
+    size_t i;
+
+    if (act == KLA_RELU)
+    {
+        for (i = 0; i < count; i++)
+            data[i] = max(data[i], 0);
+    }
+    else if (act == KLA_RELU6)
+    {
+        for (i = 0; i < count; i++)
+            data[i] = min(max(data[i], 0), 6);
+    }
+}
+
 static void kpu_kmodel_add(const kpu_model_add_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     const float *src_a = (const float *)(ctx->main_buffer + arg->main_mem_in_a_address);
@@ -1195,6 +1216,8 @@ static void kpu_kmodel_fully_connected(const kpu_model_fully_connected_layer_arg
             dest[oc] = sum + bias[oc];
         }
     }
+
+    kpu_float_activation(dest, out_channels, arg->act);
 }
 
 static void kpu_tf_flatten(const kpu_model_tf_flatten_layer_argument_t *arg, kpu_model_context_t *ctx)
@@ -1657,19 +1680,34 @@ int kpu_run_kmodel(kpu_model_context_t *ctx, const uint8_t *src, dmac_channel_nu
     plic_irq_enable(IRQN_AI_INTERRUPT);
 
     const kpu_model_layer_header_t *first_layer_header = ctx->layer_headers;
-    if (first_layer_header->type != KL_K210_CONV)
-        return -1;
-    const kpu_model_conv_layer_argument_t *first_layer = (const kpu_model_conv_layer_argument_t *)ctx->body_start;
-    kpu_layer_argument_t layer_arg = *(volatile kpu_layer_argument_t *)(ctx->model_buffer + first_layer->layer_offset);
 
-    if ((layer_arg.image_size.data.i_row_wid + 1) % 64 != 0)
+    switch (first_layer_header->type)
     {
-        kpu_kmodel_input_with_padding(&layer_arg, src);
-        ai_step_not_isr(ctx);
-    }
-    else
-    {
-        kpu_input_dma(&layer_arg, src, ctx->dma_ch, ai_step, ctx);
+    case KL_K210_CONV:
+        {
+            const kpu_model_conv_layer_argument_t *first_layer = (const kpu_model_conv_layer_argument_t *)ctx->body_start;
+            kpu_layer_argument_t layer_arg = *(volatile kpu_layer_argument_t *)(ctx->model_buffer + first_layer->layer_offset);
+
+            if ((layer_arg.image_size.data.i_row_wid + 1) % 64 != 0)
+            {
+                kpu_kmodel_input_with_padding(&layer_arg, src);
+                ai_step_not_isr(ctx);
+            }
+            else
+            {
+                kpu_input_dma(&layer_arg, src, ctx->dma_ch, ai_step, ctx);
+            }
+        }
+        break;
+    case KL_FULLY_CONNECTED:
+        {
+            const kpu_model_fully_connected_layer_argument_t *first_layer = (const kpu_model_fully_connected_layer_argument_t *)ctx->body_start;
+            kpu_kmodel_input_float((const float *)src, (float *)(ctx->main_buffer + first_layer->main_mem_in_address), first_layer->in_channels);
+            ai_step_not_isr(ctx);
+        }
+        break;
+    default:
+        return -1;
     }
 
     return 0;
