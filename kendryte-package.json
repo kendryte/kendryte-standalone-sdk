@@ -1,6 +1,6 @@
 {
 	"$schema": "vscode://schemas/CMakeLists",
-	"name": "kendryte-standalone-sdk",
+	"name": "kendryte/standalone-sdk",
 	"version": "develop",
 	"type": "library",
 	"extraList": "cmake/ide.cmake",
