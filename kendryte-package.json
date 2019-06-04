@@ -5,12 +5,9 @@
 	"type": "library",
 	"extraList": "cmake/ide.cmake",
 	"include": [
-		"lib/drivers/include",
-		"lib/bsp/include",
-		"lib/utils/include",
-		"lib/freertos/include",
-		"lib/freertos/conf",
-		"lib/freertos/portable"
+		"./lib/bsp/include",
+		"./lib/drivers/include",
+		"./lib/utils/include"
 	],
 	"source": [
 		"lib/**/*.c",
