@@ -24,48 +24,6 @@
 extern "C" {
 #endif
 
-/**
- * @brief Logging library
- *
- * Log library has two ways of managing log verbosity: compile time, set via
- * menuconfig
- *
- * At compile time, filtering is done using CONFIG_LOG_DEFAULT_LEVEL macro, set via
- * menuconfig. All logging statments for levels higher than CONFIG_LOG_DEFAULT_LEVEL
- * will be removed by the preprocessor.
- *
- *
- * How to use this library:
- *
- * In each C file which uses logging functionality, define TAG variable like this:
- *
- *      static const char *TAG = "MODULE_NAME";
- *
- * then use one of logging macros to produce output, e.g:
- *
- *      LOGW(TAG, "Interrupt error %d", error);
- *
- * Several macros are available for different verbosity levels:
- *
- *      LOGE - error
- *      LOGW - warning
- *      LOGI - info
- *      LOGD - debug
- *      LOGV - verbose
- *
- * To override default verbosity level at file or component scope, define LOG_LEVEL macro.
- * At file scope, define it before including esp_log.h, e.g.:
- *
- *      #define LOG_LEVEL LOG_VERBOSE
- *      #include "dxx_log.h"
- *
- * At component scope, define it in component makefile:
- *
- *      CFLAGS += -D LOG_LEVEL=LOG_DEBUG
- *
- *
- */
-
 /* clang-format off */
 typedef enum _kendryte_log_level
 {
