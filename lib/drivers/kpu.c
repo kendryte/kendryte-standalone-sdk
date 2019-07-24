@@ -10,6 +10,7 @@
 #include "dmac.h"
 #include "kpu.h"
 #include "printf.h"
+#include "nncase.h"
 
 #define LAYER_BURST_SIZE 12
 
@@ -1361,6 +1362,7 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
 
     if(header->version == 3 && header->arch == 0)
     {
+        ctx->is_nncase = 0;
         ctx->model_buffer = buffer;
         ctx->output_count = header->output_count;
         ctx->outputs = (const kpu_model_output_t *)(base_addr + sizeof(kpu_kmodel_header_t));
@@ -1370,6 +1372,9 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
         ctx->main_buffer = (uint8_t *)malloc(header->main_mem_usage);
         if(!ctx->main_buffer)
             return -1;
+    } else if(header->version == 'KMDL')
+    {
+        return nncase_load_kmodel(ctx, buffer);
     } else
     {
         return -1;
@@ -1380,6 +1385,9 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
 
 int kpu_get_output(kpu_model_context_t *ctx, uint32_t index, uint8_t **data, size_t *size)
 {
+    if(ctx->is_nncase)
+        return nncase_get_output(ctx, index, data, size);
+
     if(index >= ctx->output_count)
         return -1;
 
@@ -1391,6 +1399,9 @@ int kpu_get_output(kpu_model_context_t *ctx, uint32_t index, uint8_t **data, siz
 
 void kpu_model_free(kpu_model_context_t *ctx)
 {
+    if(ctx->is_nncase)
+        return nncase_model_free(ctx);
+
     free(ctx->main_buffer);
     ctx->main_buffer = NULL;
 }
@@ -1595,6 +1606,9 @@ static void ai_step_not_isr(void *userdata)
 
 int kpu_run_kmodel(kpu_model_context_t *ctx, const uint8_t *src, dmac_channel_number_t dma_ch, kpu_done_callback_t done_callback, void *userdata)
 {
+    if(ctx->is_nncase)
+        return nncase_run_kmodel(ctx, src, dma_ch, done_callback, userdata);
+
     ctx->dma_ch = dma_ch;
     ctx->done_callback = done_callback;
     ctx->userdata = userdata;

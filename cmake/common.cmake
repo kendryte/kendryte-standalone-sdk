@@ -22,6 +22,11 @@ ENDIF ()
 # definitions in macros
 add_definitions(-DCONFIG_LOG_LEVEL=LOG_VERBOSE -DCONFIG_LOG_ENABLE -DCONFIG_LOG_COLORS -DLOG_KERNEL -D__riscv64 -DLV_CONF_INCLUDE_SIMPLE)
 
+# xtl options
+add_definitions(-DTCB_SPAN_NO_EXCEPTIONS -DTCB_SPAN_NO_CONTRACT_CHECKING)
+# nncase options
+add_definitions(-DNNCASE_TARGET=k210)
+
 if (NOT SDK_ROOT)
     get_filename_component(_SDK_ROOT ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
     global_set(SDK_ROOT ${_SDK_ROOT})
