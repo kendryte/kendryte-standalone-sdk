@@ -663,18 +663,31 @@ typedef void (*kpu_done_callback_t)(void *userdata);
 
 typedef struct
 {
-    const uint8_t *model_buffer;
-    uint8_t *main_buffer;
-    uint32_t output_count;
-    const kpu_model_output_t *outputs;
-    const kpu_model_layer_header_t *layer_headers;
-    const uint8_t *body_start;
-    uint32_t layers_length;
-    volatile uint32_t current_layer;
-    const uint8_t *volatile current_body;
-    dmac_channel_number_t dma_ch;
-    kpu_done_callback_t done_callback;
-    void *userdata;
+    int is_nncase;
+
+    union
+    {
+        struct
+        {
+            const uint8_t *model_buffer;
+            uint8_t *main_buffer;
+            uint32_t output_count;
+            const kpu_model_output_t *outputs;
+            const kpu_model_layer_header_t *layer_headers;
+            const uint8_t *body_start;
+            uint32_t layers_length;
+            volatile uint32_t current_layer;
+            const uint8_t *volatile current_body;
+            dmac_channel_number_t dma_ch;
+            kpu_done_callback_t done_callback;
+            void *userdata;
+        };
+
+        struct
+        {
+            void* nncase_ctx;
+        };
+    };
 } kpu_model_context_t;
 
 typedef struct
