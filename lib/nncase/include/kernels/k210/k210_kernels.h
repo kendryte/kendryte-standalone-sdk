@@ -1,7 +1,21 @@
+/* Copyright 2019 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
 #include "../utils.h"
-#include <runtime_op_utility.h>
-#include <targets/k210/k210_runtime_op_utility.h>
+#include <runtime/k210/k210_runtime_op_utility.h>
+#include <runtime/runtime_op_utility.h>
 
 namespace nncase
 {
@@ -9,16 +23,39 @@ namespace kernels
 {
     namespace k210
     {
+        namespace details
+        {
+            template <class T>
+            struct pool_partial_type;
+
+            template <>
+            struct pool_partial_type<uint8_t>
+            {
+                using type = uint32_t;
+            };
+
+            template <>
+            struct pool_partial_type<float>
+            {
+                using type = float;
+            };
+
+            template <class T>
+            using pool_partial_type_t = typename pool_partial_type<T>::type;
+        }
+
         inline void kpu_upload(const uint8_t *src, uint8_t *dest, const runtime_shape_t &in_shape)
         {
+            using namespace runtime::k210;
+
             if (in_shape[3] % 64 == 0)
             {
                 std::copy(src, src + kernels::details::compute_size(in_shape), dest);
             }
             else
             {
-                auto layout = targets::k210::get_kpu_row_layout(in_shape[3]);
-                auto fmap_size = targets::k210::get_kpu_bytes(in_shape[3], in_shape[2], in_shape[1]);
+                auto layout = get_kpu_row_layout(in_shape[3]);
+                auto fmap_size = get_kpu_bytes(in_shape[3], in_shape[2], in_shape[1]);
 
                 for (int32_t batch = 0; batch < in_shape[0]; batch++)
                 {
@@ -37,18 +74,18 @@ namespace kernels
             }
         }
 
-#if NNCASE_TARGET_K210_SIMULATOR
-
         inline void kpu_download(const uint8_t *src, uint8_t *dest, const runtime_shape_t &in_shape)
         {
+            using namespace runtime::k210;
+
             if (in_shape[3] % 64 == 0)
             {
                 std::copy(src, src + kernels::details::compute_size(in_shape), dest);
             }
             else
             {
-                auto layout = targets::k210::get_kpu_row_layout(in_shape[3]);
-                auto fmap_size = targets::k210::get_kpu_bytes(in_shape[3], in_shape[2], in_shape[1]);
+                auto layout = get_kpu_row_layout(in_shape[3]);
+                auto fmap_size = get_kpu_bytes(in_shape[3], in_shape[2], in_shape[1]);
 
                 for (int32_t batch = 0; batch < in_shape[0]; batch++)
                 {
@@ -69,7 +106,7 @@ namespace kernels
 
         template <bool IsDepthwise, int32_t FilterSize>
         void kpu_conv2d(const uint8_t *input, int64_t *workspace, uint8_t *output, const uint8_t *weights, int32_t in_h, int32_t in_w, int32_t in_channels, int32_t out_channels, uint8_t pad_value, int32_t arg_x,
-            int32_t shift_x, int32_t arg_w, int32_t shift_w, int64_t arg_add, const targets::k210::kpu_batchnorm_segment *batchnorm, const targets::k210::kpu_activation_table_t &activation)
+            int32_t shift_x, int32_t arg_w, int32_t shift_w, int64_t arg_add, const runtime::k210::kpu_batchnorm_segment *batchnorm, const runtime::k210::kpu_activation_table_t &activation)
         {
             const auto channel_size = size_t(in_h) * in_w;
             // conv
@@ -142,19 +179,21 @@ namespace kernels
                     for (size_t i = 0; i < channel_size; i++)
                     {
                         auto value = (*src_it++ * bn.mul >> bn.shift) + bn.add;
-                        auto &seg = *std::find_if(activation.rbegin(), activation.rend(), [value](const targets::k210::kpu_activation_segment &seg) {
+                        auto &seg = *std::find_if(activation.rbegin(), activation.rend(), [value](const runtime::k210::kpu_activation_segment &seg) {
                             return value > seg.start_x;
                         });
-                        value = runtime::carry_shift((value - seg.start_x) * seg.mul, seg.shift);
+                        value = runtime::carry_shift<int64_t, true>((value - seg.start_x) * seg.mul, seg.shift);
                         *out_it++ = (uint8_t)std::clamp(value, int64_t(0), int64_t(255));
                     }
                 }
             }
         }
 
-        inline void kpu_pool2d(const uint8_t *input, uint8_t *output, int32_t in_h, int32_t in_w, int32_t in_channels, targets::k210::kpu_pool_type_t pool_type)
+        template <class T>
+        inline void kpu_pool2d(const T *input, T *output, int32_t in_h, int32_t in_w, int32_t in_channels, runtime::k210::kpu_pool_type_t pool_type)
         {
-            using namespace targets::k210;
+            using namespace runtime::k210;
+            using partial_t = details::pool_partial_type_t<T>;
 
             const auto filter = get_kpu_filter_size(pool_type);
             const auto stride = get_kpu_filter_stride(pool_type);
@@ -171,7 +210,7 @@ namespace kernels
                     {
                         const int32_t in_y_origin = oy * stride;
                         const int32_t in_x_origin = ox * stride;
-                        int32_t value = 0;
+                        partial_t value = 0;
 
                         switch (pool_type)
                         {
@@ -187,16 +226,17 @@ namespace kernels
                         case kpu_pool_max_2_s1:
                         case kpu_pool_max_4_s4:
                         {
+                            value = std::numeric_limits<T>::lowest();
                             for (int32_t ky = 0; ky < filter; ky++)
                             {
                                 for (int32_t kx = 0; kx < filter; kx++)
                                 {
                                     const int32_t in_y = in_y_origin + ky;
                                     const int32_t in_x = in_x_origin + kx;
-                                    int32_t in_v;
+                                    partial_t in_v;
 
                                     if (in_y < 0 || in_y >= in_h || in_x < 0 || in_x >= in_w)
-                                        in_v = 0;
+                                        in_v = std::numeric_limits<T>::lowest();
                                     else
                                         in_v = in_c_p[in_y * in_w + in_x];
 
@@ -216,7 +256,7 @@ namespace kernels
                                 {
                                     const int32_t in_y = std::clamp(in_y_origin + ky, 0, in_h - 1);
                                     const int32_t in_x = std::clamp(in_x_origin + kx, 0, in_w - 1);
-                                    const int32_t in_v = in_c_p[in_y * in_w + in_x];
+                                    const T in_v = in_c_p[in_y * in_w + in_x];
 
                                     value += in_v;
                                 }
@@ -232,7 +272,7 @@ namespace kernels
                             auto k_off = get_kpu_select_pool_offset(pool_type);
                             const int32_t in_y = in_y_origin + k_off[0];
                             const int32_t in_x = in_x_origin + k_off[1];
-                            int32_t in_v;
+                            partial_t in_v;
 
                             if (in_y < 0 || in_y >= in_h || in_x < 0 || in_x >= in_w)
                                 in_v = 0;
@@ -244,13 +284,68 @@ namespace kernels
                         }
                         }
 
-                        *output++ = (uint8_t)value;
+                        *output++ = (T)value;
                     }
                 }
             }
         }
 
-#endif
+        template <bool IsDepthwise, int32_t FilterSize>
+        void fake_kpu_conv2d(const float *input, float *output, const float *weights, const float *bias, int32_t in_h, int32_t in_w, int32_t in_channels, int32_t out_channels, const value_range<float> &fused_activation)
+        {
+            const auto channel_size = size_t(in_h) * in_w;
+
+            const auto pad = FilterSize == 1 ? 0 : 1;
+            const auto groups = IsDepthwise ? out_channels : 1;
+            const auto g_ic = IsDepthwise ? 1 : in_channels / groups;
+            const auto g_oc = IsDepthwise ? 1 : out_channels;
+
+            for (int32_t og = 0; og < groups; og++)
+            {
+                const auto *w_group_p = weights + (size_t)og * g_oc * g_ic * FilterSize * FilterSize;
+
+                for (int32_t oc = 0; oc < g_oc; oc++)
+                {
+                    const auto *w_oc_p = w_group_p + (size_t)oc * g_ic * FilterSize * FilterSize;
+
+                    for (int32_t oy = 0; oy < in_h; oy++)
+                    {
+                        for (int32_t ox = 0; ox < in_w; ox++)
+                        {
+                            const int32_t in_y_origin = oy - pad;
+                            const int32_t in_x_origin = ox - pad;
+                            const int32_t filter_y_start = std::max(0, -in_y_origin);
+                            const int32_t filter_y_end = std::min(FilterSize, in_h - in_y_origin);
+                            const int32_t filter_x_start = std::max(0, -in_x_origin);
+                            const int32_t filter_x_end = std::min(FilterSize, in_w - in_x_origin);
+                            float value = bias[og * g_oc + oc];
+
+                            for (int32_t ic = 0; ic < g_ic; ic++)
+                            {
+                                const auto *in_c_p = input + ((size_t)og * g_ic + ic) * in_h * in_w;
+                                const auto *w_ic_p = w_oc_p + (size_t)ic * FilterSize * FilterSize;
+
+                                for (int32_t ky = filter_y_start; ky < filter_y_end; ky++)
+                                {
+                                    for (int32_t kx = filter_x_start; kx < filter_x_end; kx++)
+                                    {
+                                        const int32_t in_y = in_y_origin + ky;
+                                        const int32_t in_x = in_x_origin + kx;
+
+                                        const auto in_v = in_c_p[in_y * in_w + in_x];
+                                        const auto w = w_ic_p[ky * FilterSize + kx];
+
+                                        value += in_v * w;
+                                    }
+                                }
+                            }
+
+                            *output++ = kernels::details::apply_activation(value, fused_activation);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 }

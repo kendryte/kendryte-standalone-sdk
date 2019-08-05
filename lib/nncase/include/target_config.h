@@ -13,22 +13,20 @@
  * limitations under the License.
  */
 #pragma once
-#include "target_interpreter.h"
-#include <datatypes.h>
-#include <runtime/runtime_op.h>
-#include <xtl/xspan.hpp>
+#include <cassert>
 
-namespace nncase
-{
-namespace runtime
-{
-    enum kernel_call_result
-    {
-        kcr_done,
-        kcr_async,
-        kcr_error
-    };
+// clang-format off
+#define NNCASE_STRINGFY(x) #x
+#define NNCASE_CONCAT_2(a, b) a/b
+#define NNCASE_CONCAT_3(a, b, c) NNCASE_CONCAT_2(NNCASE_CONCAT_2(a, b), c)
+// clang-format on
 
-    kernel_call_result call_kernel(runtime_opcode opcode, xtl::span<const uint8_t> body, interpreter_t &interpreter, interpreter_step_t step);
-}
-}
+#define NNCASE_TARGET_HEADER_(prefix, target, name) <NNCASE_CONCAT_3(prefix, target, name)>
+#define NNCASE_TARGET_HEADER(prefix, name) NNCASE_TARGET_HEADER_(prefix, NNCASE_TARGET, name)
+
+#ifndef NNCASE_NO_EXCEPTIONS
+#include <stdexcept>
+#define NNCASE_THROW(exception, ...) throw exception(__VA_ARGS__)
+#else
+#define NNCASE_THROW(exception, ...) assert(0 && #exception)
+#endif

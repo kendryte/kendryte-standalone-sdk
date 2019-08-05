@@ -1,4 +1,4 @@
-/* Copyright 2018 Canaan Inc.
+/* Copyright 2019 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,25 @@
  * limitations under the License.
  */
 #include <nncase.h>
-#include <runtime/target_config.h>
+#include <kernels/k210/k210_kernels.h>
+#include <runtime/target_interpreter.h>
 #include <stdio.h>
 
 using namespace nncase;
 using namespace nncase::runtime;
+
+#define NNCASE_DEBUG 0
+
+namespace
+{
+void kpu_upload_dma(dmac_channel_number_t dma_ch, const uint8_t *src, uint8_t *dest, size_t input_size, plic_irq_callback_t callback, void *userdata)
+{
+    dmac_set_irq(dma_ch, callback, userdata, 1);
+    dmac_set_single_mode(dma_ch, (void *)src, (void *)dest, DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
+        DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
+    usleep(1);
+}
+}
 
 class nncase_context
 {
@@ -46,18 +60,44 @@ public:
 
         auto input = interpreter_.input_at(0);
         auto mem = interpreter_.memory_at<uint8_t>(input);
-        std::copy(src, src + mem.size(), mem.begin());
-        interpreter_.run(done_thunk, on_error_thunk, node_profile_thunk, this);
-        return 0;
+        if (input.memory_type == mem_main)
+        {
+            std::copy(src, src + mem.size(), mem.begin());
+            interpreter_.run(done_thunk, on_error_thunk, node_profile_thunk, this);
+            return 0;
+        }
+        else if (input.memory_type == mem_k210_kpu)
+        {
+            auto shape = interpreter_.input_shape_at(0);
+            if (shape[3] % 64 == 0)
+            {
+                kpu_upload_dma(dma_ch, src, mem.data(), mem.size(), upload_done_thunk, this);
+            }
+            else
+            {
+                kernels::k210::kpu_upload(src, mem.data(), shape);
+            }
+
+            return 0;
+        }
+
+        return -1;
     }
 
 private:
     void on_done()
     {
+#if NNCASE_DEBUG
         printf("Total: %fms\n", interpreter_.total_duration().count() / 1e6);
+#endif
 
         if (done_callback_)
             done_callback_(userdata_);
+    }
+
+    void on_upload_done()
+    {
+        interpreter_.run(done_thunk, on_error_thunk, node_profile_thunk, this);
     }
 
     static void done_thunk(void *userdata)
@@ -67,12 +107,22 @@ private:
 
     static void on_error_thunk(const char *err, void *userdata)
     {
+#if NNCASE_DEBUG
         printf("Fatal: %s\n", err);
+#endif
     }
 
     static void node_profile_thunk(runtime_opcode op, std::chrono::nanoseconds duration, void *userdata)
     {
+#if NNCASE_DEBUG
         printf("%s: %fms\n", node_opcode_names(op).data(), duration.count() / 1e6);
+#endif
+    }
+
+    static int upload_done_thunk(void *userdata)
+    {
+        reinterpret_cast<nncase_context *>(userdata)->on_upload_done();
+        return 0;
     }
 
 private:

@@ -13,22 +13,24 @@
  * limitations under the License.
  */
 #pragma once
-#include "target_interpreter.h"
-#include <datatypes.h>
-#include <runtime/runtime_op.h>
-#include <xtl/xspan.hpp>
+#include <filesystem>
+#include <fstream>
+#include <vector>
 
 namespace nncase
 {
-namespace runtime
+inline std::vector<uint8_t> read_file(const std::filesystem::path &filename)
 {
-    enum kernel_call_result
-    {
-        kcr_done,
-        kcr_async,
-        kcr_error
-    };
+    std::ifstream infile(filename, std::ios::binary | std::ios::in);
+    if (infile.bad())
+        throw std::runtime_error("Cannot open file: " + filename.string());
 
-    kernel_call_result call_kernel(runtime_opcode opcode, xtl::span<const uint8_t> body, interpreter_t &interpreter, interpreter_step_t step);
+    infile.seekg(0, std::ios::end);
+    size_t length = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> data(length);
+    infile.read(reinterpret_cast<char *>(data.data()), length);
+    infile.close();
+    return data;
 }
 }

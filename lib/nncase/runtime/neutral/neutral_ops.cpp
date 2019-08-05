@@ -1,6 +1,20 @@
+/* Copyright 2019 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <kernels/neutral/neutral_kernels.h>
 #include <runtime/kernel_registry.h>
-#include <targets/neutral/neutral_ops_body.h>
+#include <runtime/neutral/neutral_ops_body.h>
 
 using namespace nncase;
 using namespace nncase::runtime;
@@ -23,7 +37,7 @@ using namespace nncase::runtime;
 
 namespace nncase
 {
-namespace targets
+namespace runtime
 {
     namespace neutral
     {
@@ -50,6 +64,12 @@ namespace targets
                 return kcr_done;
             case binary_div:
                 binary([](auto a, auto b) { return a / b; });
+                return kcr_done;
+            case binary_min:
+                binary([](auto a, auto b) { return std::min(a, b); });
+                return kcr_done;
+            case binary_max:
+                binary([](auto a, auto b) { return std::max(a, b); });
                 return kcr_done;
             default:
                 return kcr_error;
@@ -146,6 +166,9 @@ namespace targets
             case reduce_max:
                 reduce([](auto a, auto b) { return std::max(a, b); });
                 return kcr_done;
+            case reduce_sum:
+                reduce([](auto a, auto b) { return a + b; });
+                return kcr_done;
             default:
                 return kcr_error;
             }
@@ -172,31 +195,33 @@ namespace targets
             case reduce_max:
                 reduce([](auto a, auto b) { return std::max(a, b); }, [](auto v, auto k) { return v; });
                 return kcr_done;
+            case reduce_sum:
+                reduce([](auto a, auto b) { return a + b; }, [](auto v, auto k) { return v; });
+                return kcr_done;
             default:
                 return kcr_error;
             }
         }
 
-        kernel_call_result resize_bilinear(resize_bilinear_options &options, interpreter_t &interpreter, interpreter_step_t step)
+        kernel_call_result resize_image(resize_image_options &options, interpreter_t &interpreter, interpreter_step_t step)
         {
             auto input = interpreter.memory_at<float>(options.input);
             auto output = interpreter.memory_at<float>(options.output);
 
-            kernels::neutral::resize_bilinear(input.data(), output.data(), options.in_shape, options.out_h, options.out_w, options.align_corners);
-            return kcr_done;
-        }
-
-        kernel_call_result resize_nearest_neighbor(resize_nearest_neighbor_options &options, interpreter_t &interpreter, runtime::interpreter_step_t step)
-        {
-            auto input = interpreter.memory_at<uint8_t>(options.input);
-            auto output = interpreter.memory_at<uint8_t>(options.output);
-
+            if (options.mode == image_resize_bilinear)
+            {
+                kernels::neutral::resize_bilinear(input.data(), output.data(), options.in_shape, options.out_h, options.out_w, options.align_corners);
+                return kcr_done;
+            }
+            else
+            {
 #define RESIZE_NN_KERNEL(T) \
     kernels::neutral::resize_nearest_neighbor(reinterpret_cast<const T *>(input.data()), reinterpret_cast<T *>(output.data()), options.in_shape, options.out_h, options.out_w);
 
-            ELEM_SIZE_IMPL(options.input.datatype, RESIZE_NN_KERNEL);
-            return kcr_done;
+                ELEM_SIZE_IMPL(options.input.datatype, RESIZE_NN_KERNEL);
+                return kcr_done;
 #undef RESIZE_NN_KERNEL
+            }
         }
 
         kernel_call_result softmax(softmax_options &options, interpreter_t &interpreter, interpreter_step_t step)
@@ -232,6 +257,52 @@ namespace targets
             ELEM_SIZE_IMPL(options.input.datatype, STRIDED_SLICE_KERNEL);
             return kcr_done;
 #undef STRIDED_SLICE_KERNEL
+        }
+
+        kernel_call_result unary(unary_options &options, interpreter_t &interpreter, interpreter_step_t step)
+        {
+            auto input = interpreter.memory_at<float>(options.input);
+            auto output = interpreter.memory_at<float>(options.output);
+
+            auto unary = [&](auto unary_op) {
+                kernels::neutral::unary(input.data(), output.data(), input.size(), unary_op);
+            };
+
+            switch (options.unary_op)
+            {
+            case unary_abs:
+                unary([](auto a) { return fabs(a); });
+                return kcr_done;
+            case unary_ceil:
+                unary([](auto a) { return ceilf(a); });
+                return kcr_done;
+            case unary_cos:
+                unary([](auto a) { return cosf(a); });
+                return kcr_done;
+            case unary_exp:
+                unary([](auto a) { return expf(a); });
+                return kcr_done;
+            case unary_floor:
+                unary([](auto a) { return floorf(a); });
+                return kcr_done;
+            case unary_log:
+                unary([](auto a) { return logf(a); });
+                return kcr_done;
+            case unary_neg:
+                unary([](auto a) { return -a; });
+                return kcr_done;
+            case unary_rsqrt:
+                unary([](auto a) { return 1.f / sqrtf(a); });
+                return kcr_done;
+            case unary_sin:
+                unary([](auto a) { return sinf(a); });
+                return kcr_done;
+            case unary_square:
+                unary([](auto a) { return a * a; });
+                return kcr_done;
+            default:
+                return kcr_error;
+            }
         }
     }
 }

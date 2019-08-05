@@ -1,3 +1,17 @@
+/* Copyright 2019 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
 #include "../node_body.h"
 #include "k210_runtime_op_utility.h"
@@ -5,7 +19,7 @@
 
 namespace nncase
 {
-namespace targets
+namespace runtime
 {
     namespace k210
     {
@@ -26,7 +40,7 @@ namespace targets
             const kpu_activate_table_t *activation;
             xtl::span<const uint8_t> weights;
 
-            void deserialize(runtime::span_reader &reader)
+            void deserialize(span_reader &reader)
             {
                 reader.read(main_mem_output);
                 reader.read(batches);
@@ -51,6 +65,27 @@ namespace targets
                 layer.kernel_calc_type_cfg.data.active_addr = (uintptr_t)activation;
                 layer.kernel_load_cfg.data.para_start_addr = (uintptr_t)weights.data();
 #endif
+            }
+
+            void serialize(binary_writer &writer)
+            {
+                writer.write(main_mem_output);
+                writer.write(batches);
+                writer.write(reserved0);
+
+                auto layer_pos = writer.position();
+                writer.position(layer_pos + std::streamoff(sizeof(layer)));
+                layer.kernel_pool_type_cfg.data.bwsx_base_addr = (uint32_t)writer.align_position(8);
+                writer.write_array(batch_norm);
+                layer.kernel_calc_type_cfg.data.active_addr = (uint32_t)writer.align_position(256);
+                writer.write(*activation);
+                layer.kernel_load_cfg.data.para_start_addr = (uint32_t)writer.align_position(128);
+                writer.write_array(weights);
+
+                auto end_pos = writer.position();
+                writer.position(layer_pos);
+                writer.write(layer);
+                writer.position(end_pos);
             }
         };
     }
