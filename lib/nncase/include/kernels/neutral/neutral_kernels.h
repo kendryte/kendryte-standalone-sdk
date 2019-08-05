@@ -1,7 +1,21 @@
+/* Copyright 2019 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
 #include "../utils.h"
 #include <cmath>
-#include <runtime_op_utility.h>
+#include <runtime/runtime_op_utility.h>
 #include <xtl/xspan.hpp>
 
 namespace nncase
@@ -82,7 +96,7 @@ namespace kernels
                                 const int32_t filter_y_end = std::min(filter_h, (in_shape[2] - in_y_origin + dilation_h - 1) / dilation_h);
                                 const int32_t filter_x_start = std::max(0, (-in_x_origin + dilation_w - 1) / dilation_w);
                                 const int32_t filter_x_end = std::min(filter_w, (in_shape[3] - in_x_origin + dilation_w - 1) / dilation_w);
-                                float value = bias[oc];
+                                float value = bias[og * g_oc + oc];
 
                                 for (int32_t ic = 0; ic < g_ic; ic++)
                                 {
@@ -172,7 +186,7 @@ namespace kernels
                             if (d0 < paddings[0].before || d0 >= out_shape[0] - paddings[0].after
                                 || d1 < paddings[1].before || d1 >= out_shape[1] - paddings[1].after
                                 || d2 < paddings[2].before || d2 >= out_shape[2] - paddings[2].after
-                                || d3 < paddings[3].before || d1 >= out_shape[3] - paddings[3].after)
+                                || d3 < paddings[3].before || d3 >= out_shape[3] - paddings[3].after)
                                 *output++ = pad_value;
                             else
                                 *output++ = in2[d3_origin + d3];

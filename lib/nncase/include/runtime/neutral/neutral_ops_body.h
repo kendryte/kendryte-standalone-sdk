@@ -1,9 +1,23 @@
+/* Copyright 2019 Canaan Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
 #include "../node_body.h"
 
 namespace nncase
 {
-namespace targets
+namespace runtime
 {
     namespace neutral
     {
@@ -28,7 +42,7 @@ namespace targets
             xtl::span<const memory_range> inputs;
             xtl::span<const int32_t> dims;
 
-            void deserialize(runtime::span_reader &reader)
+            void deserialize(span_reader &reader)
             {
                 reader.read(output);
                 reader.read(inner_size);
@@ -38,7 +52,7 @@ namespace targets
                 reader.read_span(dims, inputs_count);
             }
 
-            void serialize(runtime::binary_writer &writer) const
+            void serialize(binary_writer &writer) const
             {
                 writer.write(output);
                 writer.write(inner_size);
@@ -68,7 +82,7 @@ namespace targets
             xtl::span<const float> weights;
             xtl::span<const float> bias;
 
-            void deserialize(runtime::span_reader &reader)
+            void deserialize(span_reader &reader)
             {
                 reader.read(input);
                 reader.read(output);
@@ -88,7 +102,7 @@ namespace targets
                 reader.read_span(bias, out_channels);
             }
 
-            void serialize(runtime::binary_writer &writer) const
+            void serialize(binary_writer &writer) const
             {
                 writer.write(input);
                 writer.write(output);
@@ -127,7 +141,7 @@ namespace targets
             value_range<float> fused_activation;
             xtl::span<const float> bias;
 
-            void deserialize(runtime::span_reader &reader)
+            void deserialize(span_reader &reader)
             {
                 reader.read(input_a);
                 reader.read(input_b);
@@ -139,7 +153,7 @@ namespace targets
                 reader.read_span(bias, b_cols);
             }
 
-            void serialize(runtime::binary_writer &writer) const
+            void serialize(binary_writer &writer) const
             {
                 writer.write(input_a);
                 writer.write(input_b);
@@ -202,23 +216,14 @@ namespace targets
             value_range<float> fused_activation;
         };
 
-        struct resize_bilinear_options : public simple_node_body<resize_bilinear_options>
+        struct resize_image_options : public simple_node_body<resize_image_options>
         {
             memory_range input;
             memory_range output;
             runtime_shape_t in_shape;
             int32_t out_h;
             int32_t out_w;
-            bool align_corners;
-        };
-
-        struct resize_nearest_neighbor_options : public simple_node_body<resize_nearest_neighbor_options>
-        {
-            memory_range input;
-            memory_range output;
-            runtime_shape_t in_shape;
-            int32_t out_h;
-            int32_t out_w;
+            image_resize_mode_t mode;
             bool align_corners;
         };
 
@@ -252,6 +257,13 @@ namespace targets
             int32_t ellipsis_mask;
             int32_t new_axis_mask;
             int32_t shrink_axis_mask;
+        };
+
+        struct unary_options : public simple_node_body<unary_options>
+        {
+            memory_range input;
+            memory_range output;
+            unary_op_t unary_op;
         };
     }
 }
