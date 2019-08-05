@@ -269,7 +269,7 @@ void dmac_disable_channel_interrupt(dmac_channel_number_t channel_num)
     writeq(0, &dmac->channel[channel_num].intstatus_en);
 }
 
-static void dmac_chanel_interrupt_clear(dmac_channel_number_t channel_num)
+static void dmac_channel_interrupt_clear(dmac_channel_number_t channel_num)
 {
     writeq(0xffffffff, &dmac->channel[channel_num].intclear);
 }
@@ -716,7 +716,7 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
                           dmac_transfer_width_t dmac_trans_width,
                           size_t block_size)
 {
-    dmac_chanel_interrupt_clear(channel_num);
+    dmac_channel_interrupt_clear(channel_num);
     dmac_channel_disable(channel_num);
     dmac_wait_idle(channel_num);
     dmac_set_channel_param(channel_num, src, dest, src_inc, dest_inc,
@@ -752,7 +752,7 @@ void dmac_wait_idle(dmac_channel_number_t channel_num)
 {
     while(!dmac_is_idle(channel_num))
         ;
-    dmac_chanel_interrupt_clear(channel_num); /* clear interrupt */
+    dmac_channel_interrupt_clear(channel_num); /* clear interrupt */
 }
 
 void dmac_set_src_dest_length(dmac_channel_number_t channel_num, const void *src, void *dest, size_t len)
@@ -770,7 +770,7 @@ static int dmac_irq_callback(void *ctx)
 {
     dmac_context_t *v_dmac_context = (dmac_context_t *)(ctx);
     dmac_channel_number_t v_dmac_channel = v_dmac_context->dmac_channel;
-    dmac_chanel_interrupt_clear(v_dmac_channel);
+    dmac_channel_interrupt_clear(v_dmac_channel);
     if(v_dmac_context->callback != NULL)
         v_dmac_context->callback(v_dmac_context->ctx);
 
