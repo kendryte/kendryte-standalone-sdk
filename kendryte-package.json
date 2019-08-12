@@ -7,7 +7,9 @@
 	"include": [
 		"./lib/bsp/include",
 		"./lib/drivers/include",
-		"./lib/utils/include"
+		"./lib/utils/include",
+		"third_party/xtl/include",
+		"lib/nncase/include"
 	],
 	"source": [
 		"lib/**/*.c",
@@ -17,29 +19,21 @@
 	],
 	"c_flags": [
 		"-std=gnu11",
-		"-Wno-pointer-to-int-cast",
-		"-Wno-old-style-declaration"
+		"-Wno-pointer-to-int-cast"
 	],
 	"cpp_flags": [
 		"-std=gnu++17"
 	],
 	"c_cpp_flags": [
-		"-mcmodel=medany",
-		"-fno-common",
-		"-ffunction-sections",
-		"-fdata-sections",
-		"-fstrict-volatile-bitfields",
-		"-fno-zero-initialized-in-bss",
-		"-Os",
-		"-ggdb",
 		"-Wall",
 		"-Werror=all",
 		"-Wno-error=unused-function",
 		"-Wno-error=unused-but-set-variable",
 		"-Wno-error=unused-variable",
 		"-Wno-error=deprecated-declarations",
+		"-Wno-multichar",
 		"-Wextra",
-		"-Werror=frame-larger-than=65536",
+		"-Werror=frame-larger-than=32768",
 		"-Wno-unused-parameter",
 		"-Wno-sign-compare",
 		"-Wno-error=missing-braces",
@@ -48,7 +42,12 @@
 		"-Wno-missing-braces",
 		"-Wno-strict-aliasing",
 		"-Wno-implicit-fallthrough",
-		"-Wno-missing-field-initializers"
+		"-Wno-missing-field-initializers",
+		"-Wno-int-to-pointer-cast",
+		"-Wno-error=comment",
+		"-Wno-error=logical-not-parentheses",
+		"-Wno-error=duplicate-decl-specifier",
+		"-Wno-error=parentheses"
 	],
 	"link_flags": [
 		"-static",
@@ -64,5 +63,16 @@
 		"gcc",
 		"m",
 		"c"
+	],
+	"definitions": {
+		"TCB_SPAN_NO_EXCEPTIONS:raw": "",
+		"TCB_SPAN_NO_CONTRACT_CHECKING:raw": "",
+		"NNCASE_TARGET:raw": "k210"
+	},
+	"linkArgumentPrefix": [
+		"-Wl,--whole-archive"
+	],
+	"linkArgumentSuffix": [
+		"-Wl,--no-whole-archive"
 	]
 }
