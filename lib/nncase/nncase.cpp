@@ -76,6 +76,7 @@ public:
             else
             {
                 kernels::k210::kpu_upload(src, mem.data(), shape);
+                on_upload_done();
             }
 
             return 0;
