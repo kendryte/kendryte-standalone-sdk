@@ -67,7 +67,10 @@
 	"definitions": {
 		"TCB_SPAN_NO_EXCEPTIONS:raw": "",
 		"TCB_SPAN_NO_CONTRACT_CHECKING:raw": "",
-		"NNCASE_TARGET:raw": "k210"
+		"NNCASE_TARGET:raw": "k210",
+		"KENDRYTE_SDK_TYPE:raw": "1",
+		"KENDRYTE_SDK_TYPE_STANDALONE:raw": "1",
+		"KENDRYTE_SDK_TYPE_FREERTOS:raw": "2"
 	},
 	"linkArgumentPrefix": [
 		"-Wl,--whole-archive"
