@@ -352,7 +352,6 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
 {
     dmac_ch_ctl_u_t ctl;
     dmac_ch_cfg_u_t cfg_u;
-
     int mem_type_src = is_memory((uintptr_t)src), mem_type_dest = is_memory((uintptr_t)dest);
     dmac_transfer_flow_t flow_control;
     if(mem_type_src == 0 && mem_type_dest == 0)

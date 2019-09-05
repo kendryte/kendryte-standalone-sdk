@@ -168,14 +168,15 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
     i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
+    uint32_t *buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(buf);
     int i;
     for(i = 0; i < send_buf_len; i++)
     {
-        buf[i] = send_buf[i];
+        buf_nocache[i] = send_buf[i];
     }
 
     sysctl_dma_select((sysctl_dma_channel_t)dma_channel_num, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
-    dmac_set_single_mode(dma_channel_num, buf, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
+    dmac_set_single_mode(dma_channel_num, buf_nocache, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                          DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, send_buf_len);
 
     dmac_wait_done(dma_channel_num);
@@ -235,19 +236,20 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
 
     uint32_t *write_cmd = malloc(sizeof(uint32_t) * (send_buf_len + receive_buf_len));
+    uint32_t *write_cmd_nocache =  (uint32_t *)MEM_TO_NOCACHE(write_cmd);
     size_t i;
     for(i = 0; i < send_buf_len; i++)
-        write_cmd[i] = *send_buf++;
+        write_cmd_nocache[i] = *send_buf++;
     for(i = 0; i < receive_buf_len; i++)
-        write_cmd[i + send_buf_len] = I2C_DATA_CMD_CMD;
+        write_cmd_nocache[i + send_buf_len] = I2C_DATA_CMD_CMD;
 
     sysctl_dma_select((sysctl_dma_channel_t)dma_send_channel_num, SYSCTL_DMA_SELECT_I2C0_TX_REQ + i2c_num * 2);
     sysctl_dma_select((sysctl_dma_channel_t)dma_receive_channel_num, SYSCTL_DMA_SELECT_I2C0_RX_REQ + i2c_num * 2);
 
-    dmac_set_single_mode(dma_receive_channel_num, (void *)(&i2c_adapter->data_cmd), write_cmd, DMAC_ADDR_NOCHANGE,
+    dmac_set_single_mode(dma_receive_channel_num, (void *)(&i2c_adapter->data_cmd), write_cmd_nocache, DMAC_ADDR_NOCHANGE,
                          DMAC_ADDR_INCREMENT, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, receive_buf_len);
 
-    dmac_set_single_mode(dma_send_channel_num, write_cmd, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT,
+    dmac_set_single_mode(dma_send_channel_num, write_cmd_nocache, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT,
                          DMAC_ADDR_NOCHANGE, DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, receive_buf_len + send_buf_len);
 
     dmac_wait_done(dma_send_channel_num);
@@ -255,7 +257,7 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
 
     for(i = 0; i < receive_buf_len; i++)
     {
-        receive_buf[i] = (uint8_t)write_cmd[i];
+        receive_buf[i] = (uint8_t)write_cmd_nocache[i];
     }
 
     free(write_cmd);

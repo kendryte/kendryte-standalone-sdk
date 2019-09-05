@@ -342,7 +342,7 @@ uint32_t get_bit(volatile uint32_t *bits, uint32_t mask, size_t offset);
  */
 uint32_t get_gpio_bit(volatile uint32_t *bits, size_t offset);
 
-uint32_t is_memory_no_cache(uintptr_t address);
+uint32_t is_memory_cache(uintptr_t address);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

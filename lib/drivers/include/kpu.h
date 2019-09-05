@@ -671,6 +671,7 @@ typedef struct
         {
             const uint8_t *model_buffer;
             uint8_t *main_buffer;
+            uint8_t *main_buffer_cache;
             uint32_t output_count;
             const kpu_model_output_t *outputs;
             const kpu_model_layer_header_t *layer_headers;

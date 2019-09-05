@@ -11,6 +11,7 @@
 #include "kpu.h"
 #include "printf.h"
 #include "nncase.h"
+#include "utils.h"
 
 #define LAYER_BURST_SIZE 12
 
@@ -1369,9 +1370,10 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
         ctx->layer_headers = (const kpu_model_layer_header_t *)((uintptr_t)ctx->outputs + sizeof(kpu_model_output_t) * ctx->output_count);
         ctx->layers_length = header->layers_length;
         ctx->body_start = (const uint8_t *)((uintptr_t)ctx->layer_headers + sizeof(kpu_model_layer_header_t) * header->layers_length);
-        ctx->main_buffer = (uint8_t *)malloc(header->main_mem_usage);
-        if(!ctx->main_buffer)
+        ctx->main_buffer_cache = (uint8_t *)malloc(header->main_mem_usage);
+        if(!ctx->main_buffer_cache)
             return -1;
+        ctx->main_buffer =  (uint8_t *)MEM_TO_NOCACHE(ctx->main_buffer_cache);
     } else if(header->version == 'KMDL')
     {
         return nncase_load_kmodel(ctx, buffer);
@@ -1402,7 +1404,8 @@ void kpu_model_free(kpu_model_context_t *ctx)
     if(ctx->is_nncase)
         return nncase_model_free(ctx);
 
-    free(ctx->main_buffer);
+    free(ctx->main_buffer_cache);
+    ctx->main_buffer_cache = NULL;
     ctx->main_buffer = NULL;
 }
 
