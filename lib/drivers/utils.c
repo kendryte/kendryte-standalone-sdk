@@ -41,3 +41,12 @@ uint32_t get_gpio_bit(volatile uint32_t *bits, size_t offset)
 {
     return get_bit(bits, 1, offset);
 }
+
+uint32_t is_memory_no_cache(uintptr_t address)
+{
+    #define MEM_NO_CACHE_LEN (8 * 1024 * 1024)
+
+    return ((address >= 0x40000000) && (address < 0x40000000 + MEM_NO_CACHE_LEN));
+}
+
+
