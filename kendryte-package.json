@@ -37,7 +37,7 @@
 		"-ffast-math",
 		"-fno-math-errno",
 		"-fsingle-precision-constant",
-		"-O0",
+		"-Os",
 		"-ggdb",
 		"-Wall",
 		"-Werror=all",
