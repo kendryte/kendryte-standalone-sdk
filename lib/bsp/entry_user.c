@@ -35,6 +35,8 @@ volatile char *const ram = (volatile char *)RAM_BASE_ADDR;
 extern char _heap_start[];
 extern char _heap_end[];
 
+void __attribute__((weak)) initialize_kendryte_ide_hook(void) {}
+
 void thread_entry(int core_id)
 {
     while(!atomic_read(&g_wake_up[core_id]))
@@ -89,6 +91,8 @@ void _init_bsp(int core_id, int number_of_cores)
         plic_init();
         /* Enable global interrupt */
         sysctl_enable_irq();
+        /* Hook entry for kendryte IDE */
+        initialize_kendryte_ide_hook();
     }
 
     int ret = 0;

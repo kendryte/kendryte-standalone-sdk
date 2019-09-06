@@ -70,7 +70,8 @@
 		"NNCASE_TARGET:raw": "k210",
 		"KENDRYTE_SDK_TYPE:raw": "1",
 		"KENDRYTE_SDK_TYPE_STANDALONE:raw": "1",
-		"KENDRYTE_SDK_TYPE_FREERTOS:raw": "2"
+		"KENDRYTE_SDK_TYPE_FREERTOS:raw": "2",
+		"KENDRYTE_SDK_RELEASE_DATE:raw": "0"
 	},
 	"linkArgumentPrefix": [
 		"-Wl,--whole-archive"
