@@ -19,12 +19,26 @@
 	],
 	"c_flags": [
 		"-std=gnu11",
-		"-Wno-pointer-to-int-cast"
+		"-Wno-pointer-to-int-cast",
+		"-Wno-old-style-declaration"
 	],
 	"cpp_flags": [
 		"-std=gnu++17"
 	],
 	"c_cpp_flags": [
+		"-mcmodel=medany",
+		"-mabi=lp64f",
+		"-march=rv64imafc",
+		"-fno-common",
+		"-ffunction-sections",
+		"-fdata-sections",
+		"-fstrict-volatile-bitfields",
+		"-fno-zero-initialized-in-bss",
+		"-ffast-math",
+		"-fno-math-errno",
+		"-fsingle-precision-constant",
+		"-O0",
+		"-ggdb",
 		"-Wall",
 		"-Werror=all",
 		"-Wno-error=unused-function",
@@ -50,9 +64,12 @@
 		"-Wno-error=parentheses"
 	],
 	"link_flags": [
+		"-nostartfiles",
 		"-static",
+		"-Wl,--gc-sections",
 		"-Wl,-static",
-		"-Wl,-EL"
+		"-Wl,-EL",
+		"-Wl,--no-relax"
 	],
 	"ld_file": "lds/kendryte.ld",
 	"properties": {
