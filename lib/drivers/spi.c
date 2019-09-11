@@ -327,7 +327,7 @@ void spi_send_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_sel
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
     uint8_t *v_buf = malloc(cmd_len + tx_len);
-    uint8_t *v_buf_nocache =  (uint8_t *)MEM_TO_NOCACHE(v_buf);
+    uint8_t *v_buf_nocache =  (uint8_t *)IO_CACHE_EXCHANGE(v_buf);
     size_t i;
     for(i = 0; i < cmd_len; i++)
         v_buf_nocache[i] = cmd_buff[i];
@@ -372,7 +372,7 @@ void spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_nu
     {
         case SPI_TRANS_INT:
             buf = malloc(cmd_len + tx_len);
-            buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < cmd_len / 4; i++)
                 buf_nocache[i] = ((uint32_t *)cmd_buff)[i];
             for(i = 0; i < tx_len / 4; i++)
@@ -381,7 +381,7 @@ void spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_nu
             break;
         case SPI_TRANS_SHORT:
             buf = malloc((cmd_len + tx_len) / 2 * sizeof(uint32_t));
-            buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < cmd_len / 2; i++)
                 buf_nocache[i] = ((uint16_t *)cmd_buff)[i];
             for(i = 0; i < tx_len / 2; i++)
@@ -390,7 +390,7 @@ void spi_send_data_standard_dma(dmac_channel_number_t channel_num, spi_device_nu
             break;
         default:
             buf = malloc((cmd_len + tx_len) * sizeof(uint32_t));
-            buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < cmd_len; i++)
                 buf_nocache[i] = cmd_buff[i];
             for(i = 0; i < tx_len; i++)
@@ -418,7 +418,7 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
     {
         case SPI_TRANS_SHORT:
             buf = malloc((tx_len) * sizeof(uint32_t));
-            buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < tx_len; i++)
                 buf_nocache[i] = ((uint16_t *)tx_buff)[i];
             break;
@@ -428,7 +428,7 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
         case SPI_TRANS_CHAR:
         default:
             buf = malloc((tx_len) * sizeof(uint32_t));
-            buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < tx_len; i++)
                 buf_nocache[i] = ((uint8_t *)tx_buff)[i];
             break;
@@ -481,9 +481,9 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
     size_t v_max_len = v_tx_len > v_rx_len ? v_tx_len : v_rx_len;
 
     uint32_t *v_tx_buf = malloc(v_max_len * 4);
-    uint32_t *v_tx_buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(v_tx_buf);
+    uint32_t *v_tx_buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(v_tx_buf);
     uint32_t *v_rx_buf = malloc(v_max_len * 4);
-    uint32_t *v_rx_buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(v_rx_buf);
+    uint32_t *v_rx_buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(v_rx_buf);
     uint32_t i = 0;
     switch(frame_width)
     {
@@ -733,7 +733,7 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
     {
         case SPI_TRANS_INT:
             write_cmd = malloc(cmd_len + rx_len);
-            write_cmd_nocache = (uint32_t *)MEM_TO_NOCACHE(write_cmd);
+            write_cmd_nocache = (uint32_t *)IO_CACHE_EXCHANGE(write_cmd);
             for(i = 0; i < cmd_len / 4; i++)
                 write_cmd_nocache[i] = ((uint32_t *)cmd_buff)[i];
             read_buf = &write_cmd_nocache[i];
@@ -742,7 +742,7 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
             break;
         case SPI_TRANS_SHORT:
             write_cmd = malloc((cmd_len + rx_len) / 2 * sizeof(uint32_t));
-            write_cmd_nocache = (uint32_t *)MEM_TO_NOCACHE(write_cmd);
+            write_cmd_nocache = (uint32_t *)IO_CACHE_EXCHANGE(write_cmd);
             for(i = 0; i < cmd_len / 2; i++)
                 write_cmd_nocache[i] = ((uint16_t *)cmd_buff)[i];
             read_buf = &write_cmd_nocache[i];
@@ -751,7 +751,7 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
             break;
         default:
             write_cmd = malloc((cmd_len + rx_len) * sizeof(uint32_t));
-            write_cmd_nocache = (uint32_t *)MEM_TO_NOCACHE(write_cmd);
+            write_cmd_nocache = (uint32_t *)IO_CACHE_EXCHANGE(write_cmd);
             for(i = 0; i < cmd_len; i++)
                 write_cmd_nocache[i] = cmd_buff[i];
             read_buf = &write_cmd_nocache[i];
@@ -903,7 +903,7 @@ void spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num,
             break;
         case SPI_TRANS_SHORT:
             write_cmd = malloc(cmd_len + rx_len / 2 * sizeof(uint32_t));
-            write_cmd_nocache = (uint32_t *)MEM_TO_NOCACHE(write_cmd);
+            write_cmd_nocache = (uint32_t *)IO_CACHE_EXCHANGE(write_cmd);
             for(i = 0; i < cmd_len; i++)
                 write_cmd_nocache[i] = cmd_buff[i];
             read_buf = &write_cmd_nocache[i];
@@ -911,7 +911,7 @@ void spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num,
             break;
         default:
             write_cmd = malloc(cmd_len + rx_len * sizeof(uint32_t));
-            write_cmd_nocache = (uint32_t *)MEM_TO_NOCACHE(write_cmd);
+            write_cmd_nocache = (uint32_t *)IO_CACHE_EXCHANGE(write_cmd);
             for(i = 0; i < cmd_len; i++)
                 write_cmd_nocache[i] = cmd_buff[i];
             read_buf = &write_cmd_nocache[i];
@@ -998,7 +998,7 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
     {
         case SPI_TRANS_INT:
             buf = malloc(cmd_len * sizeof(uint32_t) + tx_len);
-            buf_nocache = (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache = (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < cmd_len; i++)
                 buf_nocache[i] = cmd_buff[i];
             for(i = 0; i < tx_len / 4; i++)
@@ -1007,7 +1007,7 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
             break;
         case SPI_TRANS_SHORT:
             buf = malloc(cmd_len * sizeof(uint32_t) + tx_len / 2 * sizeof(uint32_t));
-            buf_nocache = (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache = (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < cmd_len; i++)
                 buf_nocache[i] = cmd_buff[i];
             for(i = 0; i < tx_len / 2; i++)
@@ -1016,7 +1016,7 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
             break;
         default:
             buf = malloc((cmd_len + tx_len) * sizeof(uint32_t));
-            buf_nocache = (uint32_t *)MEM_TO_NOCACHE(buf);
+            buf_nocache = (uint32_t *)IO_CACHE_EXCHANGE(buf);
             for(i = 0; i < cmd_len; i++)
                 buf_nocache[i] = cmd_buff[i];
             for(i = 0; i < tx_len; i++)

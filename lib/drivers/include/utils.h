@@ -33,7 +33,7 @@ extern "C" {
 #define KENDRYTE_MIN(a, b) ((a) > (b) ? (b) : (a))
 #define KENDRYTE_MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define MEM_TO_NOCACHE(addr) ((uintptr_t)(addr) ^ 0xC0000000)
+#define IO_CACHE_EXCHANGE(addr) ((uintptr_t)(addr) ^ 0xC0000000)
 
 #ifdef __ASSEMBLY__
 #define KENDRYTE_CAST(type, ptr) ptr

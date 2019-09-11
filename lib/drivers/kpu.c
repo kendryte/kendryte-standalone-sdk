@@ -724,7 +724,7 @@ static void kpu_kmodel_input_with_padding(const kpu_layer_argument_t *layer, con
 
 static void kpu_kmodel_input_float(const float *src, float *dest, size_t count)
 {
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, count * sizeof(float));
 
     memcpy(dest, src_cache, count * sizeof(float));
@@ -902,10 +902,10 @@ static void kpu_quantized_add(const kpu_model_quant_add_layer_argument_t *arg, k
 static void kpu_global_average_pool2d(const kpu_model_gap2d_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
 
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
 
     size_t oc, channels = arg->channels, kernel_size = arg->kernel_size;
 
@@ -977,9 +977,9 @@ static void kpu_average_pool2d(const kpu_model_ave_pool2d_layer_argument_t *arg,
 
     uint32_t out_y, out_x, oc;
 
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, in_shape.width * in_shape.height * out_shape.channels * sizeof(float));
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
 
     for(oc = 0; oc < out_shape.channels; oc++)
     {
@@ -1020,7 +1020,7 @@ static void kpu_quantize(const kpu_model_quantize_layer_argument_t *arg, kpu_mod
 {
     size_t count = arg->count;
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, count * sizeof(float));
     const kpu_model_quant_param_t q = arg->quant_param;
     float scale = 1.f / q.scale;
@@ -1043,7 +1043,7 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
 {
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
     size_t oc, count = arg->count;
     const kpu_model_quant_param_t q = arg->quant_param;
 
@@ -1057,7 +1057,7 @@ static void kpu_kmodel_channelwise_dequantize(const kpu_model_channelwise_dequan
 {
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
     size_t oc, i, channels = arg->channels, count = arg->channel_size;
 
     for(oc = 0; oc < channels; oc++)
@@ -1103,9 +1103,9 @@ static void kpu_l2_normalization(const kpu_model_l2_norm_layer_argument_t *arg, 
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, channels = arg->channels;
 
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, channels * sizeof(float));
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
     float sum = 0.f;
     const float epsilon = 1e-10f;
     for(oc = 0; oc < channels; oc++)
@@ -1125,9 +1125,9 @@ static void kpu_softmax(const kpu_model_softmax_layer_argument_t *arg, kpu_model
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, channels = arg->channels;
 
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, channels*sizeof(float));
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
 
     float max = FLT_MIN;
     for(oc = 0; oc < channels; oc++)
@@ -1168,9 +1168,9 @@ static void kpu_kmodel_fully_connected(const kpu_model_fully_connected_layer_arg
     uint32_t in_channels = arg->in_channels, out_channels = arg->out_channels, ic, oc;
     const float *weights = arg->weights, *bias = arg->weights + in_channels * out_channels;
 
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, in_channels * sizeof(float));
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
 
     if(in_channels % 8 == 0)
     {
@@ -1229,9 +1229,9 @@ static void kpu_tf_flatten(const kpu_model_tf_flatten_layer_argument_t *arg, kpu
     kpu_model_shape_t in_shape = arg->shape;
     uint32_t oc, oy, ox;
 
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, in_shape.height * in_shape.width * in_shape.channels * sizeof(float));
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
 
     for(oy = 0; oy < in_shape.height; oy++)
         for(ox = 0; ox < in_shape.width; ox++)
@@ -1252,9 +1252,9 @@ static void kpu_resize_nearest_neighbor(const kpu_model_resize_nearest_neighbor_
     float height_scale = (float)in_shape.height / out_height;
     float width_scale = (float)in_shape.width / out_width;
 
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, in_shape.width * in_shape.height * in_shape.channels * sizeof(float));
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
 
     for(oc = 0; oc < in_shape.channels; oc++)
     {
@@ -1307,9 +1307,9 @@ static void kpu_logistic(const kpu_model_logistic_layer_argument_t *arg, kpu_mod
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, channels = arg->channels;
 
-    float *src_cache = (float *)MEM_TO_NOCACHE(src);
+    float *src_cache = (float *)IO_CACHE_EXCHANGE(src);
     memcpy(src_cache, src, channels * sizeof(float));
-    float *dest_cache = (float *)MEM_TO_NOCACHE(dest);
+    float *dest_cache = (float *)IO_CACHE_EXCHANGE(dest);
 
     
     for(oc = 0; oc < channels; oc++)
@@ -1430,7 +1430,7 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
         ctx->main_buffer_cache = (uint8_t *)malloc(header->main_mem_usage);
         if(!ctx->main_buffer_cache)
             return -1;
-        ctx->main_buffer =  (uint8_t *)MEM_TO_NOCACHE(ctx->main_buffer_cache);
+        ctx->main_buffer =  (uint8_t *)IO_CACHE_EXCHANGE(ctx->main_buffer_cache);
     } else if(header->version == 'KMDL')
     {
         return nncase_load_kmodel(ctx, buffer);

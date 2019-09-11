@@ -483,7 +483,7 @@ void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
         uint32_t *buff[2];
         uint32_t *buff_cache;
         buff_cache = malloc(frame * 2 * sizeof(uint32_t) * 2);
-        buff[0] =  (uint32_t *)MEM_TO_NOCACHE(buff_cache);
+        buff[0] =  (uint32_t *)IO_CACHE_EXCHANGE(buff_cache);
         buff[1] = buff[0] + frame * 2;
         uint8_t flag = 0;
         size_t send_len = 0;

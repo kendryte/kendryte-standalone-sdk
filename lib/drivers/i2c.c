@@ -168,7 +168,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
     i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
-    uint32_t *buf_nocache =  (uint32_t *)MEM_TO_NOCACHE(buf);
+    uint32_t *buf_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(buf);
     int i;
     for(i = 0; i < send_buf_len; i++)
     {
@@ -236,7 +236,7 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
 
     uint32_t *write_cmd = malloc(sizeof(uint32_t) * (send_buf_len + receive_buf_len));
-    uint32_t *write_cmd_nocache =  (uint32_t *)MEM_TO_NOCACHE(write_cmd);
+    uint32_t *write_cmd_nocache =  (uint32_t *)IO_CACHE_EXCHANGE(write_cmd);
     size_t i;
     for(i = 0; i < send_buf_len; i++)
         write_cmd_nocache[i] = *send_buf++;
