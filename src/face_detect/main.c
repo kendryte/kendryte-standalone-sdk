@@ -265,6 +265,9 @@ int main(void)
     sysctl_enable_irq();
     /* system start */
     printf("System start\n");
+	uint64_t time_last = sysctl_get_time_us();
+	uint64_t time_now = sysctl_get_time_us();
+	int time_count = 0;
     while (1)
     {
         g_dvp_finish_flag = 0;
@@ -279,8 +282,12 @@ int main(void)
         float *output;
         size_t output_size;
         kpu_get_output(&face_detect_task, 0, (uint8_t **)&output, &output_size);
-        face_detect_rl.input = output;
+		float *output_cache = (float *)MEM_TO_NOCACHE(output);
+		memcpy(output_cache, output, output_size*sizeof(float));
+		//printf("output = %p \n", output);
+        face_detect_rl.input = output_cache;
         region_layer_run(&face_detect_rl, &face_detect_info);
+        //printk("%d %d %d\n", face_detect_info.obj_number, face_detect_info.obj[0].x1,face_detect_info.obj[0].x2);
         /* run key point detect */
         for (uint32_t face_cnt = 0; face_cnt < face_detect_info.obj_number; face_cnt++)
         {
@@ -288,5 +295,12 @@ int main(void)
         }
         /* display result */
         lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
+		time_count ++;
+		if(time_count % 100 == 0)
+		{
+			time_now = sysctl_get_time_us();
+			printf("SPF:%fms\n", (time_now - time_last)/1000.0/100);
+			time_last = time_now;
+		}
     }
 }

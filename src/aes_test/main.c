@@ -34,8 +34,8 @@ uint8_t aes_decrypt_data[16];
 
 int main(void)
 {
-	uint8_t *aes_out_data_nochche = (uint8_t *)MEM_TO_NOCACHE(aes_out_data);
-	uint8_t *aes_decrypt_data_nochche = (uint8_t *)MEM_TO_NOCACHE(aes_decrypt_data);
+	uint8_t *aes_out_data_nochche = (uint8_t *)IO_CACHE_EXCHANGE(aes_out_data);
+	uint8_t *aes_decrypt_data_nochche = (uint8_t *)IO_CACHE_EXCHANGE(aes_decrypt_data);
 	printf("hello AES \n");
     cbc_context_t cbc_context;
 
