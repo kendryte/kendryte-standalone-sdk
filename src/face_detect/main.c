@@ -283,8 +283,8 @@ int main(void)
         size_t output_size;
         kpu_get_output(&face_detect_task, 0, (uint8_t **)&output, &output_size);
 		float *output_cache = (float *)IO_CACHE_EXCHANGE(output);
-		memcpy(output_cache, output, output_size*sizeof(float));
-		printk("%d output = %p \n", time_count,output);
+		memcpy(output_cache, output, output_size);
+		//printk("%d output = %p \n", time_count,output);
         face_detect_rl.input = output_cache;
         region_layer_run(&face_detect_rl, &face_detect_info);
         //printk("%d %d %d\n", face_detect_info.obj_number, face_detect_info.obj[0].x1,face_detect_info.obj[0].x2);

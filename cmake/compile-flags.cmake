@@ -25,7 +25,7 @@ add_compile_flags(BOTH
         -ffast-math
         -fno-math-errno
         -fsingle-precision-constant
-        -O0
+        -Os
         -ggdb
         )
 
