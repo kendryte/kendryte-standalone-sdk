@@ -171,7 +171,7 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
     i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
     uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
-    uint32_t *buf_io =  (uint32_t *)IO_CACHE_EXCHANGE(buf);
+    uint32_t *buf_io =  (uint32_t *)cache_to_io((uintptr_t)buf);
     int i;
     for(i = 0; i < send_buf_len; i++)
     {
@@ -239,7 +239,7 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
 
     uint32_t *write_cmd = malloc(sizeof(uint32_t) * (send_buf_len + receive_buf_len));
-    uint32_t *write_cmd_io =  (uint32_t *)IO_CACHE_EXCHANGE(write_cmd);
+    uint32_t *write_cmd_io =  (uint32_t *)cache_to_io((uintptr_t)write_cmd);
     size_t i;
     for(i = 0; i < send_buf_len; i++)
         write_cmd_io[i] = *send_buf++;
@@ -311,7 +311,7 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
     {
         configASSERT(data.tx_buf && data.tx_len);
 
-        uint32_t *tx_buf_io = (uint32_t *)IO_CACHE_EXCHANGE(data.tx_buf);
+        uint32_t *tx_buf_io = (uint32_t *)cache_to_io((uintptr_t)data.tx_buf);
         memcpy(tx_buf_io, data.tx_buf, data.tx_len * sizeof(uint32_t));
         i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
         if(cb)
@@ -338,7 +338,7 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
         if(data.tx_len)
             configASSERT(data.tx_buf);
 
-        uint32_t *rx_buf_io = (uint32_t *)IO_CACHE_EXCHANGE(data.rx_buf);
+        uint32_t *rx_buf_io = (uint32_t *)cache_to_io((uintptr_t)data.rx_buf);
 
         if(cb)
         {
@@ -357,7 +357,7 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
         if(data.tx_len)
         {
             configASSERT(data.tx_buf);
-            uint32_t *tx_buf_io = (uint32_t *)IO_CACHE_EXCHANGE(data.tx_buf);
+            uint32_t *tx_buf_io = (uint32_t *)cache_to_io((uintptr_t)data.tx_buf);
             memcpy(tx_buf_io, data.tx_buf, data.tx_len * sizeof(uint32_t));
             dmac_set_single_mode(data.tx_channel, tx_buf_io, (void *)(&i2c_adapter->data_cmd), DMAC_ADDR_INCREMENT,
                                  DMAC_ADDR_NOCHANGE, DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, data.tx_len);

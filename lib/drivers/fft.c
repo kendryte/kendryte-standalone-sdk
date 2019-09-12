@@ -36,9 +36,12 @@ static void fft_init(uint8_t point, uint8_t mode, uint16_t shift, uint8_t is_dma
 void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_number_t dma_receive_channel_num,
                             uint16_t shift, fft_direction_t direction, const uint64_t *input, size_t point_num, uint64_t *output)
 {
-    uint8_t *output_io = (uint8_t *)IO_CACHE_EXCHANGE(output);
-    uint8_t *input_io = (uint8_t *)IO_CACHE_EXCHANGE(input);
-    memcpy(input_io, input, point_num * sizeof(uint32_t));
+    uint8_t *output_io = (uint8_t *)cache_to_io((uintptr_t)output);
+    uint8_t *input_io = (uint8_t *)cache_to_io((uintptr_t)input);
+    if(is_memory_cache((uintptr_t)input))
+    {
+        memcpy(input_io, input, point_num * sizeof(uint32_t));
+    }
     fft_point_t point = FFT_512;
     switch(point_num)
     {
@@ -68,5 +71,9 @@ void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_cha
     dmac_set_single_mode(dma_send_channel_num, input_io, (void *)(&fft->fft_input_fifo), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                          DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num >> 1);
     dmac_wait_done(dma_receive_channel_num);
-    memcpy(output, output_io, point_num * sizeof(uint32_t));
+
+    if(is_memory_cache((uintptr_t)output))
+    {
+        memcpy(output, output_io, point_num * sizeof(uint32_t));
+    }
 }

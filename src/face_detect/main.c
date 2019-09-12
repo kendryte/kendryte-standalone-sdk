@@ -282,7 +282,7 @@ int main(void)
         float *output;
         size_t output_size;
         kpu_get_output(&face_detect_task, 0, (uint8_t **)&output, &output_size);
-		float *output_cache = (float *)IO_CACHE_EXCHANGE(output);
+		float *output_cache = (float *)io_to_cache((uintptr_t)output);
 		memcpy(output_cache, output, output_size);
 		//printk("%d output = %p \n", time_count,output);
         face_detect_rl.input = output_cache;

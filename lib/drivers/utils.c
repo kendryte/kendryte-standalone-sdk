@@ -44,9 +44,28 @@ uint32_t get_gpio_bit(volatile uint32_t *bits, size_t offset)
 
 uint32_t is_memory_cache(uintptr_t address)
 {
-    #define MEM_CACHE_LEN (8 * 1024 * 1024)
+    #define MEM_CACHE_LEN (6 * 1024 * 1024)
 
     return ((address >= 0x80000000) && (address < 0x80000000 + MEM_CACHE_LEN));
 }
 
+uintptr_t io_to_cache(uintptr_t address)
+{
+#define  mem_len (6 * 1024 * 1024)
+
+    if((address >= 0x40000000) && (address < 0x40000000 + mem_len))
+        return (uintptr_t)address ^ 0xC0000000;
+    else
+        return address;
+}
+
+uintptr_t cache_to_io(uintptr_t address)
+{
+#define  mem_len (6 * 1024 * 1024)
+
+    if((address >= 0x80000000) && (address < 0x80000000 + mem_len))
+        return (uintptr_t)address ^ 0xC0000000;
+    else
+        return address;
+}
 
