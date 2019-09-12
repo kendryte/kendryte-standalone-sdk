@@ -481,9 +481,7 @@ void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
     } else
     {
         uint32_t *buff[2];
-        uint32_t *buff_cache;
-        buff_cache = malloc(frame * 2 * sizeof(uint32_t) * 2);
-        buff[0] =  (uint32_t *)IO_CACHE_EXCHANGE(buff_cache);
+        buff[0] = malloc(frame * 2 * sizeof(uint32_t) * 2);
         buff[1] = buff[0] + frame * 2;
         uint8_t flag = 0;
         size_t send_len = 0;
@@ -500,7 +498,7 @@ void i2s_play(i2s_device_number_t device_num, dmac_channel_number_t channel_num,
             i2s_parse_voice(device_num, buff[flag], trans_buf, frame_remain, bits_per_sample, track_num, &send_len);
             i2s_send_data_dma(device_num, trans_buf, send_len, channel_num);
         }
-        free(buff_cache);
+        free(buff[0]);
     }
 }
 

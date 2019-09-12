@@ -36,6 +36,9 @@ typedef struct _i2c_instance
     i2c_transfer_mode_t transfer_mode;
     dmac_channel_number_t dmac_channel;
     plic_instance_t i2c_int_instance;
+    uint32_t *buffer;
+    uint32_t *buffer_io;
+    size_t buf_len;
     spinlock_t lock;
 } i2c_instance_t;
 
@@ -279,6 +282,10 @@ static int i2c_dma_irq(void *ctx)
             }
         }
     }
+    else
+    {
+        memcpy(v_instance->buffer, v_instance->buffer_io, v_instance->buf_len * sizeof(uint32_t));
+    }
     spinlock_unlock(&v_instance->lock);
     if(v_instance->i2c_int_instance.callback)
     {
@@ -337,6 +344,9 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
         {
             g_i2c_instance[i2c_num].dmac_channel = data.rx_channel;
             g_i2c_instance[i2c_num].transfer_mode = I2C_RECEIVE;
+            g_i2c_instance[i2c_num].buffer = data.rx_buf;
+            g_i2c_instance[i2c_num].buffer_io = rx_buf_io;
+            g_i2c_instance[i2c_num].buf_len = data.rx_len;
             dmac_irq_register(data.rx_channel, i2c_dma_irq, &g_i2c_instance[i2c_num], cb->priority);
         }
         sysctl_dma_select((sysctl_dma_channel_t)data.rx_channel, SYSCTL_DMA_SELECT_I2C0_RX_REQ + i2c_num * 2);
@@ -361,8 +371,8 @@ void i2c_handle_data_dma(i2c_device_number_t i2c_num, i2c_data_t data, plic_inte
         {
             dmac_wait_done(data.tx_channel);
             dmac_wait_done(data.rx_channel);
+            memcpy(data.rx_buf, rx_buf_io, data.rx_len * sizeof(uint32_t));
         }
-        memcpy(data.rx_buf, rx_buf_io, data.rx_len);
     }
     if(!cb)
         spinlock_unlock(&g_i2c_instance[i2c_num].lock);
