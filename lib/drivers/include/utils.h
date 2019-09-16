@@ -33,6 +33,8 @@ extern "C" {
 #define KENDRYTE_MIN(a, b) ((a) > (b) ? (b) : (a))
 #define KENDRYTE_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define FIX_CACHE 1
+
 uintptr_t io_to_cache(uintptr_t address);
 uintptr_t cache_to_io(uintptr_t address);
 

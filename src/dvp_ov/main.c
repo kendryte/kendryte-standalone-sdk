@@ -29,9 +29,8 @@
 
 uint32_t g_lcd_gram0[38400] __attribute__((aligned(64)));
 uint32_t g_lcd_gram1[38400] __attribute__((aligned(64)));
-
-uint32_t *g_lcd_gram0_no_cache;
-uint32_t *g_lcd_gram1_no_cache;
+uint32_t *g_lcd_gram0_io;
+uint32_t *g_lcd_gram1_io;
 
 volatile uint8_t g_dvp_finish_flag;
 volatile uint8_t g_ram_mux;
@@ -41,7 +40,7 @@ static int on_irq_dvp(void* ctx)
     if (dvp_get_interrupt(DVP_STS_FRAME_FINISH))
     {
         /* switch gram */
-        dvp_set_display_addr(g_ram_mux ? (uint32_t)g_lcd_gram0_no_cache : (uint32_t)g_lcd_gram1_no_cache);
+        dvp_set_display_addr(g_ram_mux ? (uint32_t)g_lcd_gram0 : (uint32_t)g_lcd_gram1);
 
         dvp_clear_interrupt(DVP_STS_FRAME_FINISH);
         g_dvp_finish_flag = 1;
@@ -114,9 +113,8 @@ static void io_set_power(void)
 
 int main(void)
 {
-    g_lcd_gram0_no_cache = (uint32_t *)MEM_TO_NOCACHE(g_lcd_gram0);
-    g_lcd_gram1_no_cache = (uint32_t *)MEM_TO_NOCACHE(g_lcd_gram1);
-
+    g_lcd_gram0_io = (uint32_t *)cache_to_io((uintptr_t)g_lcd_gram0);
+    g_lcd_gram1_io = (uint32_t *)cache_to_io((uintptr_t)g_lcd_gram1);
     /* Set CPU and dvp clk */
     sysctl_pll_set_freq(SYSCTL_PLL0, 800000000UL);
     sysctl_pll_set_freq(SYSCTL_PLL1, 160000000UL);
@@ -173,7 +171,7 @@ int main(void)
     #endif
 
     dvp_set_ai_addr((uint32_t)0x40600000, (uint32_t)0x40612C00, (uint32_t)0x40625800);
-    dvp_set_display_addr((uint32_t)g_lcd_gram0_no_cache);
+    dvp_set_display_addr((uint32_t)g_lcd_gram0_io);
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 0);
     dvp_disable_auto();
 
@@ -201,7 +199,7 @@ int main(void)
         g_dvp_finish_flag = 0;
         /* display pic*/
         g_ram_mux ^= 0x01;
-        lcd_draw_picture(0, 0, 320, 240, g_ram_mux ? g_lcd_gram0_no_cache : g_lcd_gram1_no_cache);
+        lcd_draw_picture(0, 0, 320, 240, g_ram_mux ? g_lcd_gram0_io : g_lcd_gram1_io);
     }
 
     return 0;

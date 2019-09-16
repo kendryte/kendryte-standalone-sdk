@@ -241,8 +241,11 @@ int main(void)
     display_image.width = 320;
     display_image.height = 240;
     image_init(&display_image);
-    dvp_set_ai_addr((uint32_t)kpu_image.addr, (uint32_t)(kpu_image.addr + 320 * 240), (uint32_t)(kpu_image.addr + 320 * 240 * 2));
-    dvp_set_display_addr((uint32_t)display_image.addr);
+    uint8_t *kpu_image_addr_io = (uint8_t *)cache_to_io((uintptr_t)(((uint32_t)kpu_image.addr + 63) & ~63));
+    uint8_t *display_image_addr_io = (uint8_t *)cache_to_io((uintptr_t)(((uint32_t)display_image.addr + 63) & ~63));
+
+    dvp_set_ai_addr((uint32_t)kpu_image_addr_io, (uint32_t)(kpu_image_addr_io + 320 * 240), (uint32_t)(kpu_image_addr_io + 320 * 240 * 2));
+    dvp_set_display_addr((uint32_t)display_image_addr_io);
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 0);
     dvp_disable_auto();
     /* DVP interrupt config */
@@ -265,9 +268,9 @@ int main(void)
     sysctl_enable_irq();
     /* system start */
     printf("System start\n");
-	uint64_t time_last = sysctl_get_time_us();
-	uint64_t time_now = sysctl_get_time_us();
-	int time_count = 0;
+    uint64_t time_last = sysctl_get_time_us();
+    uint64_t time_now = sysctl_get_time_us();
+    int time_count = 0;
     while (1)
     {
         g_dvp_finish_flag = 0;
@@ -277,30 +280,27 @@ int main(void)
             ;
         /* run face detect */
         g_ai_done_flag = 0;
-        kpu_run_kmodel(&face_detect_task, kpu_image.addr, DMAC_CHANNEL5, ai_done, NULL);
+        kpu_run_kmodel(&face_detect_task, kpu_image_addr_io, DMAC_CHANNEL5, ai_done, NULL);
         while(!g_ai_done_flag);
         float *output;
         size_t output_size;
         kpu_get_output(&face_detect_task, 0, (uint8_t **)&output, &output_size);
-		float *output_cache = (float *)io_to_cache((uintptr_t)output);
-		memcpy(output_cache, output, output_size);
-		//printk("%d output = %p \n", time_count,output);
-        face_detect_rl.input = output_cache;
+        face_detect_rl.input = output;
         region_layer_run(&face_detect_rl, &face_detect_info);
-        //printk("%d %d %d\n", face_detect_info.obj_number, face_detect_info.obj[0].x1,face_detect_info.obj[0].x2);
         /* run key point detect */
         for (uint32_t face_cnt = 0; face_cnt < face_detect_info.obj_number; face_cnt++)
         {
-            draw_edge((uint32_t *)display_image.addr, &face_detect_info, face_cnt, RED);
+            draw_edge((uint32_t *)display_image_addr_io, &face_detect_info, face_cnt, RED);
         }
+        
         /* display result */
-        lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
-		time_count ++;
-		if(time_count % 100 == 0)
-		{
-			time_now = sysctl_get_time_us();
-			printf("SPF:%fms\n", (time_now - time_last)/1000.0/100);
-			time_last = time_now;
-		}
+        lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image_addr_io);
+        time_count ++;
+        if(time_count % 100 == 0)
+        {
+            time_now = sysctl_get_time_us();
+            printf("SPF:%fms\n", (time_now - time_last)/1000.0/100);
+            time_last = time_now;
+        }
     }
 }

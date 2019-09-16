@@ -18,7 +18,7 @@
 
 int image_init(image_t *image)
 {
-    image->addr = malloc(image->width * image->height * image->pixel);
+    image->addr = malloc(image->width * image->height * image->pixel + 63);
     if (image->addr == NULL)
         return -1;
     return 0;

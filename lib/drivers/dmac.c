@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "dmac.h"
 #include "fpioa.h"
 #include "plic.h"
@@ -27,6 +28,12 @@ volatile dmac_t *const dmac = (dmac_t *)DMAC_BASE_ADDR;
 typedef struct _dmac_context
 {
     dmac_channel_number_t dmac_channel;
+#if FIX_CACHE
+    uint8_t *buffer_cache;
+    size_t buf_len;
+    uint8_t *buffer_io;
+#endif
+
     plic_irq_callback_t callback;
     void *ctx;
 } dmac_context_t;
@@ -269,7 +276,7 @@ void dmac_disable_channel_interrupt(dmac_channel_number_t channel_num)
     writeq(0, &dmac->channel[channel_num].intstatus_en);
 }
 
-static void dmac_chanel_interrupt_clear(dmac_channel_number_t channel_num)
+static void dmac_channel_interrupt_clear(dmac_channel_number_t channel_num)
 {
     writeq(0xffffffff, &dmac->channel[channel_num].intclear);
 }
@@ -352,6 +359,22 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
 {
     dmac_ch_ctl_u_t ctl;
     dmac_ch_cfg_u_t cfg_u;
+
+#if FIX_CACHE
+    uint8_t *src_io = (uint8_t *)cache_to_io((uintptr_t)src);
+    uint8_t *dest_io = (uint8_t *)cache_to_io((uintptr_t)dest);
+    if(is_memory_cache((uintptr_t)src))
+    {
+        memcpy(src_io, src, blockSize * (1<<dmac_trans_width));
+    }
+    if(is_memory_cache((uintptr_t)dest))
+    {
+        dmac_context[channel_num].buffer_cache = dest;
+        dmac_context[channel_num].buffer_io = dest_io;
+        dmac_context[channel_num].buf_len = blockSize * (1<<dmac_trans_width);
+    }
+#endif
+
     int mem_type_src = is_memory((uintptr_t)src), mem_type_dest = is_memory((uintptr_t)dest);
     dmac_transfer_flow_t flow_control;
     if(mem_type_src == 0 && mem_type_dest == 0)
@@ -380,8 +403,13 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
 
     writeq(cfg_u.data, &dmac->channel[channel_num].cfg);
 
+#if FIX_CACHE
+    dmac->channel[channel_num].sar = (uint64_t)src_io;
+    dmac->channel[channel_num].dar = (uint64_t)dest_io;
+#else
     dmac->channel[channel_num].sar = (uint64_t)src;
     dmac->channel[channel_num].dar = (uint64_t)dest;
+#endif
 
     ctl.data = readq(&dmac->channel[channel_num].ctl);
     ctl.ch_ctl.sms = DMAC_MASTER1;
@@ -715,7 +743,7 @@ void dmac_set_single_mode(dmac_channel_number_t channel_num,
                           dmac_transfer_width_t dmac_trans_width,
                           size_t block_size)
 {
-    dmac_chanel_interrupt_clear(channel_num);
+    dmac_channel_interrupt_clear(channel_num);
     dmac_channel_disable(channel_num);
     dmac_wait_idle(channel_num);
     dmac_set_channel_param(channel_num, src, dest, src_inc, dest_inc,
@@ -735,6 +763,15 @@ int dmac_is_done(dmac_channel_number_t channel_num)
 void dmac_wait_done(dmac_channel_number_t channel_num)
 {
     dmac_wait_idle(channel_num);
+#if FIX_CACHE
+    if(dmac_context[channel_num].buffer_cache)
+    {
+        memcpy(dmac_context[channel_num].buffer_cache, dmac_context[channel_num].buffer_io, dmac_context[channel_num].buf_len);
+        dmac_context[channel_num].buffer_cache = NULL;
+        dmac_context[channel_num].buffer_io = NULL;
+        dmac_context[channel_num].buf_len = 0;
+    }
+#endif
 }
 
 int dmac_is_idle(dmac_channel_number_t channel_num)
@@ -751,7 +788,7 @@ void dmac_wait_idle(dmac_channel_number_t channel_num)
 {
     while(!dmac_is_idle(channel_num))
         ;
-    dmac_chanel_interrupt_clear(channel_num); /* clear interrupt */
+    dmac_channel_interrupt_clear(channel_num); /* clear interrupt */
 }
 
 void dmac_set_src_dest_length(dmac_channel_number_t channel_num, const void *src, void *dest, size_t len)
@@ -769,7 +806,17 @@ static int dmac_irq_callback(void *ctx)
 {
     dmac_context_t *v_dmac_context = (dmac_context_t *)(ctx);
     dmac_channel_number_t v_dmac_channel = v_dmac_context->dmac_channel;
-    dmac_chanel_interrupt_clear(v_dmac_channel);
+    dmac_channel_interrupt_clear(v_dmac_channel);
+#if FIX_CACHE
+    if(v_dmac_context->buffer_cache)
+    {
+        memcpy(v_dmac_context->buffer_cache, v_dmac_context->buffer_io, v_dmac_context->buf_len);
+        v_dmac_context->buffer_cache = NULL;
+        v_dmac_context->buffer_io = NULL;
+        v_dmac_context->buf_len = 0;
+    }
+#endif
+
     if(v_dmac_context->callback != NULL)
         v_dmac_context->callback(v_dmac_context->ctx);
 
