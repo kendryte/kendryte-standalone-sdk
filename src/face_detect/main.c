@@ -23,13 +23,15 @@
 #define INCBIN_STYLE INCBIN_STYLE_SNAKE
 #define INCBIN_PREFIX
 #include "incbin.h"
+#include "utils.h"
+#include "iomem_malloc.h"
 
 #define PLL0_OUTPUT_FREQ 800000000UL
 #define PLL1_OUTPUT_FREQ 400000000UL
 
 volatile uint32_t g_ai_done_flag;
 volatile uint8_t g_dvp_finish_flag;
-static image_t kpu_image, display_image;
+static image_t kpu_image, display_image, lcd_image;
 
 kpu_model_context_t face_detect_task;
 static region_layer_t face_detect_rl;
@@ -81,10 +83,10 @@ static void io_mux_init(void)
     fpioa_set_function(40, FUNC_SCCB_SDA);
 
     /* Init SPI IO map and function settings */
-    fpioa_set_function(38, FUNC_GPIOHS0 + DCX_GPIONUM);
-    fpioa_set_function(36, FUNC_SPI0_SS3);
-    fpioa_set_function(39, FUNC_SPI0_SCLK);
-    fpioa_set_function(37, FUNC_GPIOHS0 + RST_GPIONUM);
+    fpioa_set_function(LCD_DCX_PIN, FUNC_GPIOHS0 + LCD_DCX_HS_NUM);
+    fpioa_set_function(LCD_WRX_PIN, FUNC_SPI0_SS3);
+    fpioa_set_function(LCD_SCK_PIN, FUNC_SPI0_SCLK);
+    fpioa_set_function(LCD_RST_PIN, FUNC_GPIOHS0 + LCD_RST_HS_NUM);
 
     sysctl_set_spi0_dvp_data(1);
 #else
@@ -178,6 +180,8 @@ static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index, uint
     }
 }
 
+extern void w25qxx_test(void);
+
 int main(void)
 {
     /* Set CPU and dvp clk */
@@ -241,11 +245,9 @@ int main(void)
     display_image.width = 320;
     display_image.height = 240;
     image_init(&display_image);
-    uint8_t *kpu_image_addr_io = (uint8_t *)cache_to_io((uintptr_t)(((uint32_t)kpu_image.addr + 63) & ~63));
-    uint8_t *display_image_addr_io = (uint8_t *)cache_to_io((uintptr_t)(((uint32_t)display_image.addr + 63) & ~63));
 
-    dvp_set_ai_addr((uint32_t)kpu_image_addr_io, (uint32_t)(kpu_image_addr_io + 320 * 240), (uint32_t)(kpu_image_addr_io + 320 * 240 * 2));
-    dvp_set_display_addr((uint32_t)display_image_addr_io);
+    dvp_set_ai_addr((uint32_t)kpu_image.addr, (uint32_t)(kpu_image.addr + 320 * 240), (uint32_t)(kpu_image.addr + 320 * 240 * 2));
+    dvp_set_display_addr((uint32_t)display_image.addr);
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 0);
     dvp_disable_auto();
     /* DVP interrupt config */
@@ -271,6 +273,20 @@ int main(void)
     uint64_t time_last = sysctl_get_time_us();
     uint64_t time_now = sysctl_get_time_us();
     int time_count = 0;
+	
+	w25qxx_init(3, 0);
+    uint8_t manuf_id, device_id;
+    w25qxx_read_id(&manuf_id, &device_id);
+    printf("manuf_id:0x%02x, device_id:0x%02x\r\n", manuf_id, device_id);
+    if((manuf_id != 0xEF && manuf_id != 0xC8) || (device_id != 0x17 && device_id != 0x16))
+    {
+        printf("manuf_id:0x%02x, device_id:0x%02x\r\n", manuf_id, device_id);
+        return;
+    }
+	//w25qxx_test();
+	
+	//lcd_sipeed_config(lcd_image_addr_io);
+	
     while (1)
     {
         g_dvp_finish_flag = 0;
@@ -280,7 +296,7 @@ int main(void)
             ;
         /* run face detect */
         g_ai_done_flag = 0;
-        kpu_run_kmodel(&face_detect_task, kpu_image_addr_io, DMAC_CHANNEL5, ai_done, NULL);
+        kpu_run_kmodel(&face_detect_task, kpu_image.addr, DMAC_CHANNEL5, ai_done, NULL);
         while(!g_ai_done_flag);
         float *output;
         size_t output_size;
@@ -290,11 +306,14 @@ int main(void)
         /* run key point detect */
         for (uint32_t face_cnt = 0; face_cnt < face_detect_info.obj_number; face_cnt++)
         {
-            draw_edge((uint32_t *)display_image_addr_io, &face_detect_info, face_cnt, RED);
+            draw_edge((uint32_t *)display_image.addr, &face_detect_info, face_cnt, RED);
         }
         
         /* display result */
-        lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image_addr_io);
+        lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
+		//lcd_covert_cam_order((uint32_t *)display_image_addr_io, CAM_W * CAM_H / 2);
+		//while(lcd_sipeed_busy()){};
+        //copy_image_cam_to_lcd(display_image_addr_io, lcd_image_addr_io);
         time_count ++;
         if(time_count % 100 == 0)
         {

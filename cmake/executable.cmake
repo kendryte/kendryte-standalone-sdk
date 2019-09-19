@@ -37,7 +37,12 @@ ENDIF()
 
 # Build target
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --output-format=binary ${CMAKE_BINARY_DIR}/${PROJECT_NAME}${SUFFIX} ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.bin
+        COMMAND ${CMAKE_OBJCOPY} --output-format=binary ${CMAKE_BINARY_DIR}/${PROJECT_NAME}${SUFFIX} --remove-section .iodata ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.bin
+        DEPENDS ${PROJECT_NAME}
+        COMMENT "Generating .bin file ...")
+		
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_OBJCOPY} --output-format=binary ${CMAKE_BINARY_DIR}/${PROJECT_NAME}${SUFFIX} --only-section .iodata ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_iodata.bin 
         DEPENDS ${PROJECT_NAME}
         COMMENT "Generating .bin file ...")
 

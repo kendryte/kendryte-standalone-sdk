@@ -15,4 +15,16 @@
 #error board only choose one
 #endif
 
+#define LCD_RST_PIN                         (37)
+#define LCD_DCX_PIN                         (38)
+#define LCD_WRX_PIN                         (36)
+#define LCD_SCK_PIN                         (39)
+
+#define LCD_DCX_HS_NUM                      (5)
+#define LCD_RST_HS_NUM                      (6)
+
+
+#define CAM_W                       (320)
+#define CAM_H                       (240)
+
 #endif

@@ -35,9 +35,6 @@ extern "C" {
 
 #define FIX_CACHE 1
 
-uintptr_t io_to_cache(uintptr_t address);
-uintptr_t cache_to_io(uintptr_t address);
-
 #ifdef __ASSEMBLY__
 #define KENDRYTE_CAST(type, ptr) ptr
 #else /* __ASSEMBLY__ */

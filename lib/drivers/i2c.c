@@ -21,6 +21,7 @@
 #include "string.h"
 #include "sysctl.h"
 #include "utils.h"
+#include "iomem_malloc.h"
 
 typedef struct _i2c_slave_instance
 {
@@ -167,11 +168,10 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
     configASSERT(i2c_num < I2C_MAX_NUM);
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
     i2c_adapter->clr_tx_abrt = i2c_adapter->clr_tx_abrt;
-    uint32_t *buf_malloc = malloc(send_buf_len * sizeof(uint32_t));
 #if FIX_CACHE
-    uint32_t *buf = (uint32_t *)cache_to_io((uintptr_t)buf_malloc);
+    uint32_t *buf = iomem_malloc(send_buf_len * sizeof(uint32_t));
 #else
-    uint32_t *buf = buf_malloc;
+    uint32_t *buf = malloc(send_buf_len * sizeof(uint32_t));
 #endif
     int i;
     for(i = 0; i < send_buf_len; i++)
@@ -184,7 +184,11 @@ void i2c_send_data_dma(dmac_channel_number_t dma_channel_num, i2c_device_number_
                          DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, send_buf_len);
 
     dmac_wait_done(dma_channel_num);
-    free((void *)buf_malloc);
+#if FIX_CACHE
+    iomem_free((void *)buf);
+#else
+    free((void *)buf);
+#endif
 
     while((i2c_adapter->status & I2C_STATUS_ACTIVITY) || !(i2c_adapter->status & I2C_STATUS_TFE))
     {
@@ -238,12 +242,10 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
     configASSERT(i2c_num < I2C_MAX_NUM);
 
     volatile i2c_t *i2c_adapter = i2c[i2c_num];
-
-    uint32_t *write_cmd_malloc = malloc(sizeof(uint32_t) * (send_buf_len + receive_buf_len));
 #if FIX_CACHE
-    uint32_t *write_cmd = (uint32_t *)cache_to_io((uintptr_t)write_cmd_malloc);
+    uint32_t *write_cmd = iomem_malloc(sizeof(uint32_t) * (send_buf_len + receive_buf_len));
 #else
-    uint32_t *write_cmd = write_cmd_malloc;
+    uint32_t *write_cmd = malloc(sizeof(uint32_t) * (send_buf_len + receive_buf_len));
 #endif
     size_t i;
     for(i = 0; i < send_buf_len; i++)
@@ -267,8 +269,11 @@ void i2c_recv_data_dma(dmac_channel_number_t dma_send_channel_num, dmac_channel_
     {
         receive_buf[i] = (uint8_t)write_cmd[i];
     }
-
-    free(write_cmd_malloc);
+#if FIX_CACHE
+        iomem_free(write_cmd);
+#else
+        free(write_cmd);
+#endif
 }
 
 static int i2c_dma_irq(void *ctx)

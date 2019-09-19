@@ -14,6 +14,7 @@
  */
 #include <bsp.h>
 #include <sysctl.h>
+#include "iomem_malloc.h"
 
 int core1_function(void *ctx)
 {
@@ -32,9 +33,17 @@ int main(void)
 
     /* Clear stdin buffer before scanf */
     sys_stdin_flush();
+	extern unsigned int _iodata;
 
-    scanf("%d", &data);
-    printf("\nData is %d\n", data);
+	unsigned char *t = (unsigned char *)((uintptr_t)&_iodata + 4);
+	memcpy(t, "hello malloc", 15);
+	//memcpy(_iomem_spi_dest, "hello world", 12);
+
+	printf("_iomem_spi_array%s  %p\n", t, t);
+    uint8_t *test = (uint8_t *)iomem_malloc(16);
+    memcpy(test, "hello world", 12);
+    printf("%s %p\n", test, test);
+    iomem_free(test);
     while(1)
         continue;
     return 0;
