@@ -22,6 +22,7 @@ int image_init(image_t *image)
     image->addr = iomem_malloc(image->width * image->height * image->pixel);
     if (image->addr == NULL)
         return -1;
+
     return 0;
 }
 

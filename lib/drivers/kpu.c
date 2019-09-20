@@ -1004,8 +1004,9 @@ static void kpu_quantize(const kpu_model_quantize_layer_argument_t *arg, kpu_mod
 {
     size_t count = arg->count;
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
-    ;
-    const kpu_model_quant_param_t q = arg->quant_param;
+
+    kpu_model_quant_param_t q;
+    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
     float scale = 1.f / q.scale;
 
     uint8_t *dest = (uint8_t *)(ctx->main_buffer + arg->mem_out_address);
@@ -1026,8 +1027,8 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, count = arg->count;
-    const kpu_model_quant_param_t q = arg->quant_param;
-
+    kpu_model_quant_param_t q;
+    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
     for(oc = 0; oc < count; oc++)
         dest[oc] = *src++ * q.scale + q.bias;
 }

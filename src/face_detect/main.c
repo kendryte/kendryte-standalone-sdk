@@ -31,7 +31,7 @@
 
 volatile uint32_t g_ai_done_flag;
 volatile uint8_t g_dvp_finish_flag;
-static image_t kpu_image, display_image, lcd_image;
+static image_t kpu_image, display_image;
 
 kpu_model_context_t face_detect_task;
 static region_layer_t face_detect_rl;
@@ -43,9 +43,10 @@ static float anchor[ANCHOR_NUM * 2] = {1.889,2.5245,  2.9465,3.94056, 3.99987,5.
 
 #if LOAD_KMODEL_FROM_FLASH
 #define KMODEL_SIZE (380 * 1024)
-uint8_t model_data[KMODEL_SIZE];
+uint8_t *model_data_iomem;
 #else
 INCBIN(model, "detect.kmodel");
+LOCK_IN_SECTION(MODEL) uint8_t *model_data_iomem;
 #endif
 
 static void ai_done(void *ctx)
@@ -181,13 +182,14 @@ static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index, uint
 }
 
 extern void w25qxx_test(void);
-#define LOCK_IN_SECTION(s) __attribute__((used,unused,section(".iodata." #s)))
-LOCK_IN_SECTION(SPI) int _iomem_spi_array[1000];
 
 int main(void)
 {
-    uint32_t *t = (uintptr_t)model_data;
-    
+#if LOAD_KMODEL_FROM_FLASH
+    model_data_iomem = (uint8_t)iomem_malloc(KMODEL_SIZE);
+#else
+    model_data_iomem = (uint8_t *)model_data;
+#endif
 
     /* Set CPU and dvp clk */
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
@@ -197,13 +199,13 @@ int main(void)
     io_set_power();
     io_mux_init();
     plic_init();
-    printf("t=%p %x %x %x %x %p\n", t, t[0], t[1], t[2], t[3], _iomem_spi_array);
+
     /* flash init */
     printf("flash init\n");
     w25qxx_init(3, 0);
     w25qxx_enable_quad_mode();
 #if LOAD_KMODEL_FROM_FLASH
-    w25qxx_read_data(0xA00000, model_data, KMODEL_SIZE, W25QXX_QUAD_FAST);
+    w25qxx_read_data(0xA00000, model_data_iomem, KMODEL_SIZE, W25QXX_QUAD_FAST);
 #endif
     /* LCD init */
     printf("LCD init\n");
@@ -261,9 +263,8 @@ int main(void)
     plic_set_priority(IRQN_DVP_INTERRUPT, 1);
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
-    printf("model_data = %p \n", model_data);
     /* init face detect model */
-    if (kpu_load_kmodel(&face_detect_task, model_data) != 0)
+    if (kpu_load_kmodel(&face_detect_task, model_data_iomem) != 0)
     {
         printf("\nmodel init error\n");
         while (1);
@@ -288,7 +289,7 @@ int main(void)
     if((manuf_id != 0xEF && manuf_id != 0xC8) || (device_id != 0x17 && device_id != 0x16))
     {
         printf("manuf_id:0x%02x, device_id:0x%02x\r\n", manuf_id, device_id);
-        return;
+        return -1;
     }
 	//w25qxx_test();
 	
