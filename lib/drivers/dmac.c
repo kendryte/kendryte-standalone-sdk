@@ -367,16 +367,34 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
     uint8_t *dest_io = (uint8_t *)dest;
     if(is_memory_cache((uintptr_t)src))
     {
-        src_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
-        memcpy(src_io, src, blockSize * (1<<dmac_trans_width));
+        if(src_inc == DMAC_ADDR_NOCHANGE)
+        {
+            src_io = (uint8_t *)iomem_malloc(1<<dmac_trans_width);
+            memcpy(src_io, src, 1<<dmac_trans_width);
+        }
+        else
+        {
+            configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
+            src_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
+            memcpy(src_io, src, blockSize * (1<<dmac_trans_width));
+        }
         dmac_context[channel_num].src_malloc = src_io;
     }
     if(is_memory_cache((uintptr_t)dest))
     {
-        dest_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
+        if(dest_inc == DMAC_ADDR_NOCHANGE)
+        {
+            dest_io = (uint8_t *)iomem_malloc(1<<dmac_trans_width);
+            dmac_context[channel_num].buf_len = 1<<dmac_trans_width;
+        }
+        else
+        {
+            configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
+            dest_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
+            dmac_context[channel_num].buf_len = blockSize * (1<<dmac_trans_width);
+        }
         dmac_context[channel_num].dest_malloc = dest_io;
         dmac_context[channel_num].dest_buffer = dest;
-        dmac_context[channel_num].buf_len = blockSize * (1<<dmac_trans_width);
     }
 #endif
 

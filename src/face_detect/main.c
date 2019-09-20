@@ -181,9 +181,14 @@ static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index, uint
 }
 
 extern void w25qxx_test(void);
+#define LOCK_IN_SECTION(s) __attribute__((used,unused,section(".iodata." #s)))
+LOCK_IN_SECTION(SPI) int _iomem_spi_array[1000];
 
 int main(void)
 {
+    uint32_t *t = (uintptr_t)model_data;
+    
+
     /* Set CPU and dvp clk */
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
     sysctl_pll_set_freq(SYSCTL_PLL1, PLL1_OUTPUT_FREQ);
@@ -192,6 +197,7 @@ int main(void)
     io_set_power();
     io_mux_init();
     plic_init();
+    printf("t=%p %x %x %x %x %p\n", t, t[0], t[1], t[2], t[3], _iomem_spi_array);
     /* flash init */
     printf("flash init\n");
     w25qxx_init(3, 0);
@@ -255,6 +261,7 @@ int main(void)
     plic_set_priority(IRQN_DVP_INTERRUPT, 1);
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
+    printf("model_data = %p \n", model_data);
     /* init face detect model */
     if (kpu_load_kmodel(&face_detect_task, model_data) != 0)
     {

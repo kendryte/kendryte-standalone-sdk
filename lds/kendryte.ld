@@ -65,14 +65,6 @@ PHDRS
  */
 SECTIONS
 {
-   /* Data store in IO MEMORY */
-  .iodata (0x40600000- ((4000+256)*1024)):
-  {
-  	PROVIDE( _iodata = ABSOLUTE(.) );
-    /* Writable data segment (.iodata segment) */
-    *(.iodata .iodata.*)
-  } >ram_nocache AT>ram_nocache :ram_init
-
   /* Program code segment, also known as a text segment */
   .text :
   {
@@ -264,6 +256,15 @@ SECTIONS
   PROVIDE( _sp1 = _tp1 + _stack_size );
 
   /* Heap end is at the end of memory, the memory size can set in kconfig */
-  PROVIDE( _heap_end = _ram_end - ((4000+256)*1024));
+  PROVIDE( _heap_end = _ram_end - (1024*1024));
+
+     /* Data store in IO MEMORY */
+  .iodata (0x40600000- (1024*1024)):
+  {
+  	PROVIDE( _iodata = ABSOLUTE(.) );
+    /* Writable data segment (.iodata segment) */
+    *(.iodata .iodata.*)
+	PROVIDE( _eiodata = ABSOLUTE(.) );
+  } >ram_nocache AT>ram_nocache:ram_init
 }
 

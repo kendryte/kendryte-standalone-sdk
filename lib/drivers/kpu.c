@@ -1359,7 +1359,7 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
 {
     uintptr_t base_addr = (uintptr_t)buffer;
     const kpu_kmodel_header_t *header = (const kpu_kmodel_header_t *)buffer;
-
+    printf("header = %p %x %x\n", header, header->version, header->arch);
     if(header->version == 3 && header->arch == 0)
     {
         ctx->is_nncase = 0;

@@ -40,12 +40,12 @@ static void iomem_set(void *s, uint8_t c, uint32_t num)
 
 static void iomem_init()
 {
-    extern unsigned int _iodata;
-    malloc_cortol.membase = (uint8_t *)((uintptr_t)&_iodata);
-    malloc_cortol.memsize = 0x40600000 - (uintptr_t)&_iodata;
+    extern unsigned int _eiodata;
+    malloc_cortol.membase = (uint8_t *)((uintptr_t)&_eiodata);
+    malloc_cortol.memsize = 0x40600000 - (uintptr_t)&_eiodata;
     malloc_cortol.memtblsize = malloc_cortol.memsize / IOMEM_BLOCK_SIZE;
     malloc_cortol.memmap = (uint16_t *)malloc(malloc_cortol.memtblsize * 2);
-
+    printf("&_eiodata = %p \n", &_eiodata);
     iomem_set(malloc_cortol.memmap, 0, malloc_cortol.memtblsize * 2);
     iomem_set(malloc_cortol.membase, 0, malloc_cortol.memsize);
     malloc_cortol.memrdy = 1;
