@@ -259,7 +259,7 @@ SECTIONS
   PROVIDE( _heap_end = _ram_end - (1024*1024));
   
   /* Data store in IO MEMORY */
-  .iodata (_io_end- (1024*1024)):
+  .iodata (0x40600000 - (1024*1024)):
   {
     . = ALIGN(64);
   	PROVIDE( _iodata = ABSOLUTE(.) );
