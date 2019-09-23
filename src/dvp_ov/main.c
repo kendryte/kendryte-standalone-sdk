@@ -26,9 +26,8 @@
 #include "board_config.h"
 #include "unistd.h"
 #include "utils.h"
+#include "iomem_malloc.h"
 
-uint32_t g_lcd_gram0[38400] __attribute__((aligned(64)));
-uint32_t g_lcd_gram1[38400] __attribute__((aligned(64)));
 uint32_t *g_lcd_gram0_io;
 uint32_t *g_lcd_gram1_io;
 
@@ -40,7 +39,7 @@ static int on_irq_dvp(void* ctx)
     if (dvp_get_interrupt(DVP_STS_FRAME_FINISH))
     {
         /* switch gram */
-        dvp_set_display_addr(g_ram_mux ? (uint32_t)g_lcd_gram0 : (uint32_t)g_lcd_gram1);
+        dvp_set_display_addr(g_ram_mux ? (uint32_t)g_lcd_gram0_io : (uint32_t)g_lcd_gram1_io);
 
         dvp_clear_interrupt(DVP_STS_FRAME_FINISH);
         g_dvp_finish_flag = 1;
@@ -113,8 +112,8 @@ static void io_set_power(void)
 
 int main(void)
 {
-    g_lcd_gram0_io = (uint32_t *)cache_to_io((uintptr_t)g_lcd_gram0);
-    g_lcd_gram1_io = (uint32_t *)cache_to_io((uintptr_t)g_lcd_gram1);
+    g_lcd_gram0_io = (uint32_t *)iomem_malloc(320 * 240 * 2);
+    g_lcd_gram1_io = (uint32_t *)iomem_malloc(320 * 240 * 2);
     /* Set CPU and dvp clk */
     sysctl_pll_set_freq(SYSCTL_PLL0, 800000000UL);
     sysctl_pll_set_freq(SYSCTL_PLL1, 160000000UL);

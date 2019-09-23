@@ -261,11 +261,11 @@ SECTIONS
   /* Data store in IO MEMORY */
   .iodata (0x40600000- (1024*1024)):
   {
+    . = ALIGN(64);
   	PROVIDE( _iodata = ABSOLUTE(.) );
     /* Writable data segment (.iodata segment) */
     *(.iodata .iodata.*)
-	. = ALIGN(64);
 	PROVIDE( _eiodata = ABSOLUTE(.) );
-  } >ram_nocache AT>ram_nocache:ram_init
+  } :ram_init
 }
 

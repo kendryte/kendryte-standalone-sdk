@@ -35,7 +35,6 @@ extern "C" {
 
 #define FIX_CACHE 1
 #define DMA_CACHE_MAX (32 * 1024)
-#define LOCK_IN_SECTION(s) __attribute__((used,unused,section(".iodata." #s)))
 
 #ifdef __ASSEMBLY__
 #define KENDRYTE_CAST(type, ptr) ptr

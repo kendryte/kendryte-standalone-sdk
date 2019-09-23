@@ -43,10 +43,9 @@ static float anchor[ANCHOR_NUM * 2] = {1.889,2.5245,  2.9465,3.94056, 3.99987,5.
 
 #if LOAD_KMODEL_FROM_FLASH
 #define KMODEL_SIZE (380 * 1024)
-uint8_t *model_data_iomem;
+uint8_t *model_data;
 #else
 INCBIN(model, "detect.kmodel");
-LOCK_IN_SECTION(MODEL) uint8_t *model_data_iomem;
 #endif
 
 static void ai_done(void *ctx)
@@ -186,9 +185,7 @@ extern void w25qxx_test(void);
 int main(void)
 {
 #if LOAD_KMODEL_FROM_FLASH
-    model_data_iomem = (uint8_t)iomem_malloc(KMODEL_SIZE);
-#else
-    model_data_iomem = (uint8_t *)model_data;
+    model_data = (uint8_t *)iomem_malloc(KMODEL_SIZE);
 #endif
 
     /* Set CPU and dvp clk */
@@ -205,7 +202,7 @@ int main(void)
     w25qxx_init(3, 0);
     w25qxx_enable_quad_mode();
 #if LOAD_KMODEL_FROM_FLASH
-    w25qxx_read_data(0xA00000, model_data_iomem, KMODEL_SIZE, W25QXX_QUAD_FAST);
+    w25qxx_read_data(0xA00000, model_data, KMODEL_SIZE, W25QXX_QUAD_FAST);
 #endif
     /* LCD init */
     printf("LCD init\n");
@@ -264,7 +261,7 @@ int main(void)
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
     /* init face detect model */
-    if (kpu_load_kmodel(&face_detect_task, model_data_iomem) != 0)
+    if (kpu_load_kmodel(&face_detect_task, model_data) != 0)
     {
         printf("\nmodel init error\n");
         while (1);

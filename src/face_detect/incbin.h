@@ -100,7 +100,7 @@
 #  define INCBIN_BYTE            ".byte "
 #  define INCBIN_TYPE(...)
 #else
-#  define INCBIN_SECTION         ".section .iodata\n"
+#  define INCBIN_SECTION         ".section .rodata\n"
 #  define INCBIN_GLOBAL(NAME)    ".global " INCBIN_STRINGIZE(INCBIN_PREFIX) #NAME "\n"
 #  define INCBIN_INT             ".int "
 #  if defined(__USER_LABEL_PREFIX__)

@@ -11,6 +11,7 @@
 #include "kpu.h"
 #include "printf.h"
 #include "nncase.h"
+#include "utils.h"
 
 #define LAYER_BURST_SIZE 12
 
@@ -1006,7 +1007,11 @@ static void kpu_quantize(const kpu_model_quantize_layer_argument_t *arg, kpu_mod
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
 
     kpu_model_quant_param_t q;
+#if FIX_CACHE
     memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
+#else
+    q = arg->quant_param;
+#endif
     float scale = 1.f / q.scale;
 
     uint8_t *dest = (uint8_t *)(ctx->main_buffer + arg->mem_out_address);
@@ -1028,7 +1033,11 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, count = arg->count;
     kpu_model_quant_param_t q;
+#if FIX_CACHE
     memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
+#else
+    q = arg->quant_param;
+#endif
     for(oc = 0; oc < count; oc++)
         dest[oc] = *src++ * q.scale + q.bias;
 }
@@ -1358,13 +1367,22 @@ static void kpu_upload(const kpu_model_upload_layer_argument_t *arg, kpu_model_c
 
 int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
 {
-    uintptr_t base_addr = (uintptr_t)buffer;
-    const kpu_kmodel_header_t *header = (const kpu_kmodel_header_t *)buffer;
+    const uint8_t *buffer_iomem;
+    if(is_memory_cache((uintptr_t)buffer))
+    {
+        buffer_iomem = (const uint8_t *)((uintptr_t)buffer - 0x40000000);
+    }
+    else
+    {
+        buffer_iomem = buffer;
+    }
+    uintptr_t base_addr = (uintptr_t)buffer_iomem;
+    const kpu_kmodel_header_t *header = (const kpu_kmodel_header_t *)buffer_iomem;
     printf("header = %p %x %x\n", header, header->version, header->arch);
     if(header->version == 3 && header->arch == 0)
     {
         ctx->is_nncase = 0;
-        ctx->model_buffer = buffer;
+        ctx->model_buffer = buffer_iomem;
         ctx->output_count = header->output_count;
         ctx->outputs = (const kpu_model_output_t *)(base_addr + sizeof(kpu_kmodel_header_t));
         ctx->layer_headers = (const kpu_model_layer_header_t *)((uintptr_t)ctx->outputs + sizeof(kpu_model_output_t) * ctx->output_count);
@@ -1375,7 +1393,7 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
             return -1;
     } else if(header->version == 'KMDL')
     {
-        return nncase_load_kmodel(ctx, buffer);
+        return nncase_load_kmodel(ctx, buffer_iomem);
     } else
     {
         return -1;
