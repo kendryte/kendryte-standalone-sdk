@@ -256,10 +256,10 @@ SECTIONS
   PROVIDE( _sp1 = _tp1 + _stack_size );
 
   /* Heap end is at the end of memory, the memory size can set in kconfig */
-  PROVIDE( _heap_end = _ram_end - (1024*1024));
+  PROVIDE( _heap_end = _ram_end - ((1*1024)*1024));
   
   /* Data store in IO MEMORY */
-  .iodata (0x40600000 - (1024*1024)):
+  .iodata (0x40600000 - ((1*1024)*1024)):
   {
     . = ALIGN(64);
   	PROVIDE( _iodata = ABSOLUTE(.) );

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "iomem_malloc.h"
 
-#define IOMEM_BLOCK_SIZE 512
+#define IOMEM_BLOCK_SIZE 128
 
 typedef struct _iomem_malloc_t
 {
@@ -18,12 +18,12 @@ typedef struct _iomem_malloc_t
 } iomem_malloc_t;
 
 static void iomem_init();
-static uint8_t iomem_perused();
+static uint8_t k_perused();
 
 iomem_malloc_t malloc_cortol = 
 {
     iomem_init,
-    iomem_perused,
+    k_perused,
     NULL,
     0,
     0,
@@ -51,7 +51,7 @@ static void iomem_init()
     malloc_cortol.memrdy = 1;
 }
 
-static uint8_t iomem_perused()
+static uint8_t k_perused()
 {
     uint32_t used=0;
     uint32_t i;
@@ -133,5 +133,10 @@ void *iomem_malloc(uint32_t size)
         return NULL;
     else 
         return (void*)((uintptr_t)malloc_cortol.membase + offset);
+}
+
+uint32_t iomem_perused()
+{
+    return malloc_cortol.perused();
 }
 
