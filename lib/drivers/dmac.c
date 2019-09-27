@@ -374,7 +374,7 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
         }
         else
         {
-            configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
+            //configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
             src_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
             memcpy(src_io, src, blockSize * (1<<dmac_trans_width));
         }
@@ -389,7 +389,7 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
         }
         else
         {
-            configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
+            //configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
             dest_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
             dmac_context[channel_num].buf_len = blockSize * (1<<dmac_trans_width);
         }
