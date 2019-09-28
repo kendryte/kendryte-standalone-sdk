@@ -187,20 +187,20 @@ handle_irq_m_ext(uintptr_t cause, uintptr_t epc)
         /* Set new IRQ threshold = current IRQ threshold */
         plic->targets.target[core_id].priority_threshold = plic->source_priorities.priority[int_num];
         /* Disable software interrupt and timer interrupt */
-        //clear_csr(mie, MIP_MTIP | MIP_MSIP);
+        clear_csr(mie, MIP_MTIP | MIP_MSIP);
         /* Enable global interrupt */
-        //set_csr(mstatus, MSTATUS_MIE);
+        set_csr(mstatus, MSTATUS_MIE);
         if(plic_instance[core_id][int_num].callback)
             plic_instance[core_id][int_num].callback(
                 plic_instance[core_id][int_num].ctx);
         /* Perform IRQ complete */
         plic->targets.target[core_id].claim_complete = int_num;
         /* Disable global interrupt */
-        //clear_csr(mstatus, MSTATUS_MIE);
+        clear_csr(mstatus, MSTATUS_MIE);
         /* Set MPIE and MPP flag used to MRET instructions restore MIE flag */
-        //set_csr(mstatus, MSTATUS_MPIE | MSTATUS_MPP);
+        set_csr(mstatus, MSTATUS_MPIE | MSTATUS_MPP);
         /* Restore primitive interrupt enable flag */
-        //write_csr(mie, ie_flag);
+        write_csr(mie, ie_flag);
         /* Restore primitive IRQ threshold */
         plic->targets.target[core_id].priority_threshold = int_threshold;
     }
