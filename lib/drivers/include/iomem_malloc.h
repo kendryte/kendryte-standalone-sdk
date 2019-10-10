@@ -3,6 +3,6 @@
 
 void iomem_free(void *paddr) ;
 void *iomem_malloc(uint32_t size);
-uint32_t iomem_perused();
+uint32_t iomem_unused();
 
 #endif

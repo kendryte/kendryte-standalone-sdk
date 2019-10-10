@@ -97,6 +97,8 @@ static const char *TAG = "SYSCALL";
 extern char _heap_start[];
 extern char _heap_end[];
 char *_heap_cur = &_heap_start[0];
+char *_heap_line = &_heap_start[0];
+char *_ioheap_line = &_heap_end[0]-0x40000000;
 
 sys_putchar_t sys_putchar;
 sys_getchar_t sys_getchar;
@@ -184,6 +186,14 @@ static size_t sys_brk(size_t pos)
             res = -ENOMEM;
         } else
         {
+            if((uintptr_t)pos > (uintptr_t)_heap_line)
+            {
+                _heap_line = (char *)(uintptr_t)pos;
+                if((uintptr_t)_heap_line-0x40000000 > (uintptr_t)_ioheap_line)
+                {
+                    LOGE(TAG, "WARNING: cache heap line > iomem heap line!\r\n");
+                }
+            }
             /* Adjust brk pointer. */
             _heap_cur = (char *)(uintptr_t)pos;
             /* Return current address. */
