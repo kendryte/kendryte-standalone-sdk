@@ -87,15 +87,18 @@ static uint32_t k_malloc(uint32_t size)
     for(offset=malloc_cortol.memtblsize-1; offset>=0; offset--)
     {
         if(!malloc_cortol.memmap[offset])
+        {
             kmemb++;
+        }
         else 
+        {
+            offset = offset - malloc_cortol.memmap[offset] + 1;
             kmemb=0;
+        }
         if(kmemb==xmemb)
         {
-            for(i=0; i<xmemb; i++)
-            {
-                malloc_cortol.memmap[offset+i] = xmemb;
-            }
+            malloc_cortol.memmap[offset] = xmemb;
+            malloc_cortol.memmap[offset+xmemb-1] = xmemb;
             return (offset * IOMEM_BLOCK_SIZE);
         }
     }
@@ -114,10 +117,10 @@ static uint8_t k_free(uint32_t offset)
     {  
         int index=offset / IOMEM_BLOCK_SIZE;
         int nmemb=malloc_cortol.memmap[index];
-        for(i=0; i<nmemb; i++)
-        {
-            malloc_cortol.memmap[index+i] = 0;
-        }
+
+        malloc_cortol.memmap[index] = 0;
+        malloc_cortol.memmap[index+nmemb-1] = 0;
+
         if((uintptr_t)_ioheap_line == (uintptr_t)malloc_cortol.membase + offset)
         {
             _ioheap_line = (char *)((uintptr_t)_ioheap_line + nmemb * IOMEM_BLOCK_SIZE);
