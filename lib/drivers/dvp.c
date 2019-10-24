@@ -201,6 +201,11 @@ void dvp_set_image_size(uint32_t width, uint32_t height)
 
 void dvp_set_ai_addr(uint32_t r_addr, uint32_t g_addr, uint32_t b_addr)
 {
+#if FIX_CACHE
+    configASSERT(!is_memory_cache((uintptr_t)r_addr));
+    configASSERT(!is_memory_cache((uintptr_t)g_addr));
+    configASSERT(!is_memory_cache((uintptr_t)b_addr));
+#endif
     dvp->r_addr = r_addr;
     dvp->g_addr = g_addr;
     dvp->b_addr = b_addr;
@@ -208,6 +213,9 @@ void dvp_set_ai_addr(uint32_t r_addr, uint32_t g_addr, uint32_t b_addr)
 
 void dvp_set_display_addr(uint32_t addr)
 {
+#if FIX_CACHE
+    configASSERT(!is_memory_cache((uintptr_t)addr));
+#endif
     dvp->rgb_addr = addr;
 }
 

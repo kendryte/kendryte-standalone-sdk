@@ -33,6 +33,8 @@ extern "C" {
 #define KENDRYTE_MIN(a, b) ((a) > (b) ? (b) : (a))
 #define KENDRYTE_MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define FIX_CACHE 1
+
 #ifdef __ASSEMBLY__
 #define KENDRYTE_CAST(type, ptr) ptr
 #else /* __ASSEMBLY__ */
@@ -340,6 +342,7 @@ uint32_t get_bit(volatile uint32_t *bits, uint32_t mask, size_t offset);
  */
 uint32_t get_gpio_bit(volatile uint32_t *bits, size_t offset);
 
+uint32_t is_memory_cache(uintptr_t address);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

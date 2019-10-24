@@ -22,6 +22,7 @@
 #include "spi.h"
 #include "sysctl.h"
 #include "utils.h"
+#include "iomem.h"
 
 volatile spi_t *const spi[4] =
     {
@@ -411,7 +412,11 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
     switch(spi_transfer_width)
     {
         case SPI_TRANS_SHORT:
-            buf = malloc((tx_len) * sizeof(uint32_t));
+#if FIX_CACHE
+            buf = (uint32_t *)iomem_malloc((tx_len) * sizeof(uint32_t));
+#else
+            buf = (uint32_t *)malloc((tx_len) * sizeof(uint32_t));
+#endif
             for(i = 0; i < tx_len; i++)
                 buf[i] = ((uint16_t *)tx_buff)[i];
             break;
@@ -420,7 +425,12 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
             break;
         case SPI_TRANS_CHAR:
         default:
-            buf = malloc((tx_len) * sizeof(uint32_t));
+#if FIX_CACHE
+            buf = (uint32_t *)iomem_malloc((tx_len) * sizeof(uint32_t));
+#else
+            buf = (uint32_t *)malloc((tx_len) * sizeof(uint32_t));
+#endif
+
             for(i = 0; i < tx_len; i++)
                 buf[i] = ((uint8_t *)tx_buff)[i];
             break;
@@ -429,13 +439,19 @@ void spi_send_data_normal_dma(dmac_channel_number_t channel_num, spi_device_num_
     spi_handle->ssienr = 0x01;
 
     sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
+
     dmac_set_single_mode(channel_num, buf, (void *)(&spi_handle->dr[0]), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                          DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, tx_len);
     spi_handle->ser = 1U << chip_select;
     dmac_wait_done(channel_num);
     if(spi_transfer_width != SPI_TRANS_INT)
+    {
+#if FIX_CACHE
+        iomem_free((void *)buf);
+#else
         free((void *)buf);
-
+#endif
+    }
     while((spi_handle->sr & 0x05) != 0x04)
         ;
     spi_handle->ser = 0x00;
@@ -472,8 +488,13 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
 
     size_t v_max_len = v_tx_len > v_rx_len ? v_tx_len : v_rx_len;
 
+#if FIX_CACHE
+    uint32_t *v_tx_buf = iomem_malloc(v_max_len * 4);
+    uint32_t *v_rx_buf = iomem_malloc(v_max_len * 4);
+#else
     uint32_t *v_tx_buf = malloc(v_max_len * 4);
     uint32_t *v_rx_buf = malloc(v_max_len * 4);
+#endif
     uint32_t i = 0;
     switch(frame_width)
     {
@@ -552,8 +573,13 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
                 rx_buf[i] = v_rx_buf[i];
             break;
     }
+#if FIX_CACHE
+    iomem_free(v_tx_buf);
+    iomem_free(v_rx_buf);
+#else
     free(v_tx_buf);
     free(v_rx_buf);
+#endif
 }
 
 void spi_receive_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *cmd_buff,
@@ -721,7 +747,11 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
     switch(frame_width)
     {
         case SPI_TRANS_INT:
+#if FIX_CACHE
+            write_cmd = iomem_malloc(cmd_len + rx_len);
+#else
             write_cmd = malloc(cmd_len + rx_len);
+#endif
             for(i = 0; i < cmd_len / 4; i++)
                 write_cmd[i] = ((uint32_t *)cmd_buff)[i];
             read_buf = &write_cmd[i];
@@ -729,7 +759,11 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
             v_cmd_len = cmd_len / 4;
             break;
         case SPI_TRANS_SHORT:
+#if FIX_CACHE
+            write_cmd = iomem_malloc((cmd_len + rx_len) / 2 * sizeof(uint32_t));
+#else
             write_cmd = malloc((cmd_len + rx_len) / 2 * sizeof(uint32_t));
+#endif
             for(i = 0; i < cmd_len / 2; i++)
                 write_cmd[i] = ((uint16_t *)cmd_buff)[i];
             read_buf = &write_cmd[i];
@@ -737,7 +771,11 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
             v_cmd_len = cmd_len / 2;
             break;
         default:
+#if FIX_CACHE
+            write_cmd = iomem_malloc((cmd_len + rx_len) * sizeof(uint32_t));
+#else
             write_cmd = malloc((cmd_len + rx_len) * sizeof(uint32_t));
+#endif
             for(i = 0; i < cmd_len; i++)
                 write_cmd[i] = cmd_buff[i];
             read_buf = &write_cmd[i];
@@ -763,8 +801,11 @@ void spi_receive_data_standard_dma(dmac_channel_number_t dma_send_channel_num,
                 rx_buff[i] = read_buf[i];
             break;
     }
-
+#if FIX_CACHE
+    iomem_free(write_cmd);
+#else
     free(write_cmd);
+#endif
 }
 
 void spi_receive_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff,
@@ -887,14 +928,22 @@ void spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num,
             v_recv_len = rx_len / 4;
             break;
         case SPI_TRANS_SHORT:
+#if FIX_CACHE
+            write_cmd = iomem_malloc(cmd_len + rx_len / 2 * sizeof(uint32_t));
+#else
             write_cmd = malloc(cmd_len + rx_len / 2 * sizeof(uint32_t));
+#endif
             for(i = 0; i < cmd_len; i++)
                 write_cmd[i] = cmd_buff[i];
             read_buf = &write_cmd[i];
             v_recv_len = rx_len / 2;
             break;
         default:
+#if FIX_CACHE
+            write_cmd = iomem_malloc(cmd_len + rx_len * sizeof(uint32_t));
+#else
             write_cmd = malloc(cmd_len + rx_len * sizeof(uint32_t));
+#endif
             for(i = 0; i < cmd_len; i++)
                 write_cmd[i] = cmd_buff[i];
             read_buf = &write_cmd[i];
@@ -921,7 +970,13 @@ void spi_receive_data_multiple_dma(dmac_channel_number_t dma_send_channel_num,
     }
 
     if(frame_width != SPI_TRANS_INT)
+    {
+#if FIX_CACHE
+        iomem_free(write_cmd);
+#else
         free(write_cmd);
+#endif
+    }
 }
 
 void spi_send_data_multiple(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint32_t *cmd_buff,
@@ -979,7 +1034,11 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
     switch(frame_width)
     {
         case SPI_TRANS_INT:
+#if FIX_CACHE
+            buf = iomem_malloc(cmd_len * sizeof(uint32_t) + tx_len);
+#else
             buf = malloc(cmd_len * sizeof(uint32_t) + tx_len);
+#endif
             for(i = 0; i < cmd_len; i++)
                 buf[i] = cmd_buff[i];
             for(i = 0; i < tx_len / 4; i++)
@@ -987,7 +1046,11 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
             v_send_len = cmd_len + tx_len / 4;
             break;
         case SPI_TRANS_SHORT:
+#if FIX_CACHE
+            buf = iomem_malloc(cmd_len * sizeof(uint32_t) + tx_len / 2 * sizeof(uint32_t));
+#else
             buf = malloc(cmd_len * sizeof(uint32_t) + tx_len / 2 * sizeof(uint32_t));
+#endif
             for(i = 0; i < cmd_len; i++)
                 buf[i] = cmd_buff[i];
             for(i = 0; i < tx_len / 2; i++)
@@ -995,7 +1058,11 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
             v_send_len = cmd_len + tx_len / 2;
             break;
         default:
+#if FIX_CACHE
+            buf = iomem_malloc((cmd_len + tx_len) * sizeof(uint32_t));
+#else
             buf = malloc((cmd_len + tx_len) * sizeof(uint32_t));
+#endif
             for(i = 0; i < cmd_len; i++)
                 buf[i] = cmd_buff[i];
             for(i = 0; i < tx_len; i++)
@@ -1006,7 +1073,11 @@ void spi_send_data_multiple_dma(dmac_channel_number_t channel_num, spi_device_nu
 
     spi_send_data_normal_dma(channel_num, spi_num, chip_select, buf, v_send_len, SPI_TRANS_INT);
 
+#if FIX_CACHE
+    iomem_free((void *)buf);
+#else
     free((void *)buf);
+#endif
 }
 
 void spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_num, spi_chip_select_t chip_select,

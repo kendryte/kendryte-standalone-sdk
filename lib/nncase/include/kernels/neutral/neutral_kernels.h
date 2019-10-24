@@ -17,6 +17,8 @@
 #include <cmath>
 #include <runtime/runtime_op_utility.h>
 #include <xtl/xspan.hpp>
+#include <cstring>
+#include <utils.h>
 
 namespace nncase
 {
@@ -139,11 +141,18 @@ namespace kernels
 
         inline void matmul(const float *input_a, const float *input_b, float *output, const float *bias, int32_t a_rows, int32_t a_cols, int32_t b_cols, const value_range<float> &fused_activation)
         {
+#if FIX_CACHE
+            float *cache_mem = new float[b_cols];
+            memcpy(cache_mem, bias, b_cols*sizeof(float));
+#else
+            const float *cache_mem =bias;
+#endif
             for (size_t oy = 0; oy < a_rows; oy++)
             {
                 for (size_t ox = 0; ox < b_cols; ox++)
                 {
-                    float value = bias[ox];
+                    float value = cache_mem[ox];
+
                     for (size_t i = 0; i < a_cols; i++)
                     {
                         const auto a = input_a[oy * a_cols + i];
@@ -154,6 +163,9 @@ namespace kernels
                     output[oy * b_cols + ox] = details::apply_activation(value, fused_activation);
                 }
             }
+#if FIX_CACHE
+            delete []cache_mem;
+#endif
         }
 
         template <class T>

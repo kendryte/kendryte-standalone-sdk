@@ -20,6 +20,7 @@
 #include "sysctl.h"
 #include "uart.h"
 #include "utils.h"
+#include "iomem.h"
 
 #define __UART_BRATE_CONST 16
 
@@ -158,12 +159,18 @@ static int uart_dma_callback(void *ctx)
         size_t v_buf_len = v_uart_dma_instance->buf_len;
         uint8_t *v_buffer = v_uart_dma_instance->buffer;
         uint32_t *v_recv_buffer = v_uart_dma_instance->malloc_buffer;
+
         for(size_t i = 0; i < v_buf_len; i++)
         {
             v_buffer[i] = v_recv_buffer[i];
         }
     }
+#if FIX_CACHE
+    iomem_free(v_uart_dma_instance->malloc_buffer);
+#else
     free(v_uart_dma_instance->malloc_buffer);
+#endif
+	v_uart_dma_instance->malloc_buffer = NULL;
     if(v_uart_dma_instance->uart_int_instance.callback)
         v_uart_dma_instance->uart_int_instance.callback(v_uart_dma_instance->uart_int_instance.ctx);
     return 0;
@@ -184,26 +191,41 @@ int uart_receive_data(uart_device_number_t channel, char *buffer, size_t buf_len
 
 void uart_receive_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel, uint8_t *buffer, size_t buf_len)
 {
-    uint32_t *v_recv_buf = malloc(buf_len * sizeof(uint32_t));
+#if FIX_CACHE
+    uint32_t *v_recv_buf = (uint32_t *)iomem_malloc(buf_len * sizeof(uint32_t));
+#else
+    uint32_t *v_recv_buf = (uint32_t *)malloc(buf_len * sizeof(uint32_t));
+#endif
     configASSERT(v_recv_buf != NULL);
 
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_RX_REQ + uart_channel * 2);
+
     dmac_set_single_mode(dmac_channel, (void *)(&uart[uart_channel]->RBR), v_recv_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+
     dmac_wait_done(dmac_channel);
     for(uint32_t i = 0; i < buf_len; i++)
     {
         buffer[i] = (uint8_t)(v_recv_buf[i] & 0xff);
     }
+#if FIX_CACHE
+    iomem_free(v_recv_buf);
+#else
     free(v_recv_buf);
+#endif
 }
 
 void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel,
                                uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
                                void *ctx, uint32_t priority)
 {
-    uint32_t *v_recv_buf = malloc(buf_len * sizeof(uint32_t));
+#if FIX_CACHE
+    uint32_t *v_recv_buf = (uint32_t *)iomem_malloc(buf_len * sizeof(uint32_t));
+#else
+    uint32_t *v_recv_buf = (uint32_t *)malloc(buf_len * sizeof(uint32_t));
+#endif
     configASSERT(v_recv_buf != NULL);
+
 
     uart_recv_dma_instance[uart_channel].dmac_channel = dmac_channel;
     uart_recv_dma_instance[uart_channel].uart_num = uart_channel;
@@ -217,7 +239,7 @@ void uart_receive_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_n
     dmac_irq_register(dmac_channel, uart_dma_callback, &uart_recv_dma_instance[uart_channel], priority);
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_RX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, (void *)(&uart[uart_channel]->RBR), v_recv_buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
-                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+                        DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
 }
 
 int uart_send_data(uart_device_number_t channel, const char *buffer, size_t buf_len)
@@ -233,22 +255,37 @@ int uart_send_data(uart_device_number_t channel, const char *buffer, size_t buf_
 
 void uart_send_data_dma(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel, const uint8_t *buffer, size_t buf_len)
 {
+#if FIX_CACHE
+    uint32_t *v_send_buf = iomem_malloc(buf_len * sizeof(uint32_t));
+#else
     uint32_t *v_send_buf = malloc(buf_len * sizeof(uint32_t));
+#endif
     configASSERT(v_send_buf != NULL);
+
     for(uint32_t i = 0; i < buf_len; i++)
         v_send_buf[i] = buffer[i];
+
     sysctl_dma_select((sysctl_dma_channel_t)dmac_channel, SYSCTL_DMA_SELECT_UART1_TX_REQ + uart_channel * 2);
     dmac_set_single_mode(dmac_channel, v_send_buf, (void *)(&uart[uart_channel]->THR), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
-                         DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+                             DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
+
     dmac_wait_done(dmac_channel);
+#if FIX_CACHE
+    iomem_free((void *)v_send_buf);
+#else
     free((void *)v_send_buf);
+#endif
 }
 
 void uart_send_data_dma_irq(uart_device_number_t uart_channel, dmac_channel_number_t dmac_channel,
                             const uint8_t *buffer, size_t buf_len, plic_irq_callback_t uart_callback,
                             void *ctx, uint32_t priority)
 {
+#if FIX_CACHE
+    uint32_t *v_send_buf = iomem_malloc(buf_len * sizeof(uint32_t));
+#else
     uint32_t *v_send_buf = malloc(buf_len * sizeof(uint32_t));
+#endif
     configASSERT(v_send_buf != NULL);
 
     uart_send_dma_instance[uart_channel] = (uart_dma_instance_t){

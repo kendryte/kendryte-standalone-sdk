@@ -15,18 +15,27 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "dmac.h"
 #include "fpioa.h"
 #include "plic.h"
 #include "stdlib.h"
 #include "sysctl.h"
 #include "utils.h"
+#include "iomem.h"
 
 volatile dmac_t *const dmac = (dmac_t *)DMAC_BASE_ADDR;
 
 typedef struct _dmac_context
 {
     dmac_channel_number_t dmac_channel;
+#if FIX_CACHE
+    uint8_t *dest_buffer;
+    uint8_t *src_malloc;
+    uint8_t *dest_malloc;
+    size_t buf_len;
+#endif
+
     plic_irq_callback_t callback;
     void *ctx;
 } dmac_context_t;
@@ -353,6 +362,40 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
     dmac_ch_ctl_u_t ctl;
     dmac_ch_cfg_u_t cfg_u;
 
+#if FIX_CACHE
+    uint8_t *src_io = (uint8_t *)src;
+    uint8_t *dest_io = (uint8_t *)dest;
+    if(is_memory_cache((uintptr_t)src))
+    {
+        if(src_inc == DMAC_ADDR_NOCHANGE)
+        {
+            src_io = (uint8_t *)iomem_malloc(1<<dmac_trans_width);
+            memcpy(src_io, src, 1<<dmac_trans_width);
+        }
+        else
+        {
+            src_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
+            memcpy(src_io, src, blockSize * (1<<dmac_trans_width));
+        }
+        dmac_context[channel_num].src_malloc = src_io;
+    }
+    if(is_memory_cache((uintptr_t)dest))
+    {
+        if(dest_inc == DMAC_ADDR_NOCHANGE)
+        {
+            dest_io = (uint8_t *)iomem_malloc(1<<dmac_trans_width);
+            dmac_context[channel_num].buf_len = 1<<dmac_trans_width;
+        }
+        else
+        {
+            dest_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
+            dmac_context[channel_num].buf_len = blockSize * (1<<dmac_trans_width);
+        }
+        dmac_context[channel_num].dest_malloc = dest_io;
+        dmac_context[channel_num].dest_buffer = dest;
+    }
+#endif
+
     int mem_type_src = is_memory((uintptr_t)src), mem_type_dest = is_memory((uintptr_t)dest);
     dmac_transfer_flow_t flow_control;
     if(mem_type_src == 0 && mem_type_dest == 0)
@@ -381,8 +424,13 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
 
     writeq(cfg_u.data, &dmac->channel[channel_num].cfg);
 
+#if FIX_CACHE
+    dmac->channel[channel_num].sar = (uint64_t)src_io;
+    dmac->channel[channel_num].dar = (uint64_t)dest_io;
+#else
     dmac->channel[channel_num].sar = (uint64_t)src;
     dmac->channel[channel_num].dar = (uint64_t)dest;
+#endif
 
     ctl.data = readq(&dmac->channel[channel_num].ctl);
     ctl.ch_ctl.sms = DMAC_MASTER1;
@@ -736,6 +784,22 @@ int dmac_is_done(dmac_channel_number_t channel_num)
 void dmac_wait_done(dmac_channel_number_t channel_num)
 {
     dmac_wait_idle(channel_num);
+#if FIX_CACHE
+    if(dmac_context[channel_num].dest_buffer)
+    {
+        memcpy(dmac_context[channel_num].dest_buffer, dmac_context[channel_num].dest_malloc, dmac_context[channel_num].buf_len);
+
+        iomem_free(dmac_context[channel_num].dest_malloc);
+        dmac_context[channel_num].dest_malloc = NULL;
+        dmac_context[channel_num].dest_buffer = NULL;
+        dmac_context[channel_num].buf_len = 0;
+    }
+    if(dmac_context[channel_num].src_malloc)
+    {
+        iomem_free(dmac_context[channel_num].src_malloc);
+        dmac_context[channel_num].src_malloc = NULL;
+    }
+#endif
 }
 
 int dmac_is_idle(dmac_channel_number_t channel_num)
@@ -771,6 +835,22 @@ static int dmac_irq_callback(void *ctx)
     dmac_context_t *v_dmac_context = (dmac_context_t *)(ctx);
     dmac_channel_number_t v_dmac_channel = v_dmac_context->dmac_channel;
     dmac_channel_interrupt_clear(v_dmac_channel);
+#if FIX_CACHE
+    if(v_dmac_context->dest_buffer)
+    {
+        memcpy(v_dmac_context->dest_buffer, v_dmac_context->dest_malloc, v_dmac_context->buf_len);
+        iomem_free(v_dmac_context->dest_malloc);
+        v_dmac_context->dest_malloc = NULL;
+        v_dmac_context->dest_buffer = NULL;
+        v_dmac_context->buf_len = 0;
+    }
+    if(v_dmac_context->src_malloc)
+    {
+        iomem_free(v_dmac_context->src_malloc);
+        v_dmac_context->src_malloc = NULL;
+    }
+#endif
+
     if(v_dmac_context->callback != NULL)
         v_dmac_context->callback(v_dmac_context->ctx);
 

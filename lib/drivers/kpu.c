@@ -11,6 +11,7 @@
 #include "kpu.h"
 #include "printf.h"
 #include "nncase.h"
+#include "utils.h"
 
 #define LAYER_BURST_SIZE 12
 
@@ -1004,8 +1005,13 @@ static void kpu_quantize(const kpu_model_quantize_layer_argument_t *arg, kpu_mod
 {
     size_t count = arg->count;
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
-    ;
-    const kpu_model_quant_param_t q = arg->quant_param;
+
+    kpu_model_quant_param_t q;
+#if FIX_CACHE
+    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
+#else
+    q = arg->quant_param;
+#endif
     float scale = 1.f / q.scale;
 
     uint8_t *dest = (uint8_t *)(ctx->main_buffer + arg->mem_out_address);
@@ -1026,8 +1032,12 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, count = arg->count;
-    const kpu_model_quant_param_t q = arg->quant_param;
-
+    kpu_model_quant_param_t q;
+#if FIX_CACHE
+    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
+#else
+    q = arg->quant_param;
+#endif
     for(oc = 0; oc < count; oc++)
         dest[oc] = *src++ * q.scale + q.bias;
 }
@@ -1357,6 +1367,9 @@ static void kpu_upload(const kpu_model_upload_layer_argument_t *arg, kpu_model_c
 
 int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
 {
+#if FIX_CACHE
+    configASSERT(!is_memory_cache((uintptr_t)buffer));
+#endif
     uintptr_t base_addr = (uintptr_t)buffer;
     const kpu_kmodel_header_t *header = (const kpu_kmodel_header_t *)buffer;
 
