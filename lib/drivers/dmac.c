@@ -22,7 +22,7 @@
 #include "stdlib.h"
 #include "sysctl.h"
 #include "utils.h"
-#include "iomem_malloc.h"
+#include "iomem.h"
 
 volatile dmac_t *const dmac = (dmac_t *)DMAC_BASE_ADDR;
 
@@ -374,7 +374,6 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
         }
         else
         {
-            //configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
             src_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
             memcpy(src_io, src, blockSize * (1<<dmac_trans_width));
         }
@@ -389,7 +388,6 @@ int dmac_set_channel_param(dmac_channel_number_t channel_num,
         }
         else
         {
-            //configASSERT(blockSize * (1<<dmac_trans_width) < DMA_CACHE_MAX);
             dest_io = (uint8_t *)iomem_malloc(blockSize * (1<<dmac_trans_width));
             dmac_context[channel_num].buf_len = blockSize * (1<<dmac_trans_width);
         }

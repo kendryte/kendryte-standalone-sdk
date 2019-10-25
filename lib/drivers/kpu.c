@@ -1006,12 +1006,8 @@ static void kpu_quantize(const kpu_model_quantize_layer_argument_t *arg, kpu_mod
     size_t count = arg->count;
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
 
-    kpu_model_quant_param_t q;
-#if FIX_CACHE
-    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
-#else
-    q = arg->quant_param;
-#endif
+    kpu_model_quant_param_t q = arg->quant_param;
+
     float scale = 1.f / q.scale;
 
     uint8_t *dest = (uint8_t *)(ctx->main_buffer + arg->mem_out_address);
@@ -1032,12 +1028,8 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, count = arg->count;
-    kpu_model_quant_param_t q;
-#if FIX_CACHE
-    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
-#else
-    q = arg->quant_param;
-#endif
+    kpu_model_quant_param_t q = arg->quant_param;
+
     for(oc = 0; oc < count; oc++)
         dest[oc] = *src++ * q.scale + q.bias;
 }
@@ -1273,9 +1265,10 @@ static void kpu_logistic(const kpu_model_logistic_layer_argument_t *arg, kpu_mod
 static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     volatile kpu_layer_argument_t layer = *(const volatile kpu_layer_argument_t *)(ctx->model_buffer + arg->layer_offset);
-    layer.kernel_load_cfg.data.para_start_addr = (uintptr_t)(ctx->model_buffer + arg->weights_offset);
-    layer.kernel_pool_type_cfg.data.bwsx_base_addr = (uintptr_t)(ctx->model_buffer + arg->bn_offset);
-    layer.kernel_calc_type_cfg.data.active_addr = (uintptr_t)(ctx->model_buffer + arg->act_offset);
+
+    layer.kernel_load_cfg.data.para_start_addr = (uintptr_t)(ctx->model_buffer + arg->weights_offset) - 0x40000000;
+    layer.kernel_pool_type_cfg.data.bwsx_base_addr = (uintptr_t)(ctx->model_buffer + arg->bn_offset) - 0x40000000;
+    layer.kernel_calc_type_cfg.data.active_addr = (uintptr_t)(ctx->model_buffer + arg->act_offset) - 0x40000000;
 
     if(arg->flags & KLF_MAIN_MEM_OUT)
     {
@@ -1367,21 +1360,16 @@ static void kpu_upload(const kpu_model_upload_layer_argument_t *arg, kpu_model_c
 
 int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
 {
-    const uint8_t *buffer_iomem;
-    if(is_memory_cache((uintptr_t)buffer))
-    {
-        buffer_iomem = (const uint8_t *)((uintptr_t)buffer - 0x40000000);
-    }
-    else
-    {
-        buffer_iomem = buffer;
-    }
-    uintptr_t base_addr = (uintptr_t)buffer_iomem;
-    const kpu_kmodel_header_t *header = (const kpu_kmodel_header_t *)buffer_iomem;
+    uintptr_t base_addr = (uintptr_t)buffer;
+    const kpu_kmodel_header_t *header = (const kpu_kmodel_header_t *)buffer;
+
+    configASSERT(is_memory_cache((uintptr_t)buffer))
+
     if(header->version == 3 && header->arch == 0)
     {
+        ctx->load_first = 1;
         ctx->is_nncase = 0;
-        ctx->model_buffer = buffer_iomem;
+        ctx->model_buffer = buffer;
         ctx->output_count = header->output_count;
         ctx->outputs = (const kpu_model_output_t *)(base_addr + sizeof(kpu_kmodel_header_t));
         ctx->layer_headers = (const kpu_model_layer_header_t *)((uintptr_t)ctx->outputs + sizeof(kpu_model_output_t) * ctx->output_count);
@@ -1494,6 +1482,7 @@ static int kpu_kmodel_done(kpu_model_context_t *ctx)
         .calc_done_int = 1,
         .layer_cfg_almost_empty_int = 1,
         .layer_cfg_almost_full_int = 1};
+    ctx->load_first = 0;
 #if KPU_DEBUG
     uint32_t cnt_layer_id = ctx->current_layer - 1;
     uint64_t time = sysctl_get_time_us();
@@ -1593,6 +1582,13 @@ static int ai_step(void *userdata)
             kpu_logistic((const kpu_model_logistic_layer_argument_t *)layer_body, ctx);
             break;
         case KL_K210_CONV:
+            if(ctx->load_first)
+            {
+				for(int i=0; i<cnt_layer_header->body_size; i++)
+				{
+					*((uint8_t *)((uintptr_t)layer_body-0x40000000)+i) = *((uint8_t *)layer_body+i);
+				}
+            }
             kpu_conv((const kpu_model_conv_layer_argument_t *)layer_body, ctx);
             return 0;
         case KL_K210_ADD_PADDING:

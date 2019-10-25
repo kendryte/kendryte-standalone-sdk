@@ -680,6 +680,7 @@ typedef struct
             const uint8_t *volatile current_body;
             dmac_channel_number_t dma_ch;
             kpu_done_callback_t done_callback;
+            volatile uint8_t load_first;
             void *userdata;
         };
 

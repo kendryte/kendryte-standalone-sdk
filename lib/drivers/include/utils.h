@@ -34,7 +34,6 @@ extern "C" {
 #define KENDRYTE_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #define FIX_CACHE 1
-#define DMA_CACHE_MAX (32 * 1024)
 
 #ifdef __ASSEMBLY__
 #define KENDRYTE_CAST(type, ptr) ptr

@@ -15,7 +15,7 @@
 
 #include <stdlib.h>
 #include "image_process.h"
-#include "iomem_malloc.h"
+#include "iomem.h"
 
 int image_init(image_t *image)
 {

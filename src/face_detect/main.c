@@ -24,7 +24,6 @@
 #define INCBIN_PREFIX
 #include "incbin.h"
 #include "utils.h"
-#include "iomem_malloc.h"
 
 #define PLL0_OUTPUT_FREQ 800000000UL
 #define PLL1_OUTPUT_FREQ 400000000UL
@@ -39,7 +38,7 @@ static obj_info_t face_detect_info;
 #define ANCHOR_NUM 5
 static float anchor[ANCHOR_NUM * 2] = {1.889,2.5245,  2.9465,3.94056, 3.99987,5.3658, 5.155437,6.92275, 6.718375,9.01025};
 
-#define  LOAD_KMODEL_FROM_FLASH  0
+#define  LOAD_KMODEL_FROM_FLASH  1
 
 #if LOAD_KMODEL_FROM_FLASH
 #define KMODEL_SIZE (380 * 1024)
@@ -83,10 +82,10 @@ static void io_mux_init(void)
     fpioa_set_function(40, FUNC_SCCB_SDA);
 
     /* Init SPI IO map and function settings */
-    fpioa_set_function(LCD_DCX_PIN, FUNC_GPIOHS0 + LCD_DCX_HS_NUM);
-    fpioa_set_function(LCD_WRX_PIN, FUNC_SPI0_SS3);
-    fpioa_set_function(LCD_SCK_PIN, FUNC_SPI0_SCLK);
-    fpioa_set_function(LCD_RST_PIN, FUNC_GPIOHS0 + LCD_RST_HS_NUM);
+    fpioa_set_function(38, FUNC_GPIOHS0 + DCX_GPIONUM);
+    fpioa_set_function(36, FUNC_SPI0_SS3);
+    fpioa_set_function(39, FUNC_SPI0_SCLK);
+    fpioa_set_function(37, FUNC_GPIOHS0 + RST_GPIONUM);
 
     sysctl_set_spi0_dvp_data(1);
 #else
@@ -180,14 +179,8 @@ static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index, uint
     }
 }
 
-extern void w25qxx_test(void);
-
 int main(void)
 {
-#if LOAD_KMODEL_FROM_FLASH
-    model_data = (uint8_t *)iomem_malloc(KMODEL_SIZE);
-#endif
-
     /* Set CPU and dvp clk */
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
     sysctl_pll_set_freq(SYSCTL_PLL1, PLL1_OUTPUT_FREQ);
@@ -196,12 +189,12 @@ int main(void)
     io_set_power();
     io_mux_init();
     plic_init();
-
     /* flash init */
     printf("flash init\n");
     w25qxx_init(3, 0);
     w25qxx_enable_quad_mode();
 #if LOAD_KMODEL_FROM_FLASH
+    model_data = (uint8_t *)malloc(KMODEL_SIZE);
     w25qxx_read_data(0xA00000, model_data, KMODEL_SIZE, W25QXX_QUAD_FAST);
 #endif
     /* LCD init */
@@ -250,7 +243,6 @@ int main(void)
     display_image.width = 320;
     display_image.height = 240;
     image_init(&display_image);
-
     dvp_set_ai_addr((uint32_t)kpu_image.addr, (uint32_t)(kpu_image.addr + 320 * 240), (uint32_t)(kpu_image.addr + 320 * 240 * 2));
     dvp_set_display_addr((uint32_t)display_image.addr);
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 0);
@@ -278,20 +270,6 @@ int main(void)
     uint64_t time_last = sysctl_get_time_us();
     uint64_t time_now = sysctl_get_time_us();
     int time_count = 0;
-	
-	w25qxx_init(3, 0);
-    uint8_t manuf_id, device_id;
-    w25qxx_read_id(&manuf_id, &device_id);
-    printf("manuf_id:0x%02x, device_id:0x%02x\r\n", manuf_id, device_id);
-    if((manuf_id != 0xEF && manuf_id != 0xC8) || (device_id != 0x17 && device_id != 0x16))
-    {
-        printf("manuf_id:0x%02x, device_id:0x%02x\r\n", manuf_id, device_id);
-        return -1;
-    }
-	//w25qxx_test();
-	
-	//lcd_sipeed_config(lcd_image_addr_io);
-	
     while (1)
     {
         g_dvp_finish_flag = 0;
@@ -313,12 +291,8 @@ int main(void)
         {
             draw_edge((uint32_t *)display_image.addr, &face_detect_info, face_cnt, RED);
         }
-        
         /* display result */
         lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
-		//lcd_covert_cam_order((uint32_t *)display_image_addr_io, CAM_W * CAM_H / 2);
-		//while(lcd_sipeed_busy()){};
-        //copy_image_cam_to_lcd(display_image_addr_io, lcd_image_addr_io);
         time_count ++;
         if(time_count % 100 == 0)
         {

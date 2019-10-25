@@ -20,7 +20,7 @@
 #include "sysctl.h"
 #include "uart.h"
 #include "utils.h"
-#include "iomem_malloc.h"
+#include "iomem.h"
 
 #define __UART_BRATE_CONST 16
 
@@ -211,7 +211,7 @@ void uart_receive_data_dma(uart_device_number_t uart_channel, dmac_channel_numbe
 #if FIX_CACHE
     iomem_free(v_recv_buf);
 #else
-	free(v_recv_buf);
+    free(v_recv_buf);
 #endif
 }
 

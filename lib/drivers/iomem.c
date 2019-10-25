@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "iomem_malloc.h"
+#include "iomem.h"
 #include "printf.h"
 #include "atomic.h"
 
@@ -11,7 +11,7 @@
 typedef struct _iomem_malloc_t
 {
     void (*init)();
-    uint8_t (*unused)();
+    uint32_t (*unused)();
     uint8_t *membase;
     uint32_t memsize;
     uint32_t memtblsize;
@@ -65,7 +65,6 @@ static void iomem_init()
 static uint32_t k_unused()
 {
     uint32_t unused=0;
-    uint32_t i;
     unused = (uintptr_t)_ioheap_line + 0x40000000 - (uintptr_t)_heap_line;
 
     return unused;
@@ -76,7 +75,7 @@ static uint32_t k_malloc(uint32_t size)
     signed long offset = 0;
     uint32_t xmemb;
     uint32_t kmemb = 0;
-    uint32_t i;
+
     if(!malloc_cortol.memrdy)
         malloc_cortol.init();
     if(size==0)
@@ -107,7 +106,6 @@ static uint32_t k_malloc(uint32_t size)
 
 static uint8_t k_free(uint32_t offset)
 {
-    int i;
     if(!malloc_cortol.memrdy)
     {
         malloc_cortol.init();

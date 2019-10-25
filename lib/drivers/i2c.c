@@ -21,7 +21,7 @@
 #include "string.h"
 #include "sysctl.h"
 #include "utils.h"
-#include "iomem_malloc.h"
+#include "iomem.h"
 
 typedef struct _i2c_slave_instance
 {
