@@ -681,7 +681,6 @@ typedef struct
             dmac_channel_number_t dma_ch;
             kpu_done_callback_t done_callback;
             volatile uint8_t load_first;
-            volatile uint8_t is_memory_cache;
             void *userdata;
         };
 

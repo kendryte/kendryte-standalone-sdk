@@ -1006,12 +1006,8 @@ static void kpu_quantize(const kpu_model_quantize_layer_argument_t *arg, kpu_mod
     size_t count = arg->count;
     const float *src = (const float *)(ctx->main_buffer + arg->main_mem_in_address);
 
-    kpu_model_quant_param_t q;
-#if FIX_CACHE
-    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
-#else
-    q = arg->quant_param;
-#endif
+    kpu_model_quant_param_t q = arg->quant_param;
+
     float scale = 1.f / q.scale;
 
     uint8_t *dest = (uint8_t *)(ctx->main_buffer + arg->mem_out_address);
@@ -1032,12 +1028,8 @@ static void kpu_kmodel_dequantize(const kpu_model_dequantize_layer_argument_t *a
     const uint8_t *src = (const uint8_t *)(ctx->main_buffer + arg->main_mem_in_address);
     float *dest = (float *)(ctx->main_buffer + arg->main_mem_out_address);
     size_t oc, count = arg->count;
-    kpu_model_quant_param_t q;
-#if FIX_CACHE
-    memcpy(&q, &arg->quant_param, sizeof(kpu_model_quant_param_t));
-#else
-    q = arg->quant_param;
-#endif
+    kpu_model_quant_param_t q = arg->quant_param;
+
     for(oc = 0; oc < count; oc++)
         dest[oc] = *src++ * q.scale + q.bias;
 }
@@ -1273,14 +1265,10 @@ static void kpu_logistic(const kpu_model_logistic_layer_argument_t *arg, kpu_mod
 static void kpu_conv(const kpu_model_conv_layer_argument_t *arg, kpu_model_context_t *ctx)
 {
     volatile kpu_layer_argument_t layer = *(const volatile kpu_layer_argument_t *)(ctx->model_buffer + arg->layer_offset);
-    uintptr_t fix = 0;
-    if(ctx->is_memory_cache)
-    {
-        fix = 0x40000000;
-    }
-    layer.kernel_load_cfg.data.para_start_addr = (uintptr_t)(ctx->model_buffer + arg->weights_offset) - fix;
-    layer.kernel_pool_type_cfg.data.bwsx_base_addr = (uintptr_t)(ctx->model_buffer + arg->bn_offset) - fix;
-    layer.kernel_calc_type_cfg.data.active_addr = (uintptr_t)(ctx->model_buffer + arg->act_offset) - fix;
+
+    layer.kernel_load_cfg.data.para_start_addr = (uintptr_t)(ctx->model_buffer + arg->weights_offset) - 0x40000000;
+    layer.kernel_pool_type_cfg.data.bwsx_base_addr = (uintptr_t)(ctx->model_buffer + arg->bn_offset) - 0x40000000;
+    layer.kernel_calc_type_cfg.data.active_addr = (uintptr_t)(ctx->model_buffer + arg->act_offset) - 0x40000000;
 
     if(arg->flags & KLF_MAIN_MEM_OUT)
     {
@@ -1375,14 +1363,11 @@ int kpu_load_kmodel(kpu_model_context_t *ctx, const uint8_t *buffer)
     uintptr_t base_addr = (uintptr_t)buffer;
     const kpu_kmodel_header_t *header = (const kpu_kmodel_header_t *)buffer;
 
-    if(is_memory_cache((uintptr_t)buffer))
-    {
-        ctx->load_first = 1;
-        ctx->is_memory_cache = 1;
-    }
+    configASSERT(is_memory_cache((uintptr_t)buffer))
 
     if(header->version == 3 && header->arch == 0)
     {
+        ctx->load_first = 1;
         ctx->is_nncase = 0;
         ctx->model_buffer = buffer;
         ctx->output_count = header->output_count;
