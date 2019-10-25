@@ -74,7 +74,12 @@ kernel_call_result runtime::call_kernel(runtime_opcode opcode, xtl::span<const u
     case rop_##target##_##id:                                           \
     {                                                                   \
         if(interpreter.load_first_)                                     \
-            memcpy((void *)((uintptr_t)(body.data())-0x40000000), body.data(), body.size());\
+        {                                                               \
+            for(int i=0; i<body.size(); i++)\
+            {\
+                *((uint8_t *)((uintptr_t)body.data()-0x40000000)+i) = *((uint8_t *)body.data()+i);\
+            }\
+        }                                         \
         nncase::runtime::target::id##_options options;                  \
         options.deserialize(reader);                                    \
         return nncase::runtime::target::id(options, interpreter, step); \

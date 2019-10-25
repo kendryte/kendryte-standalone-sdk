@@ -1584,7 +1584,10 @@ static int ai_step(void *userdata)
         case KL_K210_CONV:
             if(ctx->load_first)
             {
-                memcpy((void *)((uintptr_t)layer_body-0x40000000), layer_body, cnt_layer_header->body_size);
+				for(int i=0; i<cnt_layer_header->body_size; i++)
+				{
+					*((uint8_t *)((uintptr_t)layer_body-0x40000000)+i) = *((uint8_t *)layer_body+i);
+				}
             }
             kpu_conv((const kpu_model_conv_layer_argument_t *)layer_body, ctx);
             return 0;
