@@ -23,7 +23,6 @@ namespace runtime
 #define BEGINE_DEFINE_TARGET(...)
 #define DEFINE_NEUTRAL_RUNTIME_OP(id, name, value) rop_##id = value,
 #define DEFINE_RUNTIME_OP(target, id, name, value) rop_##target##_##id = value,
-#define DEFINE_RUNTIME_FENCE_OP(target, id, name, value) rop_##target##_##id = value,
 #define END_DEFINE_TARGET()
 
     enum runtime_opcode : uint32_t
@@ -33,14 +32,10 @@ namespace runtime
 
 #undef DEFINE_NEUTRAL_RUNTIME_OP
 #undef DEFINE_RUNTIME_OP
-#undef DEFINE_RUNTIME_FENCE_OP
 #define DEFINE_NEUTRAL_RUNTIME_OP(id, name, value) \
     case rop_##id:                                 \
         return #name;
 #define DEFINE_RUNTIME_OP(target, id, name, value) \
-    case rop_##target##_##id:                      \
-        return #name;
-#define DEFINE_RUNTIME_FENCE_OP(target, id, name, value) \
     case rop_##target##_##id:                      \
         return #name;
 
@@ -57,7 +52,6 @@ namespace runtime
 #undef BEGINE_DEFINE_TARGET
 #undef DEFINE_NEUTRAL_RUNTIME_OP
 #undef DEFINE_RUNTIME_OP
-#undef DEFINE_RUNTIME_FENCE_OP
 #undef END_DEFINE_TARGET
 }
 }

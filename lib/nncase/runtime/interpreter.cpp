@@ -46,9 +46,7 @@ bool interpreter_base::try_load_model(const uint8_t *buffer)
     node_headers_ = { reinterpret_cast<const node_header *>(offset), nodes_size() };
     offset += sizeof(node_header) * nodes_size();
     node_body_start_ = offset;
-#if !NNCASE_TARGET_K210_SIMULATOR
-    load_first_ = 1;
-#endif
+
     return initialize();
 }
 
@@ -93,7 +91,6 @@ void interpreter_base::step()
 
         if (cnt_node_ == nodes_size())
         {
-            load_first_ = 0;
             run_callback_(userdata_);
             break;
         }

@@ -17,7 +17,6 @@
 #include <runtime/kernel_registry.h>
 #include <runtime/neutral/neutral_ops_body.h>
 #include <runtime/span_reader.h>
-#include <cstring>
 
 using namespace nncase;
 using namespace nncase::runtime;
@@ -34,8 +33,6 @@ namespace runtime
     kernel_call_result id(id##_options &, interpreter_t &, interpreter_step_t);
 #define DEFINE_RUNTIME_OP(target, id, name, value) \
     kernel_call_result id(id##_options &, interpreter_t &, interpreter_step_t);
-#define DEFINE_RUNTIME_FENCE_OP(target, id, name, value) \
-    kernel_call_result id(id##_options &, interpreter_t &, interpreter_step_t);
 
 #define END_DEFINE_TARGET() }
 
@@ -44,7 +41,6 @@ namespace runtime
 #undef BEGINE_DEFINE_TARGET
 #undef DEFINE_NEUTRAL_RUNTIME_OP
 #undef DEFINE_RUNTIME_OP
-#undef DEFINE_RUNTIME_FENCE_OP
 #undef END_DEFINE_TARGET
 }
 }
@@ -70,21 +66,6 @@ kernel_call_result runtime::call_kernel(runtime_opcode opcode, xtl::span<const u
         options.deserialize(reader);                                    \
         return nncase::runtime::target::id(options, interpreter, step); \
     }
-#define DEFINE_RUNTIME_FENCE_OP(target, id, name, value)                      \
-    case rop_##target##_##id:                                           \
-    {                                                                   \
-        if(interpreter.load_first_)                                     \
-        {                                                               \
-            for(int i=0; i<body.size(); i++)\
-            {\
-                *((uint8_t *)((uintptr_t)body.data()-0x40000000)+i) = *((uint8_t *)body.data()+i);\
-            }\
-        }                                         \
-        nncase::runtime::target::id##_options options;                  \
-        options.deserialize(reader);                                    \
-        return nncase::runtime::target::id(options, interpreter, step); \
-    }
-
 #define END_DEFINE_TARGET()
 
 #include <runtime/runtime_op.def>
@@ -92,7 +73,6 @@ kernel_call_result runtime::call_kernel(runtime_opcode opcode, xtl::span<const u
 #undef BEGINE_DEFINE_TARGET
 #undef DEFINE_NEUTRAL_RUNTIME_OP
 #undef DEFINE_RUNTIME_OP
-#undef DEFINE_RUNTIME_FENCE_OP
 #undef END_DEFINE_TARGET
     default:
         return kcr_error;

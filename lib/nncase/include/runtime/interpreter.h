@@ -55,9 +55,6 @@ namespace runtime
 
         void run(run_callback_t callback, error_callback_t on_error, node_profile_callback_t node_profile, void *userdata);
 
-    public:
-        uint8_t load_first_;
-
     protected:
         virtual bool initialize();
         virtual xtl::span<uint8_t> memory_at(const memory_range &range) const noexcept;
