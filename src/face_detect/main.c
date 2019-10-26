@@ -24,6 +24,7 @@
 #define INCBIN_PREFIX
 #include "incbin.h"
 #include "utils.h"
+#include "iomem.h"
 
 #define PLL0_OUTPUT_FREQ 800000000UL
 #define PLL1_OUTPUT_FREQ 400000000UL
@@ -194,7 +195,7 @@ int main(void)
     w25qxx_init(3, 0);
     w25qxx_enable_quad_mode();
 #if LOAD_KMODEL_FROM_FLASH
-    model_data = (uint8_t *)malloc(KMODEL_SIZE);
+    model_data = (uint8_t *)iomem_malloc(KMODEL_SIZE);
     w25qxx_read_data(0xA00000, model_data, KMODEL_SIZE, W25QXX_QUAD_FAST);
 #endif
     /* LCD init */
