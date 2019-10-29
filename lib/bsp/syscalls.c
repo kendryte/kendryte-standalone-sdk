@@ -36,6 +36,7 @@
 #include "sysctl.h"
 #include "syslog.h"
 #include "util.h"
+#include "iomem.h"
 
 /**
  * @note       System call list
@@ -753,5 +754,5 @@ uintptr_t handle_syscall(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uin
 
 size_t get_free_heap_size(void)
 {
-    return (size_t)(&_heap_end[0] - _heap_cur);
+    return (size_t)iomem_unused();
 }
