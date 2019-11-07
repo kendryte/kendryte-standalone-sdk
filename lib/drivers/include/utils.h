@@ -33,7 +33,7 @@ extern "C" {
 #define KENDRYTE_MIN(a, b) ((a) > (b) ? (b) : (a))
 #define KENDRYTE_MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define FIX_CACHE 1
+#define FIX_CACHE 0
 
 #ifdef __ASSEMBLY__
 #define KENDRYTE_CAST(type, ptr) ptr

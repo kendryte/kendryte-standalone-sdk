@@ -82,8 +82,8 @@ namespace kernels
             memcpy(cache_weights, weights, (size_t)out_channels * in_shape[1] / groups * filter_h * filter_w*sizeof(float));
             memcpy(cache_bias, bias, out_channels*sizeof(float));
 #else
-            float *cache_weights = weights;
-            float *cache_bias = bias;
+            const float *cache_weights = weights;
+            const float *cache_bias = bias;
 #endif
 
             for (int32_t batch = 0; batch < in_shape[0]; batch++)
