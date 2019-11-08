@@ -1467,7 +1467,7 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
                                  DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
             spi_handle->ser = 1U << chip_select;
             if(!cb)
-                dmac_wait_idle(data.rx_channel);
+                dmac_wait_done(data.rx_channel);
             break;
         case SPI_TMOD_TRANS:
             spi_set_tmod(spi_num, SPI_TMOD_TRANS);
@@ -1489,7 +1489,7 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
             spi_handle->ser = 1U << chip_select;
             if(!cb)
             {
-                dmac_wait_idle(data.tx_channel);
+                dmac_wait_done(data.tx_channel);
                 while((spi_handle->sr & 0x05) != 0x04)
                     ;
             }
@@ -1518,7 +1518,7 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
                                  DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, data.rx_len);
             spi_handle->ser = 1U << chip_select;
             if(!cb)
-                dmac_wait_idle(data.rx_channel);
+                dmac_wait_done(data.rx_channel);
             break;
         case SPI_TMOD_TRANS_RECV:
             spi_set_tmod(spi_num, SPI_TMOD_TRANS_RECV);
@@ -1553,8 +1553,8 @@ void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select
             spi_handle->ser = 1U << chip_select;
             if(!cb)
             {
-                dmac_wait_idle(data.tx_channel);
-                dmac_wait_idle(data.rx_channel);
+                dmac_wait_done(data.tx_channel);
+                dmac_wait_done(data.rx_channel);
             }
             break;
     }
