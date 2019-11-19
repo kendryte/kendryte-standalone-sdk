@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "util.h": "c",
+        "iomem.h": "c",
+        "utils.h": "c",
+        "sysctl.h": "c",
+        "printf.h": "c",
+        "nncase.h": "c",
+        "*.def": "cpp"
+    }
+}
