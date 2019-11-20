@@ -16,6 +16,7 @@
 #include <kernels/k210/k210_kernels.h>
 #include <runtime/target_interpreter.h>
 #include <stdio.h>
+#include <cstring>
 
 using namespace nncase;
 using namespace nncase::runtime;
@@ -38,7 +39,22 @@ class nncase_context
 public:
     int load_kmodel(const uint8_t *buffer)
     {
-        return interpreter_.try_load_model(buffer) ? 0 : -1;
+        int ret = interpreter_.try_load_model(buffer) ? 0 : -1;
+
+        uint32_t size = interpreter_.model_size(buffer);
+        uint8_t *buffer_iomem = (uint8_t *)((uintptr_t)buffer - IOMEM);
+        const uint8_t *buffer_cache = buffer;
+        memcpy(buffer_iomem, buffer_cache, size);
+        for(int i=0; i<size; i++)
+        {
+            if(buffer_iomem[i] != buffer_cache[i])
+            {
+                printf("flush model fail:%d %x %x \n", i, buffer_iomem[i], buffer_cache[i]);
+                while(1)
+                    ;
+            }
+        }
+        return ret;
     }
 
     int get_output(uint32_t index, uint8_t **data, size_t *size)

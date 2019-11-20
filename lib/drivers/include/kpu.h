@@ -20,6 +20,7 @@
 #include "dmac.h"
 
 #define kpu_matmul_begin kpu_conv2d_output
+#define IOMEM 0x40000000
 
 typedef int (*plic_irq_callback_t)(void *ctx);
 

@@ -17,8 +17,6 @@
 #include <cmath>
 #include <runtime/runtime_op_utility.h>
 #include <xtl/xspan.hpp>
-#include <cstring>
-#include <utils.h>
 
 namespace nncase
 {
@@ -42,12 +40,7 @@ namespace kernels
                             const auto in_a_off = kernels::details::get_reduced_offset(in_off, in_a_shape);
                             const auto in_b_off = kernels::details::get_reduced_offset(in_off, in_b_shape);
                             const auto a = input_a[offset(in_a_shape, in_a_off)];
-#if FIX_CACHE
-                            float b;
-                            memcpy(&b, &input_b[offset(in_b_shape, in_b_off)], sizeof(float));
-#else
                             const auto b = input_b[offset(in_b_shape, in_b_off)];
-#endif
                             output[offset(out_shape, in_off)] = kernels::details::apply_activation(op(a, b), fused_activation);
                         }
                     }
@@ -79,17 +72,6 @@ namespace kernels
             const auto g_ic = in_shape[1] / groups;
             const auto g_oc = out_channels / groups;
 
-#if FIX_CACHE
-            float *cache_weights = new float[(size_t)out_channels * in_shape[1] / groups * filter_h * filter_w];
-            float *cache_bias = new float[out_channels];
-
-            memcpy(cache_weights, weights, (size_t)out_channels * in_shape[1] / groups * filter_h * filter_w*sizeof(float));
-            memcpy(cache_bias, bias, out_channels*sizeof(float));
-#else
-            const float *cache_weights = weights;
-            const float *cache_bias = bias;
-#endif
-
             for (int32_t batch = 0; batch < in_shape[0]; batch++)
             {
                 const float *in_batch_p = input + (size_t)batch * in_shape[1] * in_shape[2] * in_shape[3];
@@ -97,7 +79,7 @@ namespace kernels
                 for (int32_t og = 0; og < groups; og++)
                 {
                     const float *in_group_p = in_batch_p + (size_t)og * g_ic * in_shape[2] * in_shape[3];
-                    const float *w_group_p = cache_weights + (size_t)og * g_oc * g_ic * filter_h * filter_w;
+                    const float *w_group_p = weights + (size_t)og * g_oc * g_ic * filter_h * filter_w;
 
                     for (int32_t oc = 0; oc < g_oc; oc++)
                     {
@@ -113,7 +95,7 @@ namespace kernels
                                 const int32_t filter_y_end = std::min(filter_h, (in_shape[2] - in_y_origin + dilation_h - 1) / dilation_h);
                                 const int32_t filter_x_start = std::max(0, (-in_x_origin + dilation_w - 1) / dilation_w);
                                 const int32_t filter_x_end = std::min(filter_w, (in_shape[3] - in_x_origin + dilation_w - 1) / dilation_w);
-                                float value = cache_bias[og * g_oc + oc];
+                                float value = bias[og * g_oc + oc];
 
                                 for (int32_t ic = 0; ic < g_ic; ic++)
                                 {
@@ -141,10 +123,6 @@ namespace kernels
                     }
                 }
             }
-#if FIX_CACHE
-            delete []cache_weights;
-            delete []cache_bias;
-#endif
         }
 
         template <class TQ>
@@ -160,17 +138,11 @@ namespace kernels
 
         inline void matmul(const float *input_a, const float *input_b, float *output, const float *bias, int32_t a_rows, int32_t a_cols, int32_t b_cols, const value_range<float> &fused_activation)
         {
-#if FIX_CACHE
-            float *cache_mem = new float[b_cols];
-            memcpy(cache_mem, bias, b_cols*sizeof(float));
-#else
-            const float *cache_mem =bias;
-#endif
             for (size_t oy = 0; oy < a_rows; oy++)
             {
                 for (size_t ox = 0; ox < b_cols; ox++)
                 {
-                    float value = cache_mem[ox];
+                    float value = bias[ox];
 
                     for (size_t i = 0; i < a_cols; i++)
                     {
@@ -182,9 +154,6 @@ namespace kernels
                     output[oy * b_cols + ox] = details::apply_activation(value, fused_activation);
                 }
             }
-#if FIX_CACHE
-            delete []cache_mem;
-#endif
         }
 
         template <class T>
