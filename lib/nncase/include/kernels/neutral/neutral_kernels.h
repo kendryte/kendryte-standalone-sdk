@@ -48,6 +48,35 @@ namespace kernels
             }
         }
 
+        template <class TOp>
+        void quantized_binary(const uint8_t *input_a, const uint8_t *input_b, uint8_t *output, const runtime_shape_t &in_a_shape,
+            const runtime_shape_t &in_b_shape, const runtime_shape_t &out_shape, int32_t input_a_offset, int32_t input_a_mul, int32_t input_a_shift,
+            int32_t input_b_offset, int32_t input_b_mul, int32_t input_b_shift, int32_t output_mul, int32_t output_shift, int32_t output_offset, TOp &&op)
+        {
+            for (int32_t d0 = 0; d0 < out_shape[0]; d0++)
+            {
+                for (int32_t d1 = 0; d1 < out_shape[1]; d1++)
+                {
+                    for (int32_t d2 = 0; d2 < out_shape[2]; d2++)
+                    {
+                        for (int32_t d3 = 0; d3 < out_shape[3]; d3++)
+                        {
+                            runtime_shape_t in_off = { d0, d1, d2, d3 };
+                            const auto in_a_off = kernels::details::get_reduced_offset(in_off, in_a_shape);
+                            const auto in_b_off = kernels::details::get_reduced_offset(in_off, in_b_shape);
+                            auto a = (int32_t)input_a[offset(in_a_shape, in_a_off)];
+                            auto b = (int32_t)input_b[offset(in_b_shape, in_b_off)];
+                            a = runtime::mul_and_carry_shift(a + input_a_offset, input_a_mul, input_a_shift);
+                            b = runtime::mul_and_carry_shift(b + input_b_offset, input_b_mul, input_b_shift);
+
+                            auto output_val = runtime::mul_and_carry_shift(op(a, b), output_mul, output_shift);
+                            output[offset(out_shape, in_off)] = (uint8_t)std::clamp(output_val + output_offset, 0, 255);
+                        }
+                    }
+                }
+            }
+        }
+
         template <class TRange, class TPtrGetter = details::default_ptr_getter<uint8_t, TRange>>
         inline void concat(xtl::span<TRange> inputs, uint8_t *output, xtl::span<const int32_t> concat_dims, size_t inner_size, size_t outer_size, TPtrGetter getter = {})
         {
@@ -125,6 +154,71 @@ namespace kernels
             }
         }
 
+        inline void quantized_conv2d(const uint8_t *input, uint8_t *output, const uint8_t *weights, const int32_t *bias, int32_t input_offset, int32_t filter_offset,
+            int32_t output_mul, int32_t output_shift, int32_t output_offset, const runtime_shape_t &in_shape, int32_t groups, int32_t out_channels,
+            int32_t filter_h, int32_t filter_w, int32_t stride_h, int32_t stride_w, int32_t dilation_h, int32_t dilation_w,
+            const padding &padding_h, const padding &padding_w)
+        {
+            const auto out_h = details::get_windowed_output_size(in_shape[2], filter_h, stride_h, dilation_h, padding_h);
+            const auto out_w = details::get_windowed_output_size(in_shape[3], filter_w, stride_w, dilation_w, padding_w);
+            const auto g_ic = in_shape[1] / groups;
+            const auto g_oc = out_channels / groups;
+
+            for (int32_t batch = 0; batch < in_shape[0]; batch++)
+            {
+                const uint8_t *in_batch_p = input + (size_t)batch * in_shape[1] * in_shape[2] * in_shape[3];
+
+                for (int32_t og = 0; og < groups; og++)
+                {
+                    const uint8_t *in_group_p = in_batch_p + (size_t)og * g_ic * in_shape[2] * in_shape[3];
+                    const uint8_t *w_group_p = weights + (size_t)og * g_oc * g_ic * filter_h * filter_w;
+
+                    for (int32_t oc = 0; oc < g_oc; oc++)
+                    {
+                        const uint8_t *w_oc_p = w_group_p + (size_t)oc * g_ic * filter_h * filter_w;
+
+                        for (int32_t oy = 0; oy < out_h; oy++)
+                        {
+                            for (int32_t ox = 0; ox < out_w; ox++)
+                            {
+                                const int32_t in_y_origin = (oy * stride_h) - padding_h.before;
+                                const int32_t in_x_origin = (ox * stride_w) - padding_w.before;
+                                const int32_t filter_y_start = std::max(0, (-in_y_origin + dilation_h - 1) / dilation_h);
+                                const int32_t filter_y_end = std::min(filter_h, (in_shape[2] - in_y_origin + dilation_h - 1) / dilation_h);
+                                const int32_t filter_x_start = std::max(0, (-in_x_origin + dilation_w - 1) / dilation_w);
+                                const int32_t filter_x_end = std::min(filter_w, (in_shape[3] - in_x_origin + dilation_w - 1) / dilation_w);
+                                int32_t value = bias[og * g_oc + oc];
+
+                                for (int32_t ic = 0; ic < g_ic; ic++)
+                                {
+                                    const uint8_t *in_c_p = in_group_p + (size_t)ic * in_shape[2] * in_shape[3];
+                                    const uint8_t *w_ic_p = w_oc_p + (size_t)ic * filter_h * filter_w;
+
+                                    for (int32_t ky = filter_y_start; ky < filter_y_end; ky++)
+                                    {
+                                        for (int32_t kx = filter_x_start; kx < filter_x_end; kx++)
+                                        {
+                                            const int32_t in_y = in_y_origin + dilation_h * ky;
+                                            const int32_t in_x = in_x_origin + dilation_w * kx;
+
+                                            const int32_t in_v = (int32_t)in_c_p[in_y * in_shape[3] + in_x] + input_offset;
+                                            const int32_t w = (int32_t)w_ic_p[ky * filter_w + kx] + filter_offset;
+
+                                            value += in_v * w;
+                                        }
+                                    }
+                                }
+
+                                auto output_val = static_cast<int32_t>(runtime::mul_and_carry_shift(value, output_mul, output_shift));
+                                output_val += output_offset;
+                                *output++ = (uint8_t)std::clamp(output_val, 0, 255);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         template <class TQ>
         void dequantize(const TQ *input, float *output, size_t count, const quant_param_t &param)
         {
@@ -152,6 +246,28 @@ namespace kernels
                     }
 
                     output[oy * b_cols + ox] = details::apply_activation(value, fused_activation);
+                }
+            }
+        }
+
+        inline void quantized_matmul(const uint8_t *input_a, const uint8_t *input_b, uint8_t *output, const int32_t *bias, int32_t a_rows, int32_t a_cols, int32_t b_cols, int32_t input_a_offset, int32_t input_b_offset,
+            int32_t output_mul, int32_t output_shift, int32_t output_offset)
+        {
+            for (size_t oy = 0; oy < a_rows; oy++)
+            {
+                for (size_t ox = 0; ox < b_cols; ox++)
+                {
+                    int32_t value = bias[ox];
+                    for (size_t i = 0; i < a_cols; i++)
+                    {
+                        const auto a = (int32_t)input_a[oy * a_cols + i] + input_a_offset;
+                        const auto b = (int32_t)input_b[i * b_cols + ox] + input_b_offset;
+                        value += a * b;
+                    }
+
+                    auto output_val = static_cast<int32_t>(runtime::mul_and_carry_shift(value, output_mul, output_shift));
+                    output_val += output_offset;
+                    output[oy * b_cols + ox] = (uint8_t)std::clamp(output_val, 0, 255);
                 }
             }
         }
@@ -313,7 +429,8 @@ namespace kernels
             }
         }
 
-        inline void resize_bilinear(const float *input, float *output, const runtime_shape_t &in_shape, int32_t out_h, int32_t out_w, bool align_corners)
+        template <class T>
+        inline void resize_bilinear(const T *input, T *output, const runtime_shape_t &in_shape, int32_t out_h, int32_t out_w, bool align_corners)
         {
             auto height_scale = (float)in_shape[2] / out_h;
             auto width_scale = (float)in_shape[3] / out_w;
@@ -353,7 +470,7 @@ namespace kernels
                             auto a2 = (1 - (in_y - in_y0)) * (in_x - in_x0);
                             auto a3 = (in_y - in_y0) * (in_x - in_x0);
 
-                            output[destIdx++] = v0 * a0 + v1 * a1 + v2 * a2 + v3 * a3;
+                            output[destIdx++] = T(v0 * a0 + v1 * a1 + v2 * a2 + v3 * a3);
                         }
                     }
                 }

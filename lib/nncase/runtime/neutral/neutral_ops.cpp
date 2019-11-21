@@ -35,6 +35,19 @@ using namespace nncase::runtime;
         return kcr_error;             \
     }
 
+#define FP_OR_Q_IMPL(type, KERNEL) \
+    switch (type)                  \
+    {                              \
+    case dt_float32:               \
+        KERNEL(float);             \
+        break;                     \
+    case dt_uint8:                 \
+        KERNEL(uint8_t);           \
+        break;                     \
+    default:                       \
+        return kcr_error;          \
+    }
+
 namespace nncase
 {
 namespace runtime
@@ -76,6 +89,43 @@ namespace runtime
             }
         }
 
+        kernel_call_result quantized_binary(quantized_binary_options &options, interpreter_t &interpreter, interpreter_step_t step)
+        {
+            auto input_a = interpreter.memory_at<uint8_t>(options.input_a);
+            auto input_b = interpreter.memory_at<uint8_t>(options.input_b);
+            auto output = interpreter.memory_at<uint8_t>(options.output);
+
+            auto binary = [&](auto op) {
+                kernels::neutral::quantized_binary(input_a.data(), input_b.data(), output.data(), options.in_a_shape, options.in_b_shape, options.out_shape,
+                    options.input_a_offset, options.input_a_mul, options.input_a_shift, options.input_b_offset, options.input_b_mul, options.input_b_shift,
+                    options.output_mul, options.output_shift, options.output_offset, op);
+            };
+
+            switch (options.binary_op)
+            {
+            case binary_add:
+                binary([](auto a, auto b) { return a + b; });
+                return kcr_done;
+            case binary_sub:
+                binary([](auto a, auto b) { return a - b; });
+                return kcr_done;
+            case binary_mul:
+                binary([](auto a, auto b) { return a * b; });
+                return kcr_done;
+            case binary_div:
+                binary([](auto a, auto b) { return (a + b / 2) / b; });
+                return kcr_done;
+            case binary_min:
+                binary([](auto a, auto b) { return std::min(a, b); });
+                return kcr_done;
+            case binary_max:
+                binary([](auto a, auto b) { return std::max(a, b); });
+                return kcr_done;
+            default:
+                return kcr_error;
+            }
+        }
+
         kernel_call_result concat(concat_options &options, interpreter_t &interpreter, interpreter_step_t step)
         {
             auto output = interpreter.memory_at<uint8_t>(options.output);
@@ -90,6 +140,16 @@ namespace runtime
             auto output = interpreter.memory_at<float>(options.output);
             kernels::neutral::conv2d(input.data(), output.data(), options.weights.data(), options.bias.data(), options.in_shape, options.groups, options.out_channels, options.filter_h,
                 options.filter_w, options.stride_h, options.stride_w, options.dilation_h, options.dilation_w, options.padding_h, options.padding_w, options.fused_activation);
+            return kcr_done;
+        }
+
+        kernel_call_result quantized_conv2d(quantized_conv2d_options &options, interpreter_t &interpreter, interpreter_step_t step)
+        {
+            auto input = interpreter.memory_at<uint8_t>(options.input);
+            auto output = interpreter.memory_at<uint8_t>(options.output);
+            kernels::neutral::quantized_conv2d(input.data(), output.data(), options.weights.data(), options.bias.data(), options.input_offset, options.filter_offset,
+                options.output_mul, options.output_shift, options.output_offset, options.in_shape, options.groups, options.out_channels, options.filter_h,
+                options.filter_w, options.stride_h, options.stride_w, options.dilation_h, options.dilation_w, options.padding_h, options.padding_w);
             return kcr_done;
         }
 
@@ -108,6 +168,16 @@ namespace runtime
             auto input_b = interpreter.memory_at<float>(options.input_b);
             auto output = interpreter.memory_at<float>(options.output);
             kernels::neutral::matmul(input_a.data(), input_b.data(), output.data(), options.bias.data(), options.a_rows, options.a_cols, options.b_cols, options.fused_activation);
+            return kcr_done;
+        }
+
+        kernel_call_result quantized_matmul(quantized_matmul_options &options, interpreter_t &interpreter, interpreter_step_t step)
+        {
+            auto input_a = interpreter.memory_at<uint8_t>(options.input_a);
+            auto input_b = interpreter.memory_at<uint8_t>(options.input_b);
+            auto output = interpreter.memory_at<uint8_t>(options.output);
+            kernels::neutral::quantized_matmul(input_a.data(), input_b.data(), output.data(), options.bias.data(), options.a_rows, options.a_cols, options.b_cols,
+                options.input_a_offset, options.input_b_offset, options.output_mul, options.output_shift, options.output_offset);
             return kcr_done;
         }
 
@@ -205,20 +275,24 @@ namespace runtime
 
         kernel_call_result resize_image(resize_image_options &options, interpreter_t &interpreter, interpreter_step_t step)
         {
-            auto input = interpreter.memory_at<float>(options.input);
-            auto output = interpreter.memory_at<float>(options.output);
+            auto input = interpreter.memory_at<uint8_t>(options.input);
+            auto output = interpreter.memory_at<uint8_t>(options.output);
 
             if (options.mode == image_resize_bilinear)
             {
-                kernels::neutral::resize_bilinear(input.data(), output.data(), options.in_shape, options.out_h, options.out_w, options.align_corners);
+#define RESIZE_BL_KERNEL(T) \
+    kernels::neutral::resize_bilinear(reinterpret_cast<const T *>(input.data()), reinterpret_cast<T *>(output.data()), options.in_shape, options.out_h, options.out_w, options.align_corners);
+
+                FP_OR_Q_IMPL(options.input.datatype, RESIZE_BL_KERNEL);
                 return kcr_done;
+#undef RESIZE_BL_KERNEL
             }
             else
             {
 #define RESIZE_NN_KERNEL(T) \
     kernels::neutral::resize_nearest_neighbor(reinterpret_cast<const T *>(input.data()), reinterpret_cast<T *>(output.data()), options.in_shape, options.out_h, options.out_w);
 
-                ELEM_SIZE_IMPL(options.input.datatype, RESIZE_NN_KERNEL);
+                FP_OR_Q_IMPL(options.input.datatype, RESIZE_NN_KERNEL);
                 return kcr_done;
 #undef RESIZE_NN_KERNEL
             }

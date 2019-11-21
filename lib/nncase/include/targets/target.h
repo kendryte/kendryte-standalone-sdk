@@ -18,13 +18,22 @@
 #include <scheduler/memory_allocator.h>
 #include <transforms/transform.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace nncase
 {
+struct target_options
+{
+    std::string input_type;
+};
+
 class target
 {
 public:
+    target(const target_options &options)
+        : options_(options) {}
+
     virtual void fill_allocators(std::unordered_map<memory_type_t, scheduler::memory_allocator *> &allocators, std::vector<std::unique_ptr<scheduler::memory_allocator>> &allocator_holders) = 0;
     virtual void registry_codegen_ops() = 0;
     virtual void registry_evaluator_ops() = 0;
@@ -32,6 +41,10 @@ public:
     virtual void add_optimize1_transforms(std::vector<std::unique_ptr<transforms::transform>> &transforms) = 0;
     virtual void add_optimize2_transforms(std::vector<std::unique_ptr<transforms::transform>> &transforms) = 0;
     virtual void add_quantization_checkpoint_transforms(std::vector<std::unique_ptr<transforms::transform>> &transforms) = 0;
-    virtual void add_quantization_transforms(ir::quantizer& quantizer, const quant_param_t& input_quant_param, std::vector<std::unique_ptr<transforms::transform>> &transforms) = 0;
+    virtual void add_quantization_transforms(ir::quantizer &quantizer, std::vector<std::unique_ptr<transforms::transform>> &transforms) = 0;
+    virtual void add_quantization_broadcast(std::unordered_set<ir::node_opcode> &opcodes) = 0;
+
+protected:
+    target_options options_;
 };
 }
