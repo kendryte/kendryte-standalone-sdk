@@ -1270,6 +1270,7 @@ static void spi_slave_command_mode(void)
         return;
     }
     gpiohs_set_pin(g_instance.ready_pin, GPIO_PV_LOW);
+    dmac_wait_done(g_instance.dmac_channel);
 }
 
 static void spi_slave_transfer_mode(void)

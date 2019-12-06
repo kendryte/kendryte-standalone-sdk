@@ -17,7 +17,10 @@ typedef struct _iomem_malloc_t
     uint32_t memtblsize;
     uint16_t *memmap;
     uint8_t  memrdy;
+    _lock_t *lock;
 } iomem_malloc_t;
+
+static _lock_t iomem_lock;
 
 static void iomem_init();
 static uint32_t k_unused();
@@ -34,7 +37,8 @@ iomem_malloc_t malloc_cortol =
     0,
     0,
     NULL,
-    0
+    0,
+    &iomem_lock
 };
 
 static void iomem_set(void *s, uint8_t c, uint32_t num)
@@ -134,17 +138,21 @@ void iomem_free(void *paddr)
     uint32_t offset;
     if(paddr == NULL)
         return;
+    _lock_acquire_recursive(malloc_cortol.lock);
     offset=(uintptr_t)paddr - (uintptr_t)malloc_cortol.membase;
     k_free(offset);
+    _lock_release_recursive(malloc_cortol.lock);
 }
 
 void *iomem_malloc(uint32_t size)
 {
+    _lock_acquire_recursive(malloc_cortol.lock);
     uint32_t offset;
     offset=k_malloc(size);
     if(offset == 0XFFFFFFFF)
     {
         printk("IOMEM malloc OUT of MEMORY!\r\n");
+        _lock_release_recursive(malloc_cortol.lock);
          return NULL;
     }
     else 
@@ -154,10 +162,14 @@ void *iomem_malloc(uint32_t size)
             _ioheap_line = (char *)((uintptr_t)malloc_cortol.membase + offset);
             if((uintptr_t)_ioheap_line < (uintptr_t)_heap_line-0x40000000)
             {
-                printk("WARNING: iomem heap line < cache heap line!\r\n");
+                printk("Error: OUT of MEMORY!\r\n");
+                printk("_heap_line = %p\r\n", _heap_line);
+                printk("_ioheap_line = %p\r\n", _ioheap_line);
+                while(1)
+                    ;
             }
         };
-
+        _lock_release_recursive(malloc_cortol.lock);
         return (void*)((uintptr_t)malloc_cortol.membase + offset);
     }
 }
