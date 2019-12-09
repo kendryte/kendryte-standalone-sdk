@@ -192,7 +192,9 @@ static size_t sys_brk(size_t pos)
                 _heap_line = (char *)(uintptr_t)pos;
                 if((uintptr_t)_heap_line-0x40000000 > (uintptr_t)_ioheap_line)
                 {
-                    LOGE(TAG, "WARNING: cache heap line > iomem heap line!\r\n");
+                    LOGE(TAG, "Out of memory!\r\n");
+                    while(1)
+                        ;
                 }
             }
             /* Adjust brk pointer. */

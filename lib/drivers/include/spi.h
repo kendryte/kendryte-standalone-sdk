@@ -197,6 +197,9 @@ typedef struct _spi_slave_instance
     volatile uint8_t *config_ptr;
     uint32_t config_len;
     spi_slave_receive_callback_t callback;
+    uint8_t is_dual;
+    uint8_t mosi_pin;
+    uint8_t miso_pin;
 } spi_slave_instance_t;
 
 typedef struct _spi_data_t
@@ -464,6 +467,16 @@ void spi_dup_send_receive_data_dma(dmac_channel_number_t dma_send_channel_num,
  * @return      Void
  */
 void spi_slave_config(uint8_t int_pin, uint8_t ready_pin, dmac_channel_number_t dmac_channel, size_t data_bit_length, uint8_t *data, uint32_t len, spi_slave_receive_callback_t callback);
+
+void spi_slave_dual_config(uint8_t int_pin,
+                           uint8_t ready_pin,
+                           uint8_t mosi_pin,
+                           uint8_t miso_pin,
+                           dmac_channel_number_t dmac_channel,
+                           size_t data_bit_length,
+                           uint8_t *data,
+                           uint32_t len,
+                           spi_slave_receive_callback_t callback);
 
 /**
  * @brief       Spi handle transfer data operations

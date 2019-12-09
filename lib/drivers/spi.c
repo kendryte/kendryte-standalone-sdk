@@ -1102,28 +1102,17 @@ void spi_fill_data_dma(dmac_channel_number_t channel_num, spi_device_num_t spi_n
     spi_handle->ssienr = 0x00;
 }
 
-static int spi_slave_irq(void *ctx)
-{
-    volatile spi_t *spi_handle = spi[2];
-
-    spi_handle->imr = 0x00;
-    *(volatile uint32_t *)((uintptr_t)spi_handle->icr);
-    if(g_instance.status == IDLE)
-        g_instance.status = COMMAND;
-    return 0;
-}
-
 static void spi_slave_idle_mode(void)
 {
+    if(g_instance.is_dual)
+    {
+        fpioa_set_function(g_instance.mosi_pin, FUNC_SPI_SLAVE_D0);
+    }
     volatile spi_t *spi_handle = spi[2];
-    uint32_t data_width = g_instance.data_bit_length / 8;
     g_instance.status = IDLE;
     spi_handle->ssienr = 0x00;
     spi_handle->ctrlr0 = (0x0 << g_instance.work_mode) | (0x1 << g_instance.slv_oe) | ((g_instance.data_bit_length - 1) << g_instance.dfs);
-    spi_handle->rxftlr = 0x08 / data_width - 1;
-
     spi_handle->dmacr = 0x00;
-    spi_handle->imr = 0x10;
     spi_handle->ssienr = 0x01;
     gpiohs_set_pin(g_instance.ready_pin, GPIO_PV_HIGH);
 }
@@ -1134,7 +1123,6 @@ static void spi_slave_command_mode(void)
     uint8_t cmd_data[8], sum = 0;
 
     spi_transfer_width_t frame_width = spi_get_frame_size(g_instance.data_bit_length - 1);
-    uint32_t data_width = g_instance.data_bit_length / 8;
     spi_device_num_t spi_num = SPI_DEVICE_2;
     switch(frame_width)
     {
@@ -1163,6 +1151,7 @@ static void spi_slave_command_mode(void)
     }
     g_instance.command.cmd = cmd_data[0];
     g_instance.command.addr = cmd_data[1] | (cmd_data[2] << 8) | (cmd_data[3] << 16) | (cmd_data[4] << 24);
+
     g_instance.command.len = cmd_data[5] | (cmd_data[6] << 8);
     if(g_instance.command.len == 0)
         g_instance.command.len = 65536;
@@ -1176,15 +1165,15 @@ static void spi_slave_command_mode(void)
     if(g_instance.command.cmd == WRITE_CONFIG)
     {
         spi_handle->ctrlr0 = (0x0 << g_instance.work_mode) | (0x1 << g_instance.slv_oe) | ((g_instance.data_bit_length - 1) << g_instance.dfs);
-        spi[2]->rxftlr = g_instance.command.len / data_width - 1;
-        spi_handle->imr = 0x00;
         spi_handle->ssienr = 0x01;
     } else if(g_instance.command.cmd == READ_CONFIG)
     {
+        if(g_instance.is_dual)
+        {
+            fpioa_set_function(g_instance.miso_pin, FUNC_SPI_SLAVE_D0);
+        }
         spi_handle->ctrlr0 = (0x0 << g_instance.work_mode) | (0x0 << g_instance.slv_oe) | ((g_instance.data_bit_length - 1) << g_instance.dfs);
         spi_set_tmod(2, SPI_TMOD_TRANS);
-        spi_handle->txftlr = 0x00;
-        spi_handle->imr = 0x00;
         spi_handle->ssienr = 0x01;
         switch(frame_width)
         {
@@ -1210,15 +1199,15 @@ static void spi_slave_command_mode(void)
     } else if(g_instance.command.cmd == WRITE_DATA_BYTE)
     {
         spi_handle->ctrlr0 = (0x0 << g_instance.work_mode) | (0x1 << g_instance.slv_oe) | ((g_instance.data_bit_length - 1) << g_instance.dfs);
-        spi[2]->rxftlr = g_instance.command.len / data_width - 1;
-        spi_handle->imr = 0x00;
         spi_handle->ssienr = 0x01;
     } else if(g_instance.command.cmd == READ_DATA_BYTE)
     {
+        if(g_instance.is_dual)
+        {
+            fpioa_set_function(g_instance.miso_pin, FUNC_SPI_SLAVE_D0);
+        }
         spi_handle->ctrlr0 = (0x0 << g_instance.work_mode) | (0x0 << g_instance.slv_oe) | ((g_instance.data_bit_length - 1) << g_instance.dfs);
         spi_set_tmod(2, SPI_TMOD_TRANS);
-        spi_handle->txftlr = 0x00;
-        spi_handle->imr = 0x00;
         spi_handle->ssienr = 0x01;
         switch(frame_width)
         {
@@ -1246,7 +1235,6 @@ static void spi_slave_command_mode(void)
         spi_handle->ctrlr0 = (0x0 << g_instance.work_mode) | (0x1 << g_instance.slv_oe) | ((32 - 1) << g_instance.dfs);
 
         spi_handle->dmacr = 0x01;
-        spi_handle->imr = 0x00;
         spi_handle->ssienr = 0x01;
 
         sysctl_dma_select(g_instance.dmac_channel, SYSCTL_DMA_SELECT_SSI0_RX_REQ + spi_num * 2);
@@ -1255,10 +1243,13 @@ static void spi_slave_command_mode(void)
                              DMAC_MSIZE_4, DMAC_TRANS_WIDTH_32, g_instance.command.len * 4);
     } else if(g_instance.command.cmd == READ_DATA_BLOCK)
     {
+        if(g_instance.is_dual)
+        {
+            fpioa_set_function(g_instance.miso_pin, FUNC_SPI_SLAVE_D0);
+        }
         spi_handle->ctrlr0 = (0x0 << g_instance.work_mode) | (0x0 << g_instance.slv_oe) | ((32 - 1) << g_instance.dfs);
         spi_set_tmod(2, SPI_TMOD_TRANS);
         spi_handle->dmacr = 0x02;
-        spi_handle->imr = 0x00;
         spi_handle->ssienr = 0x01;
 
         sysctl_dma_select(g_instance.dmac_channel, SYSCTL_DMA_SELECT_SSI0_TX_REQ + spi_num * 2);
@@ -1300,10 +1291,6 @@ static void spi_slave_transfer_mode(void)
     {
         if(spi_handle->txflr != 0)
             g_instance.command.err = 2;
-    } else if(g_instance.command.cmd == WRITE_DATA_BLOCK || g_instance.command.cmd == READ_DATA_BLOCK)
-    {
-        if(dmac->channel[g_instance.dmac_channel].intstatus != 0x02)
-            g_instance.command.err = 3;
     } else
     {
         spi_slave_idle_mode();
@@ -1369,6 +1356,9 @@ static void spi_slave_transfer_mode(void)
 
 static void spi_slave_cs_irq(void)
 {
+    volatile spi_t *spi_handle = spi[2];
+    if (g_instance.status == IDLE && spi_handle->rxflr == 8)
+		g_instance.status = COMMAND;
     if(g_instance.status == IDLE)
         spi_slave_idle_mode();
     else if(g_instance.status == COMMAND)
@@ -1390,9 +1380,10 @@ void spi_slave_config(uint8_t int_pin, uint8_t ready_pin, dmac_channel_number_t 
     g_instance.int_pin = int_pin;
     g_instance.callback = callback;
     g_instance.dmac_channel = dmac_channel;
+    g_instance.is_dual = 0;
     sysctl_reset(SYSCTL_RESET_SPI2);
     sysctl_clock_enable(SYSCTL_CLOCK_SPI2);
-    sysctl_clock_set_threshold(SYSCTL_THRESHOLD_SPI2, 9);
+    sysctl_clock_set_threshold(SYSCTL_THRESHOLD_SPI2, 0);
 
     uint32_t data_width = data_bit_length / 8;
     volatile spi_t *spi_handle = spi[2];
@@ -1403,7 +1394,7 @@ void spi_slave_config(uint8_t int_pin, uint8_t ready_pin, dmac_channel_number_t 
     spi_handle->dmacr = 0x00;
     spi_handle->txftlr = 0x00;
     spi_handle->rxftlr = 0x08 / data_width - 1;
-    spi_handle->imr = 0x10;
+    spi_handle->imr = 0x00;
     spi_handle->ssienr = 0x01;
 
     gpiohs_set_drive_mode(g_instance.ready_pin, GPIO_DM_OUTPUT);
@@ -1412,12 +1403,23 @@ void spi_slave_config(uint8_t int_pin, uint8_t ready_pin, dmac_channel_number_t 
     gpiohs_set_drive_mode(g_instance.int_pin, GPIO_DM_INPUT_PULL_UP);
     gpiohs_set_pin_edge(g_instance.int_pin, GPIO_PE_RISING);
     gpiohs_set_irq(g_instance.int_pin, 3, spi_slave_cs_irq);
-
-    plic_set_priority(IRQN_SPI_SLAVE_INTERRUPT, 4);
-    plic_irq_register(IRQN_SPI_SLAVE_INTERRUPT, spi_slave_irq, NULL);
-    plic_irq_enable(IRQN_SPI_SLAVE_INTERRUPT);
 }
 
+void spi_slave_dual_config(uint8_t int_pin,
+                           uint8_t ready_pin,
+                           uint8_t mosi_pin,
+                           uint8_t miso_pin,
+                           dmac_channel_number_t dmac_channel,
+                           size_t data_bit_length,
+                           uint8_t *data,
+                           uint32_t len,
+                           spi_slave_receive_callback_t callback)
+{
+    spi_slave_config(int_pin, ready_pin, dmac_channel, data_bit_length, data, len, callback);
+    g_instance.is_dual = 1;
+    g_instance.mosi_pin = mosi_pin;
+    g_instance.miso_pin = miso_pin;
+}
 void spi_handle_data_dma(spi_device_num_t spi_num, spi_chip_select_t chip_select, spi_data_t data, plic_interrupt_t *cb)
 {
     configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
