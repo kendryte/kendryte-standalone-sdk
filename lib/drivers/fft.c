@@ -62,5 +62,6 @@ void fft_complex_uint16_dma(dmac_channel_number_t dma_send_channel_num, dmac_cha
                          DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num >> 1);
     dmac_set_single_mode(dma_send_channel_num, input, (void *)(&fft->fft_input_fifo), DMAC_ADDR_INCREMENT, DMAC_ADDR_NOCHANGE,
                          DMAC_MSIZE_4, DMAC_TRANS_WIDTH_64, point_num >> 1);
+    dmac_wait_done(dma_send_channel_num);
     dmac_wait_done(dma_receive_channel_num);
 }

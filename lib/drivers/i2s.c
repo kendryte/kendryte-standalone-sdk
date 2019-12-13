@@ -320,7 +320,7 @@ int i2s_receive_data(i2s_device_number_t device_num, i2s_channel_num_t channel_n
 void i2s_receive_data_dma(i2s_device_number_t device_num, uint32_t *buf,
                           size_t buf_len, dmac_channel_number_t channel_num)
 {
-    dmac_wait_idle(channel_num);
+    dmac_wait_done(channel_num);
     sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_I2S0_RX_REQ + device_num * 2);
     dmac_set_single_mode(channel_num, (void *)(&i2s[device_num]->rxdma), buf, DMAC_ADDR_NOCHANGE, DMAC_ADDR_INCREMENT,
                          DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
@@ -396,7 +396,7 @@ int i2s_send_data(i2s_device_number_t device_num, i2s_channel_num_t channel_num,
 void i2s_send_data_dma(i2s_device_number_t device_num, const void *buf, size_t buf_len, dmac_channel_number_t channel_num)
 {
 
-    dmac_wait_idle(channel_num);
+    dmac_wait_done(channel_num);
     sysctl_dma_select((sysctl_dma_channel_t)channel_num, SYSCTL_DMA_SELECT_I2S0_TX_REQ + device_num * 2);
     dmac_set_single_mode(channel_num, buf, (void *)(&i2s[device_num]->txdma), DMAC_ADDR_INCREMENT,
                          DMAC_ADDR_NOCHANGE, DMAC_MSIZE_1, DMAC_TRANS_WIDTH_32, buf_len);
@@ -654,7 +654,7 @@ void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_i
         configASSERT(data.tx_buf && data.tx_len);
         if(!data.nowait_dma_idle)
         {
-            dmac_wait_idle(data.tx_channel);
+            dmac_wait_done(data.tx_channel);
         }
         if(cb)
         {
@@ -676,7 +676,7 @@ void i2s_handle_data_dma(i2s_device_number_t device_num, i2s_data_t data, plic_i
         configASSERT(data.rx_buf && data.rx_len);
         if(!data.nowait_dma_idle)
         {
-            dmac_wait_idle(data.rx_channel);
+            dmac_wait_done(data.rx_channel);
         }
         if(cb)
         {
