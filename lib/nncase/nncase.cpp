@@ -30,7 +30,7 @@ void kpu_upload_dma(dmac_channel_number_t dma_ch, const uint8_t *src, uint8_t *d
     dmac_set_irq(dma_ch, callback, userdata, 1);
     dmac_set_single_mode(dma_ch, (void *)src, (void *)dest, DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
-    usleep(1);
+    dmac_wait_done(dma_ch);
 }
 }
 
@@ -45,12 +45,12 @@ public:
         uint8_t *buffer_iomem = (uint8_t *)((uintptr_t)buffer - IOMEM);
         const uint8_t *buffer_cache = buffer;
         memcpy(buffer_iomem, buffer_cache, size);
-        for(int i=0; i<size; i++)
+        for (int i = 0; i < size; i++)
         {
-            if(buffer_iomem[i] != buffer_cache[i])
+            if (buffer_iomem[i] != buffer_cache[i])
             {
                 printf("flush model fail:%d %x %x \n", i, buffer_iomem[i], buffer_cache[i]);
-                while(1)
+                while (1)
                     ;
             }
         }
@@ -87,7 +87,8 @@ public:
             auto shape = interpreter_.input_shape_at(0);
             if (shape[3] % 64 == 0)
             {
-                kpu_upload_dma(dma_ch, src, mem.data(), mem.size(), upload_done_thunk, this);
+                kpu_upload_dma(dma_ch, src, mem.data(), mem.size(), nullptr, this);
+                on_upload_done();
             }
             else
             {
