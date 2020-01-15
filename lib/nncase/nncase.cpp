@@ -17,6 +17,7 @@
 #include <runtime/target_interpreter.h>
 #include <stdio.h>
 #include <cstring>
+#include <utils.h>
 
 using namespace nncase;
 using namespace nncase::runtime;
@@ -27,6 +28,12 @@ namespace
 {
 void kpu_upload_dma(dmac_channel_number_t dma_ch, const uint8_t *src, uint8_t *dest, size_t input_size, plic_irq_callback_t callback, void *userdata)
 {
+    if (is_memory_cache((uintptr_t)src))
+    {
+        std::copy_n(src, input_size, dest);
+        src -= 0x40000000;
+    }
+
     dmac_set_irq(dma_ch, callback, userdata, 1);
     dmac_set_single_mode(dma_ch, (void *)src, (void *)dest, DMAC_ADDR_INCREMENT, DMAC_ADDR_INCREMENT,
         DMAC_MSIZE_16, DMAC_TRANS_WIDTH_64, input_size / 8);
@@ -85,16 +92,8 @@ public:
         else if (input.memory_type == mem_k210_kpu)
         {
             auto shape = interpreter_.input_shape_at(0);
-            if (shape[3] % 64 == 0)
-            {
-                kpu_upload_dma(dma_ch, src, mem.data(), mem.size(), nullptr, this);
-                on_upload_done();
-            }
-            else
-            {
-                kernels::k210::kpu_upload(src, mem.data(), shape);
-                on_upload_done();
-            }
+            kernels::k210::kpu_upload(src, mem.data(), shape);
+            on_upload_done();
 
             return 0;
         }
