@@ -1,4 +1,4 @@
-/* Copyright 2019 Canaan Inc.
+/* Copyright 2019-2020 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,12 @@ namespace runtime
         {
             span = { reinterpret_cast<const T *>(span_.data()), N };
             advance(sizeof(T) * N);
+        }
+
+        void read_avail(xtl::span<const uint8_t> &span)
+        {
+            span = span_;
+            span_ = {};
         }
 
         template <class T>
