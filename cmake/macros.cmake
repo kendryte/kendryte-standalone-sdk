@@ -1,6 +1,6 @@
 macro(global_set Name Value)
     #  message("set ${Name} to " ${ARGN})
-    set(${Name} "${Value}" CACHE STRING "NoDesc" FORCE)
+    set(${Name} "${Value}")
 endmacro()
 
 macro(condition_set Name Value)
