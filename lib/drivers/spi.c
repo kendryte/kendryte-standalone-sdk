@@ -1261,7 +1261,6 @@ static void spi_slave_command_mode(void)
         return;
     }
     gpiohs_set_pin(g_instance.ready_pin, GPIO_PV_LOW);
-    dmac_wait_done(g_instance.dmac_channel);
 }
 
 static void spi_slave_transfer_mode(void)
@@ -1291,6 +1290,14 @@ static void spi_slave_transfer_mode(void)
     {
         if(spi_handle->txflr != 0)
             g_instance.command.err = 2;
+    } else if(g_instance.command.cmd == WRITE_DATA_BLOCK || g_instance.command.cmd == READ_DATA_BLOCK)
+    {
+        if(dmac_is_done(g_instance.dmac_channel) == 0)
+        {
+            dmac_channel_disable(g_instance.dmac_channel);
+            g_instance.command.err = 3;
+        }
+        dmac_wait_done(g_instance.dmac_channel);
     } else
     {
         spi_slave_idle_mode();
@@ -1358,7 +1365,7 @@ static void spi_slave_cs_irq(void)
 {
     volatile spi_t *spi_handle = spi[2];
     if (g_instance.status == IDLE && spi_handle->rxflr == 8)
-		g_instance.status = COMMAND;
+        g_instance.status = COMMAND;
     if(g_instance.status == IDLE)
         spi_slave_idle_mode();
     else if(g_instance.status == COMMAND)
