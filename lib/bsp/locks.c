@@ -14,6 +14,7 @@ typedef struct
 } reculock_t;
 
 reculock_t reculock[LOCK_MAX_NUM];
+static _lock_t reculock_mutex;
 
 void show_error(void)
 {
@@ -73,16 +74,17 @@ static reculock_t *get_free_reculock(void)
 
 static reculock_t *reculock_init(_lock_t *lock)
 {
+    lock_lock(&reculock_mutex);
     reculock_t *v_reculock = get_free_reculock();
-    if(v_reculock == NULL)
+    if(v_reculock)
     {
-        return NULL;
+        *v_reculock = (reculock_t){
+            .lock = lock,
+            .counter = 0,
+            .core = 0,
+        };
     }
-    *v_reculock = (reculock_t){
-        .lock = lock,
-        .counter = 0,
-        .core = 0,
-    };
+    lock_unlock(&reculock_mutex);
     return v_reculock;
 }
 
