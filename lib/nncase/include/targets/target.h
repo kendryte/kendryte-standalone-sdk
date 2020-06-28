@@ -27,6 +27,10 @@ namespace nncase
 struct target_options
 {
     std::string input_type;
+    std::string inference_type;
+    float weights_quantize_threshold;
+    uint32_t output_quantize_threshold;
+    bool quantize_binary;
 };
 
 class target
@@ -35,6 +39,8 @@ public:
     target(const target_options &options)
         : options_(options) {}
     virtual ~target() = default;
+
+    const target_options &options() const noexcept { return options_; }
 
     virtual void fill_allocators(std::unordered_map<memory_type_t, scheduler::memory_allocator *> &allocators, std::vector<std::unique_ptr<scheduler::memory_allocator>> &allocator_holders) = 0;
     virtual void registry_codegen_ops() = 0;
