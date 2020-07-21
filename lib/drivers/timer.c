@@ -26,6 +26,8 @@
  */
 typedef struct timer_instance
 {
+    timer_device_number_t device;
+    timer_channel_number_t channel;
     timer_callback_t callback;
     void *ctx;
     bool single_shot;
@@ -43,6 +45,8 @@ void timer_init(timer_device_number_t timer_number)
 {
     for(size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
         timer_instance[timer_number][i] = (const timer_instance_t){
+            .device = 0,
+            .channel = 0,
             .callback = NULL,
             .ctx = NULL,
             .single_shot = 0,
@@ -270,15 +274,18 @@ static plic_irq_t get_timer_irqn_by_device_and_channel(timer_device_number_t dev
  * @brief         Process user callback function
  *
  * @note          Internal function, not public
- * @param  device The timer device
  * @param  ctx    The context
  * @return int    The callback result
  */
-static int timer_interrupt_handler(timer_device_number_t device, void *ctx)
+static int timer_interrupt_handler(void *ctx)
 {
+    timer_instance_t *instance = (timer_instance_t *)ctx;
+    timer_device_number_t device = instance->device;
+    timer_channel_number_t channel = instance->channel;
     uint32_t channel_int_stat = timer[device]->intr_stat;
-
-    for(size_t i = 0; i < TIMER_CHANNEL_MAX; i++)
+    uint32_t irq_channel = (channel >> 1) << 1;
+    channel_int_stat >>= irq_channel;
+    for(size_t i = irq_channel; i < irq_channel + 2; i++)
     {
         /* Check every bit for interrupt status */
         if(channel_int_stat & 1)
@@ -309,60 +316,21 @@ static int timer_interrupt_handler(timer_device_number_t device, void *ctx)
     return 0;
 }
 
-/**
- * @brief             Callback function bus for timer interrupt
- *
- * @note              Internal function, not public
- * @param  ctx        The context
- * @return int        The callback result
- */
-static int timer0_interrupt_callback(void *ctx)
-{
-    return timer_interrupt_handler(TIMER_DEVICE_0, ctx);
-}
-
-/**
- * @brief             Callback function bus for timer interrupt
- *
- * @note              Internal function, not public
- * @param  ctx        The context
- * @return int        The callback result
- */
-static int timer1_interrupt_callback(void *ctx)
-{
-    return timer_interrupt_handler(TIMER_DEVICE_1, ctx);
-}
-
-/**
- * @brief             Callback function bus for timer interrupt
- *
- * @note              Internal function, not public
- * @param  ctx        The context
- * @return int        The callback result
- */
-static int timer2_interrupt_callback(void *ctx)
-{
-    return timer_interrupt_handler(TIMER_DEVICE_2, ctx);
-}
-
 int timer_irq_register(timer_device_number_t device, timer_channel_number_t channel, int is_single_shot, uint32_t priority, timer_callback_t callback, void *ctx)
 {
     if(device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX)
     {
         plic_irq_t irq_number = get_timer_irqn_by_device_and_channel(device, channel);
-        plic_irq_callback_t plic_irq_callback[TIMER_DEVICE_MAX] = {
-            timer0_interrupt_callback,
-            timer1_interrupt_callback,
-            timer2_interrupt_callback,
-        };
 
         timer_instance[device][channel] = (const timer_instance_t){
+            .device = device,
+            .channel = channel,
             .callback = callback,
             .ctx = ctx,
             .single_shot = is_single_shot,
         };
         plic_set_priority(irq_number, priority);
-        plic_irq_register(irq_number, plic_irq_callback[device], (void *)&timer_instance[device]);
+        plic_irq_register(irq_number, timer_interrupt_handler, (void *)&timer_instance[device][channel]);
         plic_irq_enable(irq_number);
         return 0;
     }
@@ -374,6 +342,8 @@ int timer_irq_unregister(timer_device_number_t device, timer_channel_number_t ch
     if(device < TIMER_DEVICE_MAX && channel < TIMER_CHANNEL_MAX)
     {
         timer_instance[device][channel] = (const timer_instance_t){
+            .device = 0,
+            .channel = 0,
             .callback = NULL,
             .ctx = NULL,
             .single_shot = 0,
