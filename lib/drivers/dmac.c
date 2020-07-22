@@ -636,6 +636,12 @@ void dmac_init(void)
     tmp = readq(&dmac->chen);
     tmp &= ~0xf;
     writeq(tmp, &dmac->chen);
+
+    for(dmac_channel_number_t channel=DMAC_CHANNEL0; channel<DMAC_CHANNEL_MAX; channel++)
+    {
+        dmac_disable_channel_interrupt(channel);
+    }
+
     /* disable all channel before configure */
     dmac_enable();
 }
