@@ -1,0 +1,23 @@
+{
+    "$schema": "vscode://schemas/launch",
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "id": "kendryte",
+            "type": "kendryte",
+            "request": "launch",
+            "name": "KDBG",
+            "executable": "e:/my_github/Vision-Edge/Kendryte/kendryte-standalone-sdk/build/kendryte_standalone-sdk",
+            "target": "127.0.0.1:63084",
+            "cwd": "e:/my_github/Vision-Edge/Kendryte/kendryte-standalone-sdk/build",
+            "internalConsoleOptions": "openOnSessionStart",
+            "env": {
+                "PATH": "C:/Users/e-it/.k210-extension/toolchain/bin:C:/Users/e-it/.k210-extension/cmake/bin/:C:/Users/e-it/.k210-extension/jlink:C:/Users/e-it/.k210-extension/clang-format/bin:D:/SkeletonTracking/bin;C:/Program Files (x86)/Common Files/Intel/Shared Libraries/redist/intel64_win/compiler;C:/Program Files (x86)/Common Files/Intel/Shared Libraries/redist/intel64/compiler;D:/Python37/Scripts;D:/Python37/;C:/Windows/system32;C:/Windows;C:/Windows/System32/Wbem;C:/Windows/System32/WindowsPowerShell/v1.0/;C:/Windows/System32/OpenSSH/;D:/Python37/Lib;D:/Python37/Lib/bin;D:/Python37/DLLs;D:/Graphviz2.38/bin;D:/Git/cmd;D:/PuTTY/;D:/CMake/bin;D:/kendryte-toolchain/bin;C:/Users/e-it/AppData/Local/Microsoft/WindowsApps;D:/Microsoft VS Code/bin;D:/ffmpeg/bin;D:/Python37/Scripts;",
+                "Path": "C:/Users/e-it/.k210-extension/toolchain/bin;C:/Users/e-it/.k210-extension/cmake/bin/;C:/Users/e-it/.k210-extension/jlink;C:/Users/e-it/.k210-extension/clang-format/bin;D:/SkeletonTracking/bin;C:/Program Files (x86)/Common Files/Intel/Shared Libraries/redist/intel64_win/compiler;C:/Program Files (x86)/Common Files/Intel/Shared Libraries/redist/intel64/compiler;D:/Python37/Scripts;D:/Python37/;C:/Windows/system32;C:/Windows;C:/Windows/System32/Wbem;C:/Windows/System32/WindowsPowerShell/v1.0/;C:/Windows/System32/OpenSSH/;D:/Python37/Lib;D:/Python37/Lib/bin;D:/Python37/DLLs;D:/Graphviz2.38/bin;D:/Git/cmd;D:/PuTTY/;D:/CMake/bin;D:/kendryte-toolchain/bin;C:/Users/e-it/AppData/Local/Microsoft/WindowsApps;D:/Microsoft VS Code/bin;D:/ffmpeg/bin;D:/Python37/Scripts;",
+            },
+            "autorun": [],
+            "gdbpath": "C:/Users/e-it/.k210-extension/toolchain/bin/riscv64-unknown-elf-gdb",
+            "preLaunchTask": "Start Openocd and Build"
+        }
+    ]
+}

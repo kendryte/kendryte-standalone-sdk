@@ -1,0 +1,15 @@
+{
+  "version": "0.1.0",
+  "files": [
+    {
+      "address": 0,
+      "bin": "kpu.bin",
+      "sha256Prefix": true
+    },
+    {
+      "address": 0x00C00000,
+      "bin": "yolo.kmodel",
+      "sha256Prefix": false
+    }
+  ]
+}

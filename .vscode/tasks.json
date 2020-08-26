@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "command": ".vscode/cmake.cmd",
+            "type": "process",
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Start Openocd",
+            "command": "${command:extension.openocd.restart}"
+        },
+        {
+            "label": "Start Openocd and Build",
+            "dependsOn":["Build", "Start Openocd"]
+        }
+    ]
+}
