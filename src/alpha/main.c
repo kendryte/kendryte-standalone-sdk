@@ -1,4 +1,3 @@
-#include "board_config.h"
 #include "bsp.h"
 #include "dmac.h"
 #include "dvp.h"
@@ -272,6 +271,28 @@ int read_data_from_uart() {
     return 0;
 }
 
+int init_dvp_lcd(){
+    // warm up
+    uarths_init();
+    io_mux_init_dvp_spi();
+    io_set_power();
+    // lcd init
+    printf("LCD init\n");
+    lcd_init();
+    // match with ov5640
+    lcd_set_direction(DIR_YX_RLUD);
+    lcd_clear(BLACK);
+    // init ov5640
+    dvp_init(16);
+    dvp_set_xclk_rate(12000000);
+    dvp_enable_burst();
+    dvp_set_output_enable(0, 1);
+    dvp_set_output_enable(1, 1);
+    dvp_set_image_format(DVP_CFG_RGB_FORMAT);
+    dvp_set_image_size(320, 240);
+    ov5640_init();
+}
+
 int main(void) {
     char datetime[19];
     char *version = {"v1.8"};
@@ -289,9 +310,7 @@ int main(void) {
     rtc_init();
     read_img_from_sd();
 
-    uarths_init();
-    io_mux_init_dvp_spi();
-    io_set_power();
+    init_dvp_lcd();
 
     // // flash init
     // printf("flash init\n");
@@ -299,22 +318,6 @@ int main(void) {
     // w25qxx_enable_quad_mode();
 
     uint8_t *model_data_align = model_data;
-
-    // lcd init
-    printf("LCD init\n");
-    lcd_init();
-    // match with ov5640
-    lcd_set_direction(DIR_YX_RLUD);
-    lcd_clear(BLACK);
-    // init ov5640
-    dvp_init(16);
-    dvp_set_xclk_rate(12000000);
-    dvp_enable_burst();
-    dvp_set_output_enable(0, 1);
-    dvp_set_output_enable(1, 1);
-    dvp_set_image_format(DVP_CFG_RGB_FORMAT);
-    dvp_set_image_size(320, 240);
-    ov5640_init();
 
     // set init timestamp
     printf("RTC set time\n");
@@ -329,9 +332,11 @@ int main(void) {
     display_image.width = 320;
     display_image.height = 240;
     image_init(&display_image);
-    dvp_set_ai_addr((uint32_t)kpu_image.addr,
-                    (uint32_t)(kpu_image.addr + 320 * 240),
-                    (uint32_t)(kpu_image.addr + 320 * 240 * 2));
+    dvp_set_ai_addr(
+        (uint32_t)kpu_image.addr,
+        (uint32_t)(kpu_image.addr + 320 * 240),
+        (uint32_t)(kpu_image.addr + 320 * 240 * 2)
+    );
     dvp_set_display_addr((uint32_t)display_image.addr);
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
                          0);
@@ -351,20 +356,16 @@ int main(void) {
     face_detect_rl.anchor = anchor;
     face_detect_rl.threshold = 0.7;
     face_detect_rl.nms_value = 0.3;
-    region_layer_init(&face_detect_rl, 20, 15, 30, kpu_image.width,
-                      kpu_image.height);
+    region_layer_init(&face_detect_rl, 20, 15, 30, kpu_image.width, kpu_image.height);
     // enable global interrupt
     sysctl_enable_irq();
     // system start
     printf("System start\n");
-    uint64_t time_last = sysctl_get_time_us();
-    uint64_t time_now = sysctl_get_time_us();
-    int time_count = 0;
+
     while (1) {
         g_dvp_finish_flag = 0;
         dvp_clear_interrupt(DVP_STS_FRAME_START | DVP_STS_FRAME_FINISH);
-        dvp_config_interrupt(
-            DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
+        dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
         while (g_dvp_finish_flag == 0)
             ;
         /* run face detect */
@@ -388,12 +389,6 @@ int main(void) {
         // display result
         lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
 
-        // time_count++;
-        // if (time_count % 100 == 0) {
-        //     time_now = sysctl_get_time_us();
-        //     printf("SPF:%fms\n", (time_now - time_last) / 1000.0 / 100);
-        //     time_last = time_now;
-        // }
     }
     // return 0;
 }
