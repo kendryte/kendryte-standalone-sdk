@@ -349,7 +349,7 @@ int main(void) {
     }
     face_detect_rl.anchor_number = ANCHOR_NUM;
     face_detect_rl.anchor = anchor;
-    face_detect_rl.threshold = 0.65;
+    face_detect_rl.threshold = 0.7;
     face_detect_rl.nms_value = 0.3;
     region_layer_init(&face_detect_rl, 20, 15, 30, kpu_image.width,
                       kpu_image.height);
@@ -381,8 +381,9 @@ int main(void) {
         // run key point detect
         for (uint32_t face_cnt = 0; face_cnt < face_detect_info.obj_number; face_cnt++) {
             draw_edge((uint32_t *)display_image.addr, &face_detect_info, face_cnt, GREEN);
-            if SINGLE_FACE_DETECT:
+            #if SINGLE_FACE_DETECT
                 break;
+            #endif
         }
         // display result
         lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);

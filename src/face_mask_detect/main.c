@@ -301,7 +301,7 @@ int main(void) {
         fm_detect_rl.input = output;
         region_layer_run(&fm_detect_rl, &fm_detect_info);
         /* display pic*/
-        lcd_draw_picture(0, 0, 320, 240, display_image.addr);
+        lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
         g_dvp_finish_flag = 0;
         /* draw boxs */
         // region_layer_draw_boxes(&fm_detect_rl, drawboxes);
