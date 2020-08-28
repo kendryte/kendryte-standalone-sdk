@@ -32,9 +32,9 @@ volatile uint32_t g_ai_done_flag;
 volatile uint8_t g_dvp_finish_flag;
 static image_t kpu_image, display_image;
 
-kpu_model_context_t obj_detect_task;
-static region_layer_t obj_detect_rl;
-static obj_info_t obj_detect_info;
+kpu_model_context_t fm_detect_task;
+static region_layer_t fm_detect_rl;
+static obj_info_t fm_detect_info;
 #define ANCHOR_NUM 5 // 5 or 9
 #if ANCHOR_NUM == 5
 #define KMODEL_SIZE (543 * 1024)
@@ -43,14 +43,14 @@ static float anchor[ANCHOR_NUM * 2] = {0.156250, 0.222548, 0.361328, 0.489583,
                                        3.574219, 3.940000};
 #endif
 
-#define LOAD_KMODEL_FROM_FLASH 0
+// #define LOAD_KMODEL_FROM_FLASH 0
 #define CLASS_NUMBER 2
 
-#if LOAD_KMODEL_FROM_FLASH
-uint8_t model_data[KMODEL_SIZE];
-#else
+// #if LOAD_KMODEL_FROM_FLASH
+// uint8_t model_data[KMODEL_SIZE];
+// #else
 INCBIN(model, "detect_5.kmodel");
-#endif
+// #endif
 
 static void ai_done(void *ctx) { g_ai_done_flag = 1; }
 
@@ -218,22 +218,22 @@ int main(void) {
     printf("flash init\n");
     w25qxx_init(3, 0);
     w25qxx_enable_quad_mode();
-#if LOAD_KMODEL_FROM_FLASH
-    w25qxx_read_data(0xA00000, model_data, KMODEL_SIZE, W25QXX_QUAD_FAST);
-#endif
+// #if LOAD_KMODEL_FROM_FLASH
+    // w25qxx_read_data(0xA00000, model_data, KMODEL_SIZE, W25QXX_QUAD_FAST);
+// #endif
     /* LCD init */
     printf("LCD init\n");
     lcd_init();
 
-#if OV5640
+// #if OV5640
     lcd_set_direction(DIR_YX_RLUD);
-#else
-    lcd_set_direction(DIR_YX_LRDU);
-#endif
+// #else
+    // lcd_set_direction(DIR_YX_LRDU);
+// #endif
     lcd_clear(BLACK);
     /* DVP init */
     printf("DVP init\n");
-#if OV5640
+// #if OV5640
     dvp_init(16);
     dvp_set_xclk_rate(12000000);
     dvp_enable_burst();
@@ -242,7 +242,7 @@ int main(void) {
     dvp_set_image_format(DVP_CFG_RGB_FORMAT);
     dvp_set_image_size(320, 240);
     ov5640_init();
-#endif
+// #endif
     kpu_image.pixel = 3;
     kpu_image.width = 320;
     kpu_image.height = 256;
@@ -266,17 +266,17 @@ int main(void) {
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
     /* init obj detect model */
-    if (kpu_load_kmodel(&obj_detect_task, model_data) != 0) {
+    if (kpu_load_kmodel(&fm_detect_task, model_data) != 0) {
         printf("\nmodel init error\n");
         while (1)
             ;
     }
-    obj_detect_rl.anchor_number = ANCHOR_NUM;
-    obj_detect_rl.anchor = anchor;
-    obj_detect_rl.threshold = 0.7;
-    obj_detect_rl.nms_value = 0.4;
-    obj_detect_rl.classes = CLASS_NUMBER;
-    region_layer_init(&obj_detect_rl, 10, 8, (4 + 2 + 1) * ANCHOR_NUM,
+    fm_detect_rl.anchor_number = ANCHOR_NUM;
+    fm_detect_rl.anchor = anchor;
+    fm_detect_rl.threshold = 0.7;
+    fm_detect_rl.nms_value = 0.4;
+    fm_detect_rl.classes = CLASS_NUMBER;
+    region_layer_init(&fm_detect_rl, 10, 8, (4 + 2 + 1) * ANCHOR_NUM,
                       kpu_image.width, kpu_image.height);
     /* enable global interrupt */
     sysctl_enable_irq();
@@ -291,19 +291,20 @@ int main(void) {
             ;
         /* run obj detect */
         g_ai_done_flag = 0;
-        kpu_run_kmodel(&obj_detect_task, kpu_image.addr, DMAC_CHANNEL5, ai_done,
+        kpu_run_kmodel(&fm_detect_task, kpu_image.addr, DMAC_CHANNEL5, ai_done,
                        NULL);
         while (!g_ai_done_flag)
             ;
         float *output;
         size_t output_size;
-        kpu_get_output(&obj_detect_task, 0, (uint8_t **)&output, &output_size);
-        obj_detect_rl.input = output;
-        region_layer_run(&obj_detect_rl, &obj_detect_info);
+        kpu_get_output(&fm_detect_task, 0, (uint8_t **)&output, &output_size);
+        fm_detect_rl.input = output;
+        region_layer_run(&fm_detect_rl, &fm_detect_info);
         /* display pic*/
         lcd_draw_picture(0, 0, 320, 240, display_image.addr);
         g_dvp_finish_flag = 0;
         /* draw boxs */
-        region_layer_draw_boxes(&obj_detect_rl, drawboxes);
+        // region_layer_draw_boxes(&fm_detect_rl, drawboxes);
+
     }
 }

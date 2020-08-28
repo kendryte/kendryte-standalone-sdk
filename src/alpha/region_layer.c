@@ -27,6 +27,7 @@ int region_layer_init(region_layer_t *rl, int width, int height, int channels, i
     rl->image_width = 320;
     rl->image_height = 240;
 
+    rl->classes = channels / 5 - 5;
     rl->net_width = origin_width;
     rl->net_height = origin_height;
     rl->layer_width = width;
@@ -376,30 +377,5 @@ void region_layer_run(region_layer_t *rl, obj_info_t *obj_info)
     forward_region_layer(rl);
     get_region_boxes(rl, rl->output, rl->probs, rl->boxes);
     do_nms_sort(rl, rl->boxes, rl->probs);
-    // region_layer_output(rl, obj_info);
-}
-
-void region_layer_draw_boxes(region_layer_t *rl, callback_draw_box callback)
-{
-	uint32_t image_width = rl->image_width;
-	uint32_t image_height = rl->image_height;
-	float threshold = rl->threshold;
-	box_t *boxes = (box_t *)rl->boxes;
-
-	for (int i = 0; i < rl->boxes_number; ++i)
-	{
-		int class = max_index(rl->probs[i], rl->classes);
-		float prob = rl->probs[i][class];
-
-		if (prob > threshold)
-		{
-            printf("+++ prob: %f\n", prob);
-			box_t *b = boxes + i;
-			uint32_t x1 = b->x * image_width - (b->w * image_width / 2);
-			uint32_t y1 = b->y * image_height - (b->h * image_height / 2);
-			uint32_t x2 = b->x * image_width + (b->w * image_width / 2);
-			uint32_t y2 = b->y * image_height + (b->h * image_height / 2);
-			callback(x1, y1, x2, y2, class, prob);
-		}
-	}
+    region_layer_output(rl, obj_info);
 }
