@@ -1,5 +1,3 @@
-
-
 #include "htpa.h"
 #include "sipeed_i2c.h"
 #include "fpioa.h"
@@ -188,7 +186,9 @@ int htpa_init(htpa_t* obj, i2c_device_number_t i2c_num, uint8_t scl_pin, uint8_t
     uint8_t temp[2] = {HTPA_CMD_ADDR_CONF, 0x01}; // status register
     int ret = maix_i2c_send_data(obj->i2c_num, HTPA_ADDR, temp, 1, 100);
     if (ret != 0) {
-        return ENOENT;
+        // return ENOENT;
+        return ret;
+
     }
     temp[0] = HTPA_CMD_ADDR_CONF;
     temp[1] = 0x01;
@@ -898,11 +898,11 @@ int16_t htpa_get_usroffset(htpa_t* obj)
 }
 
 //get temperature output as 1024 pixels
-//input: htpa_t htpa_obj, int32_t pixels[1024]
-int htpa_temperature(htpa_t* obj, int32_t* pixels)
+//input: htpa_t htpa_obj, int16_t pixels[1024]
+int htpa_temperature(htpa_t* obj, int16_t* pixels)
 {
     int32_t* pixels_data = NULL; 
-    int32_t  usroffset = (int32_t)htpa_get_usroffset(obj);
+    int16_t  usroffset = htpa_get_usroffset(obj);
     int ret = htpa_snapshot(obj, &pixels_data);
     if(ret != 0)
     {
@@ -910,7 +910,7 @@ int htpa_temperature(htpa_t* obj, int32_t* pixels)
     }
     for(int i=0; i<obj->width*obj->height; ++i)
     {
-        pixels[i] = pixels_data[i] + usroffset;
+        pixels[i] = (int16_t)pixels_data[i] + usroffset;
     }
     return 0;
 }

@@ -122,7 +122,7 @@ int htpa_get_eeprom_param(htpa_t* obj);
 
 //micropython method
 int htpa_init(htpa_t* obj, i2c_device_number_t i2c_num, uint8_t scl_pin, uint8_t sda_pin, uint32_t i2c_freq);
-int htpa_temperature(htpa_t* obj, int32_t* pixels);
+int htpa_temperature(htpa_t* obj, int16_t* pixels);
 int htpa_get_to_image(htpa_t* obj, uint8_t min_in, uint8_t max_in, uint8_t* img);
 int htpa_get_min_max(htpa_t* obj, int32_t* res);
 int htpa_width(htpa_t* obj, uint16_t* width);
