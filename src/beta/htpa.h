@@ -38,6 +38,7 @@
 #define ADR_USEROFFSETLOW      0xD2
 #define ADR_USEROFFSETFLAG     0xD3
 #define OFFSETFLAG             0xAB
+// 0xff9c: -100
 #define ALGORITHM_OFFSET       0
 
 extern const unsigned int table_temp[HTPA_NROF_AD_ELEMENTS][HTPA_NROF_TA_ELEMENTS];

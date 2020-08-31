@@ -19,33 +19,21 @@ void get_date_time(char *datetime) {
     printf("%s\n", datetime);
 }
 
-int main(void) {
-    char datetime[19];
-
-    rtc_init();
-    rtc_timer_set(2020, 9, 1, 9, 0, 0);
-    get_date_time(datetime);
-    printf("start loop\n");
-
+int add_attendance(char *added_attend) {
     FIL file;
     FRESULT ret = FR_OK;
     FILINFO v_fileinfo;
     uint32_t v_ret_len = 0;
-
     char *path = "attendance.csv";
-    char *added_attend;
-    sprintf(added_attend, "%s, %s, %f, %s\n", datetime, "user1", 36.5, "yes");
 
     if ((ret = f_stat(path, &v_fileinfo)) == FR_OK) {
         // file exists
         printf("%s length is %lld\n", path, v_fileinfo.fsize);
         ret = f_open(&file, path, FA_OPEN_EXISTING | FA_WRITE);
-        ret = f_lseek(&file, f_size(&file));
-        ret = f_write(&file, added_attend, sizeof(added_attend), &v_ret_len);
     } else {
         if ((ret = f_open(&file, path, FA_CREATE_NEW | FA_WRITE)) == FR_OK) {
-            printf("Open %s ok\n", path);
-            // write csv header
+            printf("Create %s ok\n", path);
+            // init csv header
             char csv_header[42] = "timestamp, id, ambient_temperature, mask\n";
             ret = f_write(&file, csv_header, sizeof(csv_header), &v_ret_len);
             if (ret != FR_OK) {
@@ -53,12 +41,33 @@ int main(void) {
             } else {
                 printf("Write %d bytes to %s ok\n", v_ret_len, path);
             }
+        }
     }
+    ret = f_lseek(&file, f_size(&file));
+    ret = f_write(&file, added_attend, sizeof(added_attend), &v_ret_len);
     f_close(&file);
     printf("file status: %d\n", ret);
+    return ret;
     // file test success
+}
 
-    int32_t pixels[1024], min_max[4];
+int main(void) {
+    char datetime[19];
+
+    rtc_init();
+    rtc_timer_set(2020, 9, 1, 9, 0, 0);
+    get_date_time(datetime);
+
+    // // flash init
+    // printf("flash init\n");
+    // w25qxx_init(3, 0);
+    // w25qxx_enable_quad_mode();
+    // char *added_attend;
+    // sprintf(added_attend, "%s, %s, %f, %s\n", datetime, "user1", 36.5, "yes");
+    // add_attendance(added_attend);
+
+    int16_t pixels[1024];
+    int32_t min_max[4];
     uint8_t htpa_img[1024];
 
     int htpa_stat = htpa_init(&htpa, I2C_DEVICE_0, 18, 19, 1000000);
@@ -75,7 +84,8 @@ int main(void) {
     //     printf("==== init status: %d\n", res);
     // }
     htpa_get_min_max(&htpa, min_max);
-    htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
+    printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
+    // htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
 
     while (1) {
         sleep(1);
