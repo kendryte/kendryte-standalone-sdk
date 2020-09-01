@@ -39,7 +39,8 @@
 #define ADR_USEROFFSETFLAG     0xD3
 #define OFFSETFLAG             0xAB
 // 0xff9c: -100
-#define ALGORITHM_OFFSET       0
+// 0xfefc: -260
+#define ALGORITHM_OFFSET       0x0000
 
 extern const unsigned int table_temp[HTPA_NROF_AD_ELEMENTS][HTPA_NROF_TA_ELEMENTS];
 extern const unsigned int table_x_ta_temps[HTPA_NROF_TA_ELEMENTS];
@@ -121,7 +122,7 @@ int htpa_write_reg(htpa_t* obj, uint8_t addr, uint8_t data);
 
 int htpa_get_eeprom_param(htpa_t* obj);
 
-//micropython method
+// micropython method
 int htpa_init(htpa_t* obj, i2c_device_number_t i2c_num, uint8_t scl_pin, uint8_t sda_pin, uint32_t i2c_freq);
 int htpa_temperature(htpa_t* obj, int16_t* pixels);
 int htpa_get_to_image(htpa_t* obj, uint8_t min_in, uint8_t max_in, uint8_t* img);

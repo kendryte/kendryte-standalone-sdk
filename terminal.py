@@ -12,7 +12,7 @@ import json
 import re
 import os
 
-def open_terminal(_port="COM11", reset=1):
+def open_terminal(_port="COM13", reset=1):
     control_signal = '0' if reset else '1'
     control_signal_b = not reset
     import serial.tools.miniterm

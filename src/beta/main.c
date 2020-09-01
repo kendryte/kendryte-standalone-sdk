@@ -89,7 +89,7 @@ int main(void) {
 
     while (1) {
         sleep(1);
-        get_date_time(datetime);
+        // get_date_time(datetime);
     }
     return 0;
 }
