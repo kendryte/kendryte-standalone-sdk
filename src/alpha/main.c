@@ -31,11 +31,6 @@
 
 #define SINGLE_FACE_DETECT 1
 
-int result_face_detect = 0;
-int result_mask_detect = 0;
-int result_recognition = 0;
-int result_temperature = 0;
-
 #define INCBIN_STYLE INCBIN_STYLE_SNAKE
 #define INCBIN_PREFIX
 // uart related
@@ -322,7 +317,11 @@ int init_dvp_lcd() {
 
 int main(void) {
     char datetime[19];
-    // int face_detected = 0;
+    // flags
+    int FLAG_FACE_DETECTED = 0;
+    int FLAG_SD_IN = 0;
+    int FLAG_LOAD_FACE = 0;
+
     // Set CPU and dvp clk
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
     sysctl_pll_set_freq(SYSCTL_PLL1, PLL1_OUTPUT_FREQ);
@@ -330,8 +329,11 @@ int main(void) {
     plic_init();
     // rtc init
     rtc_init();
-    int sd_card_status = read_img_from_sd();
-    printf("sd_card_status: %d\n", sd_card_status);
+
+    if (FLAG_SD_IN & FLAG_LOAD_FACE) {
+        int sd_status = read_img_from_sd();
+        printf("sd_card_status: %d\n", sd_status);
+    }
 
     // // flash init
     // printf("flash init\n");
@@ -354,6 +356,7 @@ int main(void) {
     display_image.width = 320;
     display_image.height = 240;
     image_init(&display_image);
+
     dvp_set_ai_addr((uint32_t)kpu_image.addr,
                     (uint32_t)(kpu_image.addr + 320 * 240),
                     (uint32_t)(kpu_image.addr + 320 * 240 * 2));

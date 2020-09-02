@@ -100,11 +100,11 @@ int main() {
         exit(-1);
     }
 
-    for (int j=0; j < 1; j++) {
+    for (int j = 0; j < 1; j++) {
         g_ai_done_flag = 0;
 
-        if (kpu_run_kmodel(&task1, (const uint8_t *)features, 5, ai_done,
-                           NULL) != 0) {
+        if (kpu_run_kmodel(&task1, (const uint8_t *)features, DMAC_CHANNEL5,
+                           ai_done, NULL) != 0) {
             printf("Cannot run kmodel.\n");
             exit(-1);
         }
