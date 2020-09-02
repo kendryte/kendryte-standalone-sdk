@@ -25,7 +25,7 @@
 // #define RFB 1
 // #define TEST 0
 
-// extern const unsigned char gImage_image[] __attribute__((aligned(128)));
+// extern const unsigned char kpu_image[] __attribute__((aligned(128)));
 
 // #if TEST
 // INCBIN(out, "face.bin");

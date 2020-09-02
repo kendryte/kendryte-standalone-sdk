@@ -72,11 +72,14 @@ static int dvp_irq(void *ctx) {
     return 0;
 }
 
-void io_mux_init_uart_sd(void) {
+void io_mux_init_uart(void) {
     // uart
     fpioa_set_function(4, FUNC_UART1_RX + UART_NUM * 2);
     fpioa_set_function(5, FUNC_UART1_TX + UART_NUM * 2);
     fpioa_set_function(23, FUNC_GPIOHS3);
+}
+
+void io_mux_init_sd(void) {
     // SD card
     fpioa_set_function(29, FUNC_SPI0_SCLK);
     fpioa_set_function(30, FUNC_SPI0_D0);
@@ -95,11 +98,11 @@ void io_mux_init_dvp_spi(void) {
     fpioa_set_function(15, FUNC_CMOS_PCLK);
     fpioa_set_function(10, FUNC_SCCB_SCLK);
     fpioa_set_function(9, FUNC_SCCB_SDA);
-
     // Init SPI IO map and function settings
     fpioa_set_function(8, FUNC_GPIOHS0 + 2);
     fpioa_set_function(6, FUNC_SPI0_SS3);
     fpioa_set_function(7, FUNC_SPI0_SCLK);
+    // magic here, not sure
     sysctl_set_spi0_dvp_data(1);
     fpioa_set_function(26, FUNC_GPIOHS0 + 8);
     gpiohs_set_drive_mode(8, GPIO_DM_INPUT);
@@ -136,27 +139,51 @@ static int sdcard_init(void) {
 }
 
 static int fs_init(void) {
+    const char* dir_path = "images";
+    char full_path[256+7];
     static FATFS sdcard_fs;
-    FRESULT status;
-    DIR dj;
+    FIL img_file;
+    DIR img_dir;
     FILINFO fno;
+    FRESULT f_ret = FR_OK;
+    uint32_t v_ret_len = 0;
 
     printf("/********************fs test*******************/\n");
-    status = f_mount(&sdcard_fs, _T("0:"), 1);
-    printf("mount sdcard:%d\n", status);
-    if (status != FR_OK)
-        return status;
+    f_ret = f_mount(&sdcard_fs, _T("0:"), 1);
+    printf("mount sdcard:%d\n", f_ret);
+    if (f_ret != FR_OK)
+        return f_ret;
 
-    printf("printf filename\n");
-    status = f_findfirst(&dj, &fno, _T("0:"), _T("*"));
-    while (status == FR_OK && fno.fname[0]) {
-        if (fno.fattrib & AM_DIR)
-            printf("dir:%s\n", fno.fname);
-        else
-            printf("file:%s\n", fno.fname);
-        status = f_findnext(&dj, &fno);
+    if ((f_ret = f_stat(dir_path, &fno)) == FR_OK) {
+        // file exists
+        printf("=== DIR %s exists. ===\n", dir_path);
+        printf("=== file in images/ ===\n");
+        f_ret = f_findfirst(&img_dir, &fno, dir_path, "*.jpg");
+        while (f_ret == FR_OK && fno.fname[0]) {
+            // read image files
+            // open file with READ model
+            sprintf(full_path, "%s/%s", dir_path, fno.fname);
+            if ((f_ret = f_open(&img_file, full_path, FA_READ)) == FR_OK) {
+                char v_buf[20*1024];
+                // read file
+                f_ret = f_read(&img_file, (void*)v_buf, full_path, &v_ret_len);
+                // read wrong
+                if (f_ret != FR_OK) {
+                    printf("Read %s err[%d]\n", fno.fname, f_ret);
+                } else {
+                    // read success
+                    printf("Read :> %s\t %d bytes lenth\n", fno.fname, v_ret_len);
+                }
+                f_close(&img_file);
+            }
+            // end
+            f_ret = f_findnext(&img_dir, &fno);
+        }
+        f_closedir(&img_dir);
+    } else {
+        printf("=== DIR %s is not exist. ===\n", dir_path);
+        return FR_NO_PATH;
     }
-    f_closedir(&dj);
     return 0;
 }
 
@@ -213,9 +240,32 @@ static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index,
     }
 }
 
+static void print_xyxy(obj_info_t *obj_info, uint32_t* xys) {
+    uint32_t x1, y1, x2, y2;
+    x1 = obj_info->obj[0].x1;
+    y1 = obj_info->obj[0].y1;
+    x2 = obj_info->obj[0].x2;
+    y2 = obj_info->obj[0].y2;
+
+    if (x1 <= 0)
+        x1 = 1;
+    if (x2 >= 319)
+        x2 = 318;
+    if (y1 <= 0)
+        y1 = 1;
+    if (y2 >= 239)
+        y2 = 238;
+
+    xys[0] = x1;
+    xys[1] = y1;
+    xys[2] = x2;
+    xys[3] = y2;
+    printf("face here: %d, %d, %d, %d\n", x1, y1, x2, y2);
+}
+
 int read_img_from_sd() {
-    // SD card related
-    io_mux_init_uart_sd();
+    // SD card related io
+    io_mux_init_sd();
 
     if (sdcard_init()) {
         printf("SD card err\n");
@@ -225,30 +275,6 @@ int read_img_from_sd() {
         printf("FAT32 err\n");
         return -1;
     }
-
-    // FIL file;
-    FRESULT ret = FR_OK;
-    FILINFO v_fileinfo;
-    char *dir = "images";
-    if ((ret = f_stat(dir, &v_fileinfo)) == FR_OK) {
-        // file exists
-        printf("=== DIR %s exists. ===\n", dir);
-    }
-    // // open file with READ model
-    // if ((ret = f_open(&file, path, FA_READ)) == FR_OK) {
-    //     char v_buf[80] = {0};
-    //     // read file
-    //     ret = f_read(&file, (void *)v_buf, 64, &v_ret_len);
-    //     // read wrong
-    //     if (ret != FR_OK) {
-    //         printf("Read %s err[%d]\n", path, ret);
-    //     } else {
-    //         // read success
-    //         printf("Read :> %s %d bytes lenth\n", v_buf, v_ret_len);
-    //     }
-    //     f_close(&file);
-    // }
-
     return 0;
 }
 
@@ -271,7 +297,7 @@ int read_data_from_uart() {
     return 0;
 }
 
-int init_dvp_lcd(){
+int init_dvp_lcd() {
     // warm up
     uarths_init();
     io_mux_init_dvp_spi();
@@ -291,26 +317,21 @@ int init_dvp_lcd(){
     dvp_set_image_format(DVP_CFG_RGB_FORMAT);
     dvp_set_image_size(320, 240);
     ov5640_init();
+    return 0;
 }
 
 int main(void) {
     char datetime[19];
-    char *version = {"v1.8"};
-
+    // int face_detected = 0;
     // Set CPU and dvp clk
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
     sysctl_pll_set_freq(SYSCTL_PLL1, PLL1_OUTPUT_FREQ);
     sysctl_clock_enable(SYSCTL_CLOCK_AI);
-
     plic_init();
-    sysctl_enable_irq();
-
     // rtc init
-    printf("RTC init ver. %s\n", version);
     rtc_init();
-    read_img_from_sd();
-
-    init_dvp_lcd();
+    int sd_card_status = read_img_from_sd();
+    printf("sd_card_status: %d\n", sd_card_status);
 
     // // flash init
     // printf("flash init\n");
@@ -321,8 +342,9 @@ int main(void) {
 
     // set init timestamp
     printf("RTC set time\n");
-    rtc_timer_set(2020, 8, 28, 12, 30, 0);
+    rtc_timer_set(2020, 9, 3, 12, 0, 0);
     get_date_time(datetime);
+    init_dvp_lcd();
 
     kpu_image.pixel = 3;
     kpu_image.width = 320;
@@ -332,43 +354,49 @@ int main(void) {
     display_image.width = 320;
     display_image.height = 240;
     image_init(&display_image);
-    dvp_set_ai_addr(
-        (uint32_t)kpu_image.addr,
-        (uint32_t)(kpu_image.addr + 320 * 240),
-        (uint32_t)(kpu_image.addr + 320 * 240 * 2)
-    );
+    dvp_set_ai_addr((uint32_t)kpu_image.addr,
+                    (uint32_t)(kpu_image.addr + 320 * 240),
+                    (uint32_t)(kpu_image.addr + 320 * 240 * 2));
     dvp_set_display_addr((uint32_t)display_image.addr);
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
                          0);
     dvp_disable_auto();
-    /* DVP interrupt config */
+    // DVP interrupt config
     printf("DVP interrupt config\n");
     plic_set_priority(IRQN_DVP_INTERRUPT, 1);
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
-    /* init face detect model */
+    // init face detect model
     if (kpu_load_kmodel(&face_detect_task, model_data_align) != 0) {
         printf("\nmodel init error\n");
         while (1)
             ;
     }
+
     face_detect_rl.anchor_number = ANCHOR_NUM;
     face_detect_rl.anchor = anchor;
     face_detect_rl.threshold = 0.7;
     face_detect_rl.nms_value = 0.3;
-    region_layer_init(&face_detect_rl, 20, 15, 30, kpu_image.width, kpu_image.height);
+    region_layer_init(&face_detect_rl, 20, 15, 30, kpu_image.width,
+                      kpu_image.height);
+
     // enable global interrupt
-    sysctl_enable_irq();
     // system start
+    sysctl_enable_irq();
     printf("System start\n");
 
     while (1) {
+        uint32_t res[4] = {0,0,0,0};
+        // flags
+        // face_detected = 0;
+
         g_dvp_finish_flag = 0;
         dvp_clear_interrupt(DVP_STS_FRAME_START | DVP_STS_FRAME_FINISH);
-        dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
+        dvp_config_interrupt(
+            DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
         while (g_dvp_finish_flag == 0)
             ;
-        /* run face detect */
+        // run face detect
         g_ai_done_flag = 0;
         kpu_run_kmodel(&face_detect_task, kpu_image.addr, DMAC_CHANNEL5,
                        ai_done, NULL);
@@ -380,15 +408,20 @@ int main(void) {
         face_detect_rl.input = output;
         region_layer_run(&face_detect_rl, &face_detect_info);
         // run key point detect
-        for (uint32_t face_cnt = 0; face_cnt < face_detect_info.obj_number; face_cnt++) {
-            draw_edge((uint32_t *)display_image.addr, &face_detect_info, face_cnt, GREEN);
-            #if SINGLE_FACE_DETECT
+        for (uint32_t face_cnt = 0; face_cnt < face_detect_info.obj_number;
+             face_cnt++) {
+            // loop for face detected
+            // face_detected = 1;
+            draw_edge((uint32_t *)display_image.addr, &face_detect_info,
+                      face_cnt, GREEN);
+
+            print_xyxy(&face_detect_info, res);
+            if (SINGLE_FACE_DETECT) {
                 break;
-            #endif
+            }
         }
         // display result
         lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
-
     }
     // return 0;
 }

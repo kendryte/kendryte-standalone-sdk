@@ -118,7 +118,7 @@ int main(void) {
     if ((ret = f_open(&file, path, FA_READ)) == FR_OK) {
         char v_buf[80] = {0};
         // read file
-        ret = f_read(&file, (void *)v_buf, 64, &v_ret_len);
+        ret = f_read(&file, (void*)v_buf, 64, &v_ret_len);
         // read wrong
         if (ret != FR_OK) {
             printf("Read %s err[%d]\n", path, ret);

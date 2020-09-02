@@ -966,13 +966,25 @@ int htpa_get_to_image(htpa_t *obj, uint8_t min_in, uint8_t max_in,
     for (int i = 0; i < obj->width * obj->height; ++i) {
         img[i] = (obj->v[i] - min_in) / (float)range * 255;
     }
+    // return 0;
+
+    // uint8_t* p = (uint8_t*) obj->v;
+    // *p = (obj->v[0] - min_in) / range * 255;
+    // // img[0] = p;
+    // for(int i=1; i<obj->width*obj->height; ++i) {
+    //     *p = (obj->v[i] - min_in) / (float)range * 255;
+    //     // img[i] = p;
+    //     ++p;
+    // }
+    // *img = p;
+
     return 0;
 }
 // get max temperature and min temperature and position of the both
 // input: htpa_t htpa_obj, int32_t res[4]
 int htpa_get_min_max(htpa_t *obj, int32_t *res) {
     // additional part
-    int32_t max_q[5] = {0,0,0,0,0};
+    // int32_t max_q[5] = {0,0,0,0,0};
 
     int32_t max = obj->v[0], min = obj->v[1];
     int max_pos = 0, min_pos = 0;

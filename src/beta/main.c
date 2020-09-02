@@ -19,12 +19,13 @@ void get_date_time(char *datetime) {
     printf("%s\n", datetime);
 }
 
-int add_attendance(char *added_attend) {
+int add_attendance(char* phone, char* id, float temper, char* mask) {
     FIL file;
     FRESULT ret = FR_OK;
     FILINFO v_fileinfo;
     uint32_t v_ret_len = 0;
     char *path = "attendance.csv";
+    char *added_attend;
 
     if ((ret = f_stat(path, &v_fileinfo)) == FR_OK) {
         // file exists
@@ -34,7 +35,7 @@ int add_attendance(char *added_attend) {
         if ((ret = f_open(&file, path, FA_CREATE_NEW | FA_WRITE)) == FR_OK) {
             printf("Create %s ok\n", path);
             // init csv header
-            char csv_header[42] = "timestamp, id, ambient_temperature, mask\n";
+            char csv_header[49] = "timestamp, phone, id, ambient_temperature, mask\n";
             ret = f_write(&file, csv_header, sizeof(csv_header), &v_ret_len);
             if (ret != FR_OK) {
                 printf("Write %s err[%d]\n", path, ret);
@@ -43,6 +44,9 @@ int add_attendance(char *added_attend) {
             }
         }
     }
+    char datetime[19];
+    get_date_time(datetime);
+    sprintf(added_attend, "%s, %s, %s, %f, %s\n", datetime, phone, id, temper, mask);
     ret = f_lseek(&file, f_size(&file));
     ret = f_write(&file, added_attend, sizeof(added_attend), &v_ret_len);
     f_close(&file);
@@ -55,16 +59,14 @@ int main(void) {
     char datetime[19];
 
     rtc_init();
-    rtc_timer_set(2020, 9, 1, 9, 0, 0);
+    rtc_timer_set(2020, 9, 2, 9, 0, 0);
     get_date_time(datetime);
 
     // // flash init
     // printf("flash init\n");
     // w25qxx_init(3, 0);
     // w25qxx_enable_quad_mode();
-    // char *added_attend;
-    // sprintf(added_attend, "%s, %s, %f, %s\n", datetime, "user1", 36.5, "yes");
-    // add_attendance(added_attend);
+    // add_attendance("010-6518-2866", "user1", 36.5, "y");
 
     int16_t pixels[1024];
     int32_t min_max[4];
@@ -74,18 +76,23 @@ int main(void) {
     printf("htpa init status: %d\n", htpa_stat);
     if (htpa_stat == 0) {
         int htpa_temp = htpa_temperature(&htpa, pixels);
-        printf("htpa_temperature: %d\n", htpa_temp);
+        printf("htpa_temperature: %d\n====================\n", htpa_temp);
         for (int i=0; i<1024; i++) {
             printf("%d,", pixels[i]);
         }
-        printf("\n");
+        printf("\n====================\n");
     }
     // else {
     //     printf("==== init status: %d\n", res);
     // }
+
     htpa_get_min_max(&htpa, min_max);
-    printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
-    // htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
+    printf("Max: %d, Min: %d\n====================\n", min_max[1], min_max[0]);
+    htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
+    for (int i=0; i<1024; i++) {
+        printf("%d,", htpa_img[i]);
+    }
+    printf("\n====================\n");
 
     while (1) {
         sleep(1);
