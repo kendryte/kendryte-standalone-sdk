@@ -169,12 +169,12 @@ int main(void) {
     display_image.height = 240;
     image_init(&display_image);
 
-    // each channel addr of image
-    dvp_set_ai_addr((uint32_t)g_ai_buf_in);
-    dvp_set_display_addr((uint32_t)display_image.addr);
-    dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
-                         0);
-    dvp_disable_auto();
+    // // each channel addr of image
+    // dvp_set_ai_addr((uint32_t)g_ai_buf_in);
+    // dvp_set_display_addr((uint32_t)display_image.addr);
+    // dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
+    //                      0);
+    // dvp_disable_auto();
 
     // DVP interrupt config
     printf("DVP interrupt config\n");
@@ -183,19 +183,19 @@ int main(void) {
     plic_irq_enable(IRQN_DVP_INTERRUPT);
 
     while (1) {
-        // sleep(1);
-        g_dvp_finish_flag = 0;
-        dvp_clear_interrupt(DVP_STS_FRAME_START | DVP_STS_FRAME_FINISH);
-        dvp_config_interrupt(
-            DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
-        while (g_dvp_finish_flag == 0)
-            ;
-        // run mask detect
-        g_ai_done_flag = 0;
-        kpu_run_kmodel(&mask_detect_task, htpa_img, DMAC_CHANNEL5,
-                       ai_done, NULL);
-        while (!g_ai_done_flag)
-            ;
+        sleep(1);
+        // g_dvp_finish_flag = 0;
+        // dvp_clear_interrupt(DVP_STS_FRAME_START | DVP_STS_FRAME_FINISH);
+        // dvp_config_interrupt(
+        //     DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
+        // while (g_dvp_finish_flag == 0)
+        //     ;
+        // // run mask detect
+        // g_ai_done_flag = 0;
+        // kpu_run_kmodel(&mask_detect_task, htpa_img, DMAC_CHANNEL5,
+        //                ai_done, NULL);
+        // while (!g_ai_done_flag)
+        //     ;
     }
     return 0;
 }
