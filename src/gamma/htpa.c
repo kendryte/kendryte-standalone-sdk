@@ -959,50 +959,41 @@ int htpa_temperature(htpa_t *obj, int16_t *pixels) {
     return 0;
 }
 // get image output
-// input: htpa_t htpa_obj, uint8_t min_in, uint8_t max_in, uint8_t img[1024]
-int htpa_get_to_image(htpa_t *obj, uint8_t min_in, uint8_t max_in,
+// input: htpa_t htpa_obj, int16_t min_in, int16_t max_in, int16_t img[1024]
+int htpa_get_to_image(htpa_t *obj, int16_t min_in, int16_t max_in,
                       uint8_t *img) {
-    uint8_t range = max_in - min_in;
+    int16_t range = max_in - min_in;
+    int16_t usroffset = htpa_get_usroffset(obj);
     for (int i = 0; i < obj->width * obj->height; ++i) {
-        img[i] = (obj->v[i] - min_in) / (float)range * 255;
+        img[i] = (uint8_t) ((((int16_t)obj->v[i] + usroffset) - min_in) / (float)range * 255);
     }
-    // return 0;
-
-    // uint8_t* p = (uint8_t*) obj->v;
-    // *p = (obj->v[0] - min_in) / range * 255;
-    // // img[0] = p;
-    // for(int i=1; i<obj->width*obj->height; ++i) {
-    //     *p = (obj->v[i] - min_in) / (float)range * 255;
-    //     // img[i] = p;
-    //     ++p;
-    // }
-    // *img = p;
-
     return 0;
 }
 // get max temperature and min temperature and position of the both
-// input: htpa_t htpa_obj, int32_t res[4]
-int htpa_get_min_max(htpa_t *obj, int32_t *res) {
-    // additional part
-    // int32_t max_q[5] = {0,0,0,0,0};
+// input: htpa_t htpa_obj, int16_t res[4]
+int htpa_get_min_max(htpa_t *obj, int16_t *res) {
+    // added part
+    int32_t* pixels_data = NULL;
+    htpa_snapshot(obj, &pixels_data);
+    // added end
+    int16_t max = (int16_t)obj->v[0], min = (int16_t)obj->v[1];
+    int16_t max_pos = 0, min_pos = 0;
+    int16_t usroffset = htpa_get_usroffset(obj);
 
-    int32_t max = obj->v[0], min = obj->v[1];
-    int max_pos = 0, min_pos = 0;
-    int32_t usroffset = (int32_t)htpa_get_usroffset(obj);
     for (int i = 1; i < obj->width * obj->height; ++i) {
         if (obj->v[i] > max) {
-            max = obj->v[i];
+            max = (int16_t)obj->v[i];
             max_pos = i;
         }
         if (obj->v[i] < min) {
-            min = obj->v[i];
+            min = (int16_t)obj->v[i];
             min_pos = i;
         }
     }
     res[0] = min + usroffset;
     res[1] = max + usroffset;
-    res[2] = (int32_t)min_pos;
-    res[3] = (int32_t)max_pos;
+    res[2] = min_pos;
+    res[3] = max_pos;
     return 0;
 }
 // get width output

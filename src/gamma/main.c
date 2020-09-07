@@ -1,33 +1,44 @@
+#include "dmac.h"
 #include "dvp.h"
 #include "ff.h"
-#include "kpu.h"
 #include "fpioa.h"
 #include "gpiohs.h"
 #include "htpa.h"
 #include "htpa_32x32d.h"
 #include "image_process.h"
+#include "incbin.h"
+#include "kpu.h"
 #include "lcd.h"
 #include "ov5640.h"
 #include "rtc.h"
 #include "sipeed_i2c.h"
 #include "sysctl.h"
 #include "uarths.h"
+#include <float.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 
+#define INCBIN_STYLE INCBIN_STYLE_SNAKE
+#define INCBIN_PREFIX
+
 #define PLL0_OUTPUT_FREQ 800000000UL
 #define PLL1_OUTPUT_FREQ 400000000UL
 
 htpa_t htpa;
-uint8_t g_ai_buf_in[32*32*1] __attribute__((aligned(128)));
+int16_t min_max[4];
+uint8_t htpa_img[1024];
+// uint8_t g_ai_buf_in[32*32*3] __attribute__((aligned(128)));
+// float *features;
 
 volatile uint32_t g_ai_done_flag;
 volatile uint8_t g_dvp_finish_flag;
 static image_t display_image;
 
 kpu_model_context_t mask_detect_task;
+// uint8_t *model_data;
+INCBIN(model, "mask_detect.kmodel");
 
 static void ai_done(void *ctx) { g_ai_done_flag = 1; }
 
@@ -116,6 +127,33 @@ static int dvp_irq(void *ctx) {
     return 0;
 }
 
+size_t argmax(const float *src, size_t count) {
+    float max = FLT_MIN;
+    size_t max_id = 0, i;
+    for (i = 0; i < count; i++) {
+        if (src[i] > max) {
+            max = src[i];
+            max_id = i;
+        }
+    }
+
+    return max_id;
+}
+
+static void show_result(void) {
+    float *features;
+    size_t count;
+    kpu_get_output(&mask_detect_task, 0, (uint8_t **)&features, &count);
+    count /= sizeof(float);
+    for (int i = 0; i < count; i++) {
+        // if (i % 16 == 0)
+        //     printf("\n%04x: ", i);
+        printf("%.3f ", features[i]);
+    }
+    printf("count: %ld, max index: %ld\n", count, argmax(features, count / 4));
+    // printf("result: %f\n", features);
+}
+
 int main(void) {
     char datetime[19];
     // Set CPU and dvp clk
@@ -134,31 +172,15 @@ int main(void) {
     lcd_set_direction(DIR_YX_RLDU);
     lcd_clear(BLACK);
 
-    // // flash init
-    // printf("flash init\n");
-    // w25qxx_init(3, 0);
-    // w25qxx_enable_quad_mode();
-    // add_attendance("010-6518-2866", "user1", 36.5, "y");
-
-    int16_t pixels[1024];
-    int32_t min_max[4];
-    uint8_t htpa_img[1024];
-
     int htpa_stat = htpa_init(&htpa, I2C_DEVICE_0, 18, 19, 1000000);
     printf("htpa init status: %d\n", htpa_stat);
-    if (htpa_stat == 0) {
-        int htpa_temp = htpa_temperature(&htpa, pixels);
-        printf("htpa_temperature: %d\n====================\n", htpa_temp);
-        for (int i = 0; i < 1024; i++) {
-            printf("%d,", pixels[i]);
-        }
-        printf("\n====================\n");
-    }
 
     htpa_get_min_max(&htpa, min_max);
-    printf("Max: %d, Min: %d\n====================\n", min_max[1], min_max[0]);
+    printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
     htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
-    for (int i = 0; i < 1024; i++) {
+    printf("random test: %d\n", htpa_img[100]);
+
+    for (int i=0; i<1024; i++) {
         printf("%d,", htpa_img[i]);
     }
     printf("\n====================\n");
@@ -171,10 +193,10 @@ int main(void) {
 
     // // each channel addr of image
     // dvp_set_ai_addr((uint32_t)g_ai_buf_in);
-    // dvp_set_display_addr((uint32_t)display_image.addr);
-    // dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
-    //                      0);
-    // dvp_disable_auto();
+    dvp_set_display_addr((uint32_t)display_image.addr);
+    dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
+                         0);
+    dvp_disable_auto();
 
     // DVP interrupt config
     printf("DVP interrupt config\n");
@@ -182,20 +204,44 @@ int main(void) {
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
 
+    // uint8_t *model_data_align = model_data;
+    // init mask detect model
+    if (kpu_load_kmodel(&mask_detect_task, model_data) != 0) {
+        printf("\nmodel init error\n");
+        while (1)
+            ;
+    } else {
+        printf("\nmodel init success\n");
+    }
+
+    sysctl_enable_irq();
+
     while (1) {
-        sleep(1);
+        // sleep(1);
+        htpa_get_min_max(&htpa, min_max);
+        printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
+        htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
+        printf("random test: %d\n", htpa_img[100]);
+
+        // for (int i=0; i<1024; i++) {
+        //     printf("%d,", htpa_img[i]);
+        // }
+        // printf("\n====================\n");
+
         // g_dvp_finish_flag = 0;
         // dvp_clear_interrupt(DVP_STS_FRAME_START | DVP_STS_FRAME_FINISH);
         // dvp_config_interrupt(
         //     DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
         // while (g_dvp_finish_flag == 0)
         //     ;
-        // // run mask detect
-        // g_ai_done_flag = 0;
-        // kpu_run_kmodel(&mask_detect_task, htpa_img, DMAC_CHANNEL5,
-        //                ai_done, NULL);
-        // while (!g_ai_done_flag)
-        //     ;
+        // run mask detect
+        g_ai_done_flag = 0;
+        int x = kpu_run_kmodel(&mask_detect_task, htpa_img, DMAC_CHANNEL5, ai_done, NULL);
+        // printf("x: %d\n", x);
+        while (!g_ai_done_flag)
+            ;
+
+        show_result();
     }
     return 0;
 }

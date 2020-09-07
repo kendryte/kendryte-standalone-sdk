@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
+#include "kpu.h"
 #include "htpa.h"
 #include "sipeed_i2c.h"
 #include "htpa_32x32d.h"
@@ -10,6 +11,8 @@
 #include "ff.h"
 
 htpa_t htpa;
+int16_t min_max[4];
+uint8_t htpa_img[1024];
 
 void get_date_time(char *datetime) {
     int year, month, day, hour, minute, second;
@@ -26,7 +29,7 @@ void get_date_time(char *datetime) {
 //     uint32_t v_ret_len = 0;
 //     char *path = "attendance.csv";
 //     char *added_attend;
-
+//
 //     if ((ret = f_stat(path, &v_fileinfo)) == FR_OK) {
 //         // file exists
 //         printf("%s length is %lld\n", path, v_fileinfo.fsize);
@@ -55,8 +58,11 @@ void get_date_time(char *datetime) {
 //     // file test success
 // }
 
+
+
 int main(void) {
     char datetime[19];
+    int TEST_MODEL = 1;
 
     rtc_init();
     rtc_timer_set(2020, 9, 2, 9, 0, 0);
@@ -68,31 +74,34 @@ int main(void) {
     // w25qxx_enable_quad_mode();
     // add_attendance("010-6518-2866", "user1", 36.5, "y");
 
-    int16_t pixels[1024];
-    int16_t min_max[4];
-    int16_t htpa_img[1024];
+    // int16_t pixels[1024];
+
 
     int htpa_stat = htpa_init(&htpa, I2C_DEVICE_0, 18, 19, 1000000);
     printf("htpa init status: %d\n", htpa_stat);
-    if (htpa_stat == 0) {
-        int htpa_temp = htpa_temperature(&htpa, pixels);
-        printf("htpa_temperature: %d\n====================\n", htpa_temp);
-        for (int i=0; i<1024; i++) {
-            printf("%d,", pixels[i]);
-        }
-        printf("\n====================\n");
-    }
-    // else {
-    //     printf("==== init status: %d\n", res);
+    // if (htpa_stat == 0) {
+        // int htpa_temp = htpa_temperature(&htpa, pixels);
+        // printf("htpa_temperature: %d\n====================\n", htpa_temp);
+
+        // if (TEST_MODEL) {
+        //     for (int i=0; i<1024; i++) {
+        //         printf("%d,", pixels[i]);
+        //     }
+        //     printf("\n====================\n");
+        // }
+
     // }
 
     htpa_get_min_max(&htpa, min_max);
     printf("Max: %d, Min: %d\n====================\n", min_max[1], min_max[0]);
     htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
-    for (int i=0; i<1024; i++) {
-        printf("%d,", htpa_img[i]);
+
+    if (TEST_MODEL) {
+        for (int i=0; i<1024; i++) {
+            printf("%d,", htpa_img[i]);
+        }
+        printf("\n====================\n");
     }
-    printf("\n====================\n");
 
     while (1) {
         sleep(1);
