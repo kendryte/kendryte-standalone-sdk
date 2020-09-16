@@ -129,14 +129,13 @@ static int dvp_irq(void *ctx) {
 
 size_t argmax(const float *src, size_t count) {
     float max = FLT_MIN;
-    size_t max_id = 0, i;
-    for (i = 0; i < count; i++) {
+    size_t max_id = 0;
+    for (int i=0; i<count; i++) {
         if (src[i] > max) {
             max = src[i];
             max_id = i;
         }
     }
-
     return max_id;
 }
 
@@ -150,7 +149,7 @@ static void show_result(void) {
         //     printf("\n%04x: ", i);
         printf("%.3f ", features[i]);
     }
-    printf("count: %ld, max index: %ld\n", count, argmax(features, count / 4));
+    printf("count: %ld, max index: %ld\n", count, argmax(features, count));
     // printf("result: %f\n", features);
 }
 
@@ -178,7 +177,7 @@ int main(void) {
     htpa_get_min_max(&htpa, min_max);
     printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
     htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
-    printf("random test: %d\n", htpa_img[100]);
+    // printf("random test: %d\n", htpa_img[100]);
 
     for (int i=0; i<1024; i++) {
         printf("%d,", htpa_img[i]);
