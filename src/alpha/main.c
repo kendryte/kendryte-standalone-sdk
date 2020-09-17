@@ -184,6 +184,7 @@ static int fs_init(void) {
 
 static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index,
                       uint16_t color) {
+    printf("addr: %ld", sizeof(gram));
     uint32_t data = ((uint32_t)color << 16) | (uint32_t)color;
     uint32_t *addr1, *addr2, *addr3, *addr4, x1, y1, x2, y2;
 
