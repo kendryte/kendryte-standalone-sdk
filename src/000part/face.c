@@ -31,6 +31,24 @@ double cosine_similarity(double *A, double *B, unsigned int Vector_Length) {
     return dot / (sqrt(denom_a) * sqrt(denom_b));
 }
 
+void crop_image(uint8_t *src, uint8_t* dst, int x1, int y1, int x2, int y2, int width, int height) {
+    // uint8_t dst[3][(x2-x1) * (y2-y1)];
+    int limit = (x2-x1) * (y2-y1);
+    int count = 0;
+    int fixed = 0;
+
+    for (int i=0; i<3; i++) {
+        count = 0;
+        fixed = width*height*i;
+        for (int j=y1; j<=y2; j++) {
+            for (int k=x1; k<=x2; k++) {
+                dst[i][count] = src[(j-1)*width + k + fixed];
+                count++;
+            }
+        }
+    }
+}
+
 void rgb_to_grayscale(uint8_t *rgb, uint8_t *grayscale) {
     float r_lin = xyz_table[(uint32_t)(rgb.addr)];
     float g_lin = xyz_table[(uint32_t)(rgb.addr + 96 * 96)];

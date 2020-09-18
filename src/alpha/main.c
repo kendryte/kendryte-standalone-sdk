@@ -42,6 +42,7 @@
 volatile uint32_t g_ai_done_flag;
 volatile uint8_t g_dvp_finish_flag;
 static image_t kpu_image, display_image;
+uint32_t *g_lcd_gram0;
 
 kpu_model_context_t face_detect_task;
 static region_layer_t face_detect_rl;
@@ -184,7 +185,7 @@ static int fs_init(void) {
 
 static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index,
                       uint16_t color) {
-    printf("addr: %ld", sizeof(gram));
+    // printf("addr: %d\n", (uint32_t) gram);
     uint32_t data = ((uint32_t)color << 16) | (uint32_t)color;
     uint32_t *addr1, *addr2, *addr3, *addr4, x1, y1, x2, y2;
 
@@ -316,12 +317,19 @@ int init_dvp_lcd() {
     return 0;
 }
 
+void debug_here(uint8_t *src) {
+    printf("addr: %d\n", src[0]);
+    printf("sizeof: %ld\n", sizeof(src));
+    
+}
+
 int main(void) {
     char datetime[19];
     // flags
     int FLAG_FACE_DETECTED = 0;
     int FLAG_SD_IN = 0;
     int FLAG_LOAD_FACE = 0;
+
 
     // Set CPU and dvp clk
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
@@ -353,15 +361,18 @@ int main(void) {
     kpu_image.width = 320;
     kpu_image.height = 240;
     image_init(&kpu_image);
-    display_image.pixel = 2;
-    display_image.width = 320;
-    display_image.height = 240;
-    image_init(&display_image);
+    // display_image.pixel = 2;
+    // display_image.width = 320;
+    // display_image.height = 240;
+    // image_init(&display_image);
+    g_lcd_gram0 = (uint32_t *)iomem_malloc(320*240*2);
 
     dvp_set_ai_addr((uint32_t)kpu_image.addr,
                     (uint32_t)(kpu_image.addr + 320 * 240),
                     (uint32_t)(kpu_image.addr + 320 * 240 * 2));
-    dvp_set_display_addr((uint32_t)display_image.addr);
+    // dvp_set_display_addr((uint32_t)display_image.addr);
+    dvp_set_display_addr((uint32_t)g_lcd_gram0);
+
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
                          0);
     dvp_disable_auto();
@@ -402,6 +413,7 @@ int main(void) {
             ;
         // run face detect
         g_ai_done_flag = 0;
+        
         kpu_run_kmodel(&face_detect_task, kpu_image.addr, DMAC_CHANNEL5,
                        ai_done, NULL);
         while (!g_ai_done_flag)
@@ -416,16 +428,19 @@ int main(void) {
              face_cnt++) {
             // loop for face detected
             // face_detected = 1;
-            draw_edge((uint32_t *)display_image.addr, &face_detect_info,
-                      face_cnt, GREEN);
-
-            print_xyxy(&face_detect_info, res);
+            // draw_edge((uint32_t *)display_image.addr, &face_detect_info,
+            //           face_cnt, GREEN);
+            // print_xyxy(&face_detect_info, res);
+            debug_here((uint8_t*)g_lcd_gram0);
             if (SINGLE_FACE_DETECT) {
                 break;
             }
         }
         // display result
-        lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
+        // lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
+        lcd_draw_picture(0, 0, 320, 240, g_lcd_gram0);
+
     }
+    iomem_free(g_lcd_gram0);
     // return 0;
 }
