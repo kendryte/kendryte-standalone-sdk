@@ -1,5 +1,6 @@
 #include "bsp.h"
 #include "dmac.h"
+#include "face.h"
 #include "dvp.h"
 #include "ff.h"
 #include "fpioa.h"
@@ -41,12 +42,14 @@
 
 volatile uint32_t g_ai_done_flag;
 volatile uint8_t g_dvp_finish_flag;
-static image_t kpu_image, display_image;
-uint32_t *g_lcd_gram0;
+// static image_t kpu_image, display_image;
+uint8_t* display_image;
+uint8_t* kpu_image;
+uint8_t* cropped_image;
 
-kpu_model_context_t face_detect_task;
-static region_layer_t face_detect_rl;
-static obj_info_t face_detect_info;
+kpu_model_context_t task_fd;
+static region_layer_t rl_fd;
+static obj_info_t info_fd;
 #define ANCHOR_NUM 5
 static float anchor[ANCHOR_NUM * 2] = {1.889,    2.5245, 2.9465,   3.94056,
                                        3.99987,  5.3658, 5.155437, 6.92275,
@@ -318,9 +321,11 @@ int init_dvp_lcd() {
 }
 
 void debug_here(uint8_t *src) {
-    printf("addr: %d\n", src[0]);
-    printf("sizeof: %ld\n", sizeof(src));
-    
+    // for (int i=0; i<320*240; i++) {
+    //     printf("%d,", src[i]);
+    // }
+    printf("addr: %d, %d\n", src[320*240*3], src[320*240*3+1]);
+    printf("sizeof: %ld\n", sizeof(*src));
 }
 
 int main(void) {
@@ -329,7 +334,6 @@ int main(void) {
     int FLAG_FACE_DETECTED = 0;
     int FLAG_SD_IN = 0;
     int FLAG_LOAD_FACE = 0;
-
 
     // Set CPU and dvp clk
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
@@ -353,25 +357,28 @@ int main(void) {
 
     // set init timestamp
     printf("RTC set time\n");
-    rtc_timer_set(2020, 9, 3, 12, 0, 0);
+    rtc_timer_set(2020, 9, 19, 12, 0, 0);
     get_date_time(datetime);
     init_dvp_lcd();
 
-    kpu_image.pixel = 3;
-    kpu_image.width = 320;
-    kpu_image.height = 240;
-    image_init(&kpu_image);
+    // kpu_image.pixel = 3;
+    // kpu_image.width = 320;
+    // kpu_image.height = 240;
+    // image_init(&kpu_image);
     // display_image.pixel = 2;
     // display_image.width = 320;
     // display_image.height = 240;
     // image_init(&display_image);
-    g_lcd_gram0 = (uint32_t *)iomem_malloc(320*240*2);
+    kpu_image = (uint8_t *)iomem_malloc(320*240*3);
+    display_image = (uint8_t *)iomem_malloc(320*240*2);
+    cropped_image = (uint8_t *)iomem_malloc(96*96);
 
-    dvp_set_ai_addr((uint32_t)kpu_image.addr,
-                    (uint32_t)(kpu_image.addr + 320 * 240),
-                    (uint32_t)(kpu_image.addr + 320 * 240 * 2));
+    // R, G, B
+    dvp_set_ai_addr((uint32_t)kpu_image,
+                    (uint32_t)(kpu_image + 320 * 240),
+                    (uint32_t)(kpu_image + 320 * 240 * 2));
     // dvp_set_display_addr((uint32_t)display_image.addr);
-    dvp_set_display_addr((uint32_t)g_lcd_gram0);
+    dvp_set_display_addr((uint32_t)display_image);
 
     dvp_config_interrupt(DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE,
                          0);
@@ -382,18 +389,17 @@ int main(void) {
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
     // init face detect model
-    if (kpu_load_kmodel(&face_detect_task, model_data_align) != 0) {
+    if (kpu_load_kmodel(&task_fd, model_data_align) != 0) {
         printf("\nmodel init error\n");
         while (1)
             ;
     }
 
-    face_detect_rl.anchor_number = ANCHOR_NUM;
-    face_detect_rl.anchor = anchor;
-    face_detect_rl.threshold = 0.7;
-    face_detect_rl.nms_value = 0.3;
-    region_layer_init(&face_detect_rl, 20, 15, 30, kpu_image.width,
-                      kpu_image.height);
+    rl_fd.anchor_number = ANCHOR_NUM;
+    rl_fd.anchor = anchor;
+    rl_fd.threshold = 0.7;
+    rl_fd.nms_value = 0.3;
+    region_layer_init(&rl_fd, 20, 15, 30, 320, 240);
 
     // enable global interrupt
     // system start
@@ -402,8 +408,6 @@ int main(void) {
 
     while (1) {
         uint32_t res[4] = {0,0,0,0};
-        // flags
-        // face_detected = 0;
 
         g_dvp_finish_flag = 0;
         dvp_clear_interrupt(DVP_STS_FRAME_START | DVP_STS_FRAME_FINISH);
@@ -414,33 +418,37 @@ int main(void) {
         // run face detect
         g_ai_done_flag = 0;
         
-        kpu_run_kmodel(&face_detect_task, kpu_image.addr, DMAC_CHANNEL5,
+        kpu_run_kmodel(&task_fd, kpu_image, DMAC_CHANNEL5,
                        ai_done, NULL);
         while (!g_ai_done_flag)
             ;
         float *output;
         size_t output_size;
-        kpu_get_output(&face_detect_task, 0, (uint8_t **)&output, &output_size);
-        face_detect_rl.input = output;
-        region_layer_run(&face_detect_rl, &face_detect_info);
+        kpu_get_output(&task_fd, 0, (uint8_t **)&output, &output_size);
+        rl_fd.input = output;
+        region_layer_run(&rl_fd, &info_fd);
         // run key point detect
-        for (uint32_t face_cnt = 0; face_cnt < face_detect_info.obj_number;
+        for (uint32_t face_cnt = 0; face_cnt < info_fd.obj_number;
              face_cnt++) {
             // loop for face detected
             // face_detected = 1;
-            // draw_edge((uint32_t *)display_image.addr, &face_detect_info,
+            // draw_edge((uint32_t *)display_image.addr, &info_fd,
             //           face_cnt, GREEN);
-            // print_xyxy(&face_detect_info, res);
-            debug_here((uint8_t*)g_lcd_gram0);
+            
+            print_xyxy(&info_fd, res);
+            crop_image(kpu_image, cropped_image, res[0], res[1], res[2], res[3], 320, 240);
             if (SINGLE_FACE_DETECT) {
                 break;
             }
         }
+        debug_here(display_image);
         // display result
         // lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
-        lcd_draw_picture(0, 0, 320, 240, g_lcd_gram0);
+        lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image);
 
     }
-    iomem_free(g_lcd_gram0);
+    iomem_free(display_image);
+    iomem_free(kpu_image);
+    iomem_free(cropped_image);
     // return 0;
 }
