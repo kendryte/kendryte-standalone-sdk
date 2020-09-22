@@ -1,24 +1,5 @@
-/* Copyright 2018 Canaan Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #include "face.h"
 #include "iomem.h"
-#include <stdlib.h>
-// #include <cmath>
-#include <math.h>
-#include <string.h>
 
 // sRGB gamma correction
 extern const float xyz_table[256];
@@ -35,9 +16,13 @@ double cosine_similarity(double *A, double *B, unsigned int Vector_Length) {
     return dot / (sqrt(denom_a) * sqrt(denom_b));
 }
 
-void crop_image(uint8_t *src, uint8_t* dst, int x1, int y1, int x2, int y2, int width, int height) {
+void crop_image(uint8_t *src, uint8_t* dst, uint32_t* xy, int width, int height) {
     // uint8_t dst[3][(x2-x1) * (y2-y1)];
     // int limit = (x2-x1) * (y2-y1);
+    int x1 = xy[0];
+    int x2 = xy[1];
+    int y1 = xy[2];
+    int y2 = xy[3];
     int count = 0;
     int fixed = width*height;
     uint8_t r, g, b;
@@ -49,13 +34,14 @@ void crop_image(uint8_t *src, uint8_t* dst, int x1, int y1, int x2, int y2, int 
             r = src[(j-1)*width + k];
             g = src[(j-1)*width + k + fixed];
             b = src[(j-1)*width + k + fixed * 2];
-            grayscale[count] = rgb_to_grayscale(r, g, b);
+            rgb_to_grayscale(r, g, b, grayscale, count);
             // bug here, count max to 96*96
             // grayscale[count] = gray;
             count++;
         }
     }
     image_resize(grayscale, x2-x1, y2-y1, dst, 96, 96);
+    iomem_free(grayscale);
 }
 
 void image_resize(uint8_t* in, int w0, int h0, uint8_t* out, int w, int h) {
@@ -113,7 +99,7 @@ void image_resize(uint8_t* in, int w0, int h0, uint8_t* out, int w, int h) {
     // return image;
 }
 
-uint8_t rgb_to_grayscale(uint8_t r, uint8_t g, uint8_t b) {
+void rgb_to_grayscale(uint8_t r, uint8_t g, uint8_t b, uint8_t* gray, int idx) {
     float r_lin = xyz_table[r];
     float g_lin = xyz_table[g];
     float b_lin = xyz_table[b];
@@ -121,7 +107,7 @@ uint8_t rgb_to_grayscale(uint8_t r, uint8_t g, uint8_t b) {
         ((r_lin * 0.2126f) + (g_lin * 0.7152f) + (b_lin * 0.0722f)) / 100.0f;
     y = (y > 0.0031308f) ? ((1.055f * powf(y, 0.416666f)) - 0.055f)
                          : (y * 12.92f);
-    return IM_MAX(IM_MIN(fast_roundf(y * 255), 255), 0);
+    gray[idx] = IM_MAX(IM_MIN(fast_roundf(y * 255), 255), 0);
 }
 
 static void svd22(const float a[4], float u[4], float s[2], float v[4]) {

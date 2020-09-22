@@ -1,15 +1,19 @@
 #include "bsp.h"
 #include "dmac.h"
-#include "face.h"
 #include "dvp.h"
+#include "face.h"
 #include "ff.h"
 #include "fpioa.h"
 #include "gpiohs.h"
+#include "htpa.h"
+#include "htpa_32x32d.h"
 #include "image_process.h"
 #include "incbin.h"
 #include "iomem.h"
 #include "kpu.h"
 #include "lcd.h"
+#include "i2c.h"
+#include "float.h"
 #include "nt35310.h"
 #include "ov5640.h"
 #include "plic.h"
@@ -32,8 +36,8 @@
 
 #define SINGLE_FACE_DETECT 1
 
-#define INCBIN_STYLE INCBIN_STYLE_SNAKE
-#define INCBIN_PREFIX
+// #define INCBIN_STYLE INCBIN_STYLE_SNAKE
+// #define INCBIN_PREFIX
 // uart related
 #define UART_NUM UART_DEVICE_3
 
@@ -43,18 +47,28 @@
 volatile uint32_t g_ai_done_flag;
 volatile uint8_t g_dvp_finish_flag;
 // static image_t kpu_image, display_image;
-uint8_t* display_image;
-uint8_t* kpu_image;
-uint8_t* cropped_image;
+uint8_t *display_image;
+uint8_t *htpa_img;
+uint8_t *kpu_image;
+uint8_t *cropped_image;
+// uint8_t *display_cropped_image;
 
-kpu_model_context_t task_fd;
+htpa_t htpa;
+int16_t min_max[4];
+uint32_t *xy[4];
+
+#define KMODEL_SIZE_FD (380 * 1024)
+#define KMODEL_SIZE_MD (36 * 1024)
+uint8_t *model_fd, *model_md;
+
+kpu_model_context_t task_fd, task_md;
 static region_layer_t rl_fd;
 static obj_info_t info_fd;
 #define ANCHOR_NUM 5
 static float anchor[ANCHOR_NUM * 2] = {1.889,    2.5245, 2.9465,   3.94056,
                                        3.99987,  5.3658, 5.155437, 6.92275,
                                        6.718375, 9.01025};
-INCBIN(model, "detect.kmodel");
+// INCBIN(model, "detect.kmodel");
 
 static void ai_done(void *ctx) { g_ai_done_flag = 1; }
 
@@ -138,8 +152,8 @@ static int sdcard_init(void) {
 }
 
 static int fs_init(void) {
-    const char* dir_path = "images";
-    char full_path[256+7];
+    const char *dir_path = "images";
+    char full_path[256 + 7];
     static FATFS sdcard_fs;
     FIL img_file;
     DIR img_dir;
@@ -163,15 +177,16 @@ static int fs_init(void) {
             // open file with READ model
             sprintf(full_path, "%s/%s", dir_path, fno.fname);
             if ((f_ret = f_open(&img_file, full_path, FA_READ)) == FR_OK) {
-                char v_buf[20*1024];
+                char v_buf[20 * 1024];
                 // read file
-                f_ret = f_read(&img_file, (void*)v_buf, full_path, &v_ret_len);
+                f_ret = f_read(&img_file, (void *)v_buf, full_path, &v_ret_len);
                 // read wrong
                 if (f_ret != FR_OK) {
                     printf("Read %s err[%d]\n", fno.fname, f_ret);
                 } else {
                     // read success
-                    printf("Read :> %s\t %d bytes lenth\n", fno.fname, v_ret_len);
+                    printf("Read :> %s\t %d bytes lenth\n", fno.fname,
+                           v_ret_len);
                 }
                 f_close(&img_file);
             }
@@ -240,7 +255,7 @@ static void draw_edge(uint32_t *gram, obj_info_t *obj_info, uint32_t index,
     }
 }
 
-static void print_xyxy(obj_info_t *obj_info, uint32_t* xys) {
+static void print_xyxy(obj_info_t *obj_info, uint32_t *xys) {
     uint32_t x1, y1, x2, y2;
     x1 = obj_info->obj[0].x1;
     y1 = obj_info->obj[0].y1;
@@ -324,8 +339,32 @@ void debug_here(uint8_t *src) {
     // for (int i=0; i<320*240; i++) {
     //     printf("%d,", src[i]);
     // }
-    printf("addr: %d, %d\n", src[320*240*3], src[320*240*3+1]);
+    printf("addr: %d, %d\n", src[320 * 240 * 3], src[320 * 240 * 3 + 1]);
     printf("sizeof: %ld\n", sizeof(*src));
+}
+
+size_t argmax(const float *src, size_t count) {
+    float max = FLT_MIN;
+    size_t max_id = 0;
+    for (int i=0; i<count; i++) {
+        if (src[i] > max) {
+            max = src[i];
+            max_id = i;
+        }
+    }
+    return max_id;
+}
+
+static void show_result(void) {
+    float *features;
+    size_t count;
+    kpu_get_output(&task_md, 0, (uint8_t **)&features, &count);
+    count /= sizeof(float);
+    for (int i = 0; i < count; i++) {
+        printf("%.3f ", features[i]);
+    }
+    printf("count: %ld, max index: %ld\n", count, argmax(features, count));
+    g_ai_done_flag = 1;
 }
 
 int main(void) {
@@ -343,17 +382,29 @@ int main(void) {
     // rtc init
     rtc_init();
 
+    // init htpa part
+    int htpa_stat = htpa_init(&htpa, I2C_DEVICE_0, 18, 19, 1000000);
+    printf("htpa init status: %d\n", htpa_stat);
+
     if (FLAG_SD_IN & FLAG_LOAD_FACE) {
         int sd_status = read_img_from_sd();
         printf("sd_card_status: %d\n", sd_status);
     }
 
-    // // flash init
-    // printf("flash init\n");
-    // w25qxx_init(3, 0);
-    // w25qxx_enable_quad_mode();
+    // flash init
+    printf("flash init\n");
+    w25qxx_init(3, 0);
+    w25qxx_enable_quad_mode();
 
-    uint8_t *model_data_align = model_data;
+    model_fd = (uint8_t *)malloc(KMODEL_SIZE_FD + 255);
+    model_md = (uint8_t *)malloc(KMODEL_SIZE_MD + 255);
+
+    uint8_t *model_data_align_fd = (uint8_t*)(((uintptr_t)model_fd+255)&(~255));
+    uint8_t *model_data_align_md = (uint8_t*)(((uintptr_t)model_md+255)&(~255));
+    w25qxx_read_data(0xA00000, model_data_align_fd, KMODEL_SIZE_FD, W25QXX_QUAD_FAST);
+    w25qxx_read_data(0xB00000, model_data_align_md, KMODEL_SIZE_MD, W25QXX_QUAD_FAST);
+
+    // uint8_t *model_data_align = model_data;
 
     // set init timestamp
     printf("RTC set time\n");
@@ -369,13 +420,15 @@ int main(void) {
     // display_image.width = 320;
     // display_image.height = 240;
     // image_init(&display_image);
-    kpu_image = (uint8_t *)iomem_malloc(320*240*3);
-    display_image = (uint8_t *)iomem_malloc(320*240*2);
-    cropped_image = (uint8_t *)iomem_malloc(96*96);
+    // display_image = (uint8_t *)iomem_malloc(96*96*2);
+    // display_cropped_image = (uint8_t *)iomem_malloc(96*96*3);
+    htpa_img = (uint8_t *)iomem_malloc(32 * 32 * 1);
+    kpu_image = (uint8_t *)iomem_malloc(320 * 240 * 3);
+    display_image = (uint8_t *)iomem_malloc(320 * 240 * 2);
+    cropped_image = (uint8_t *)iomem_malloc(96 * 96 * 1);
 
     // R, G, B
-    dvp_set_ai_addr((uint32_t)kpu_image,
-                    (uint32_t)(kpu_image + 320 * 240),
+    dvp_set_ai_addr((uint32_t)kpu_image, (uint32_t)(kpu_image + 320 * 240),
                     (uint32_t)(kpu_image + 320 * 240 * 2));
     // dvp_set_display_addr((uint32_t)display_image.addr);
     dvp_set_display_addr((uint32_t)display_image);
@@ -389,7 +442,8 @@ int main(void) {
     plic_irq_register(IRQN_DVP_INTERRUPT, dvp_irq, NULL);
     plic_irq_enable(IRQN_DVP_INTERRUPT);
     // init face detect model
-    if (kpu_load_kmodel(&task_fd, model_data_align) != 0) {
+    if (kpu_load_kmodel(&task_fd, model_data_align_fd) != 0 && 
+        kpu_load_kmodel(&task_md, model_data_align_md) != 0) {
         printf("\nmodel init error\n");
         while (1)
             ;
@@ -407,7 +461,9 @@ int main(void) {
     printf("System start\n");
 
     while (1) {
-        uint32_t res[4] = {0,0,0,0};
+        htpa_get_min_max(&htpa, min_max);
+        printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
+        htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
 
         g_dvp_finish_flag = 0;
         dvp_clear_interrupt(DVP_STS_FRAME_START | DVP_STS_FRAME_FINISH);
@@ -415,11 +471,10 @@ int main(void) {
             DVP_CFG_START_INT_ENABLE | DVP_CFG_FINISH_INT_ENABLE, 1);
         while (g_dvp_finish_flag == 0)
             ;
+
         // run face detect
         g_ai_done_flag = 0;
-        
-        kpu_run_kmodel(&task_fd, kpu_image, DMAC_CHANNEL5,
-                       ai_done, NULL);
+        kpu_run_kmodel(&task_fd, kpu_image, DMAC_CHANNEL5, ai_done, NULL);
         while (!g_ai_done_flag)
             ;
         float *output;
@@ -428,26 +483,43 @@ int main(void) {
         rl_fd.input = output;
         region_layer_run(&rl_fd, &info_fd);
         // run key point detect
-        for (uint32_t face_cnt = 0; face_cnt < info_fd.obj_number;
-             face_cnt++) {
-            // loop for face detected
-            // face_detected = 1;
-            // draw_edge((uint32_t *)display_image.addr, &info_fd,
-            //           face_cnt, GREEN);
-            
-            print_xyxy(&info_fd, res);
-            crop_image(kpu_image, cropped_image, res[0], res[1], res[2], res[3], 320, 240);
+        for (uint32_t face_cnt = 0; face_cnt < info_fd.obj_number; face_cnt++) {
+            print_xyxy(&info_fd, xy);
+
+            // run mask detect
+            g_ai_done_flag = 0;
+            kpu_run_kmodel(&task_md, htpa_img, DMAC_CHANNEL4, ai_done, NULL);
+            while (!g_ai_done_flag) {
+
+            }
+            show_result();
+
+            // crop_image(kpu_image, cropped_image, xy, 320, 240);
+            // printf("center color: %d\n", cropped_image[96*96/2]);
+            // int c = 0;
+
+            // for (int i=0; i<96; i++) {
+            //     for (int j=0; j<96; j++) {
+            //         display_image[c] = cropped_image[c];
+            //         display_image[c+96*96] = cropped_image[c];
+            //         // display_image[c+96*96*2] = cropped_image[c];
+            //         c++;
+            //     }
+            // }
             if (SINGLE_FACE_DETECT) {
                 break;
             }
         }
-        debug_here(display_image);
+        // debug_here(display_image);
         // display result
         // lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image.addr);
+        // display_image
         lcd_draw_picture(0, 0, 320, 240, (uint32_t *)display_image);
 
+        // lcd_draw_picture(0, 0, 96, 96, (uint32_t *)cropped_image);
     }
     iomem_free(display_image);
+    iomem_free(htpa_img);
     iomem_free(kpu_image);
     iomem_free(cropped_image);
     // return 0;

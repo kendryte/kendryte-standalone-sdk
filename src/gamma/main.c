@@ -2,6 +2,7 @@
 #include "dvp.h"
 #include "ff.h"
 #include "fpioa.h"
+#include "iomem.h"
 #include "gpiohs.h"
 #include "htpa.h"
 #include "htpa_32x32d.h"
@@ -28,7 +29,7 @@
 
 htpa_t htpa;
 int16_t min_max[4];
-uint8_t htpa_img[1024];
+uint8_t* htpa_img;
 // uint8_t g_ai_buf_in[32*32*3] __attribute__((aligned(128)));
 // float *features;
 
@@ -155,6 +156,7 @@ static void show_result(void) {
 
 int main(void) {
     char datetime[19];
+    htpa_img = (uint8_t *)iomem_malloc(32*32);
     // Set CPU and dvp clk
     sysctl_pll_set_freq(SYSCTL_PLL0, PLL0_OUTPUT_FREQ);
     sysctl_pll_set_freq(SYSCTL_PLL1, PLL1_OUTPUT_FREQ);
@@ -174,9 +176,9 @@ int main(void) {
     int htpa_stat = htpa_init(&htpa, I2C_DEVICE_0, 18, 19, 1000000);
     printf("htpa init status: %d\n", htpa_stat);
 
-    htpa_get_min_max(&htpa, min_max);
-    printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
-    htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
+    // htpa_get_min_max(&htpa, min_max);
+    // printf("Max: %d, Min: %d\n", min_max[1], min_max[0]);
+    // htpa_get_to_image(&htpa, min_max[0], min_max[1], htpa_img);
     // printf("random test: %d\n", htpa_img[100]);
 
     for (int i=0; i<1024; i++) {
