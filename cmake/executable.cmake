@@ -18,15 +18,29 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
 
-target_link_libraries(${PROJECT_NAME}
-        -Wl,--start-group
-        gcc m c
-        -Wl,--whole-archive
-        kendryte
-        -Wl,--no-whole-archive
-        -Wl,--end-group
-        )
-        
+if (EXISTS ${SDK_ROOT}/src/${PROJ}/ai/libai.a)
+    add_library(ai STATIC IMPORTED)
+    set_property(TARGET ai PROPERTY IMPORTED_LOCATION ${SDK_ROOT}/src/${PROJ}/ai/libai.a)
+    target_link_libraries(${PROJECT_NAME}
+            -Wl,--start-group
+            gcc m c
+            -Wl,--whole-archive
+            kendryte
+            ai
+            -Wl,--no-whole-archive
+            -Wl,--end-group
+            )
+else ()
+    target_link_libraries(${PROJECT_NAME}
+            -Wl,--start-group
+            gcc m c
+            -Wl,--whole-archive
+            kendryte
+            -Wl,--no-whole-archive
+            -Wl,--end-group
+            )
+endif()
+
 if (EXISTS ${SDK_ROOT}/src/${PROJ}/project.cmake)
     include(${SDK_ROOT}/src/${PROJ}/project.cmake)
 endif ()
