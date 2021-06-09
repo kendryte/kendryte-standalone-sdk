@@ -1,11 +1,6 @@
-include_directories(${SDK_ROOT}/third_party/xtl/include ${CMAKE_CURRENT_LIST_DIR}/nncase/include)
+add_subdirectory(v0)
+add_subdirectory(v1)
 
-FILE(GLOB_RECURSE NNCASE_SRC
-        "${CMAKE_CURRENT_LIST_DIR}/*.c"
-        "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
-        )
-
-ADD_LIBRARY(nncase
-        ${NNCASE_SRC}
-        )
-TARGET_COMPILE_OPTIONS(nncase PRIVATE -O2)
+add_library(nncase-wrapper STATIC nncase.cpp)
+target_link_libraries(nncase-wrapper PRIVATE nncase-v0 nncase-v1)
+target_include_directories(nncase-wrapper PUBLIC include)

@@ -691,6 +691,7 @@ typedef struct
         struct
         {
             void* nncase_ctx;
+            uint32_t nncase_version;
         };
     };
 } kpu_model_context_t;

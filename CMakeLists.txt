@@ -21,6 +21,10 @@ include(./cmake/macros.internal.cmake)
 header_directories(${SDK_ROOT}/lib)
 header_directories(src/${PROJ})
 header_directories(kendryte-standalone-demo/${PROJ})
+
+add_subdirectory(third_party/gsl-lite)
+add_subdirectory(third_party/mpark-variant)
+add_subdirectory(third_party/nlohmann_json)
 # build library first
 add_subdirectory(lib)
 

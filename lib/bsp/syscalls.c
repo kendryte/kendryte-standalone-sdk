@@ -574,6 +574,7 @@ handle_breakpoint(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t 
 uintptr_t __attribute__((weak))
 handle_misaligned_load(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
 {
+    dump_core("misaligned load", cause, epc, regs, fregs);
     /* notice this function only support 16bit or 32bit instruction */
 
     bool compressed = (*(unsigned short *)epc & 3) != 3;
@@ -665,6 +666,7 @@ handle_fault_load(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t 
 uintptr_t __attribute__((weak))
 handle_misaligned_store(uintptr_t cause, uintptr_t epc, uintptr_t regs[32], uintptr_t fregs[32])
 {
+    dump_core("misaligned store", cause, epc, regs, fregs);
     /* notice this function only support 16bit or 32bit instruction */
 
     bool compressed = (*(unsigned short *)epc & 3) != 3;
