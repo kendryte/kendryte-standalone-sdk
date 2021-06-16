@@ -14,4 +14,4 @@
  */
 #pragma once
 #define NNCASE_VERSION "1.0.0"
-#define NNCASE_GIT_DESC "15b0a90-dirty"
+#define NNCASE_GIT_DESC "0dc08ae"
