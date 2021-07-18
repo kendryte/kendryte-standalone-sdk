@@ -1,4 +1,4 @@
-/* Copyright 2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,4 +14,4 @@
  */
 #pragma once
 #define NNCASE_VERSION "1.0.0"
-#define NNCASE_GIT_DESC "0dc08ae"
+#define NNCASE_VERSION_SUFFIX "-8c384a4"

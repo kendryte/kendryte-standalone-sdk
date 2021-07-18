@@ -1,4 +1,4 @@
-/* Copyright 2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -252,8 +252,10 @@ inline int get_last_not_contiguous_index(const runtime_shape_t &strides, const r
     return -1;
 }
 
-template<size_t A, size_t B>
+template <size_t A, size_t B>
 constexpr auto is_not_equal = std::integral_constant<bool, std::not_equal_to<size_t> {}(A, B)> {};
 
-struct DefaultCallable {};
+struct DefaultCallable
+{
+};
 END_NS_NNCASE_RUNTIME

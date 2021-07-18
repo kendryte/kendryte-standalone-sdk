@@ -49,7 +49,7 @@ public:
 
     result<void> run_kmodel(const uint8_t *src, dmac_channel_number_t dma_ch)
     {
-#ifdef NNCASE_DEBUG
+#if NNCASE_DEBUG
         auto micro = sysctl_get_time_us();
 #endif
         try_(interp_.options().set("dma_ch", (uint32_t)dma_ch));
@@ -59,7 +59,7 @@ public:
         try_(hrt::sync(input_tensor, hrt::sync_write_back));
         try_(interp_.input_tensor(0, input_tensor));
         try_(interp_.run());
-#ifdef NNCASE_DEBUG
+#if NNCASE_DEBUG
         auto duration = sysctl_get_time_us() - micro;
         printf("run kmodel takes %f ms.\n", duration / 1e3f);
 #endif

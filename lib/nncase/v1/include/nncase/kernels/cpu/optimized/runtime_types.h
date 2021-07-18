@@ -1,4 +1,4 @@
-/* Copyright 2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,17 +33,6 @@
     }                                 \
     }                                 \
     }                                 \
-    }
-
-#define TYPE_IMPL_SELECT(type, IMPL)          \
-    switch (runtime::get_bytes(type))         \
-    {                                         \
-        IMPL(1, uint8_t);                     \
-        IMPL(2, uint16_t);                    \
-        IMPL(4, uint32_t);                    \
-        IMPL(8, uint64_t);                    \
-    default:                                  \
-        return err(std::errc::not_supported); \
     }
 
 enum copy_impl_select

@@ -1,4 +1,4 @@
-/* Copyright 2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ struct Ok
         : value(value) { }
 
     template <class... Args>
-    constexpr explicit Ok(mpark::in_place_t, Args &&...args)
+    constexpr explicit Ok(mpark::in_place_t, Args &&... args)
         : value(std::forward<Args>(args)...) { }
 
     T value;
@@ -101,7 +101,7 @@ inline constexpr Ok<void> ok()
 }
 
 template <class T, class... Args>
-constexpr Ok<T> ok(Args &&...args)
+constexpr Ok<T> ok(Args &&... args)
 {
     return Ok<T>(mpark::in_place, std::forward<Args>(args)...);
 }

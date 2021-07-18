@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,6 +136,22 @@ typedef enum _reduce_op
     reduce_sum
 } reduce_op_t;
 
+inline std::string reduce_op_to_string(reduce_op_t op)
+{
+    switch (op)
+    {
+    case reduce_mean:
+        return "reduce_mean";
+    case reduce_min:
+        return "reduce_min";
+    case reduce_max:
+        return "reduce_max";
+    case reduce_sum:
+        return "reduce_sum";
+    }
+    return "unknown";
+}
+
 typedef enum _binary_op
 {
     binary_add,
@@ -255,6 +271,12 @@ typedef enum _image_resize_mode
     image_resize_bilinear,
     image_resize_nearest_neighbor
 } image_resize_mode_t;
+
+typedef enum _onehot_mode
+{
+    onehot_normal,
+    onehot_process_neg
+} onehot_mode_t;
 
 typedef enum _pad_mode
 {
