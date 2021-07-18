@@ -54,14 +54,14 @@ endif()
 add_library(kernels INTERFACE IMPORTED)
 
 set_target_properties(kernels PROPERTIES
-  INTERFACE_LINK_LIBRARIES "CONAN_PKG::gsl-lite;CONAN_PKG::mpark-variant"
+  INTERFACE_LINK_LIBRARIES "gsl::gsl-lite;mpark_variant::mpark_variant"
 )
 
 # Create imported target runtime
 add_library(runtime INTERFACE IMPORTED)
 
 set_target_properties(runtime PROPERTIES
-  INTERFACE_LINK_LIBRARIES "CONAN_PKG::gsl-lite;CONAN_PKG::mpark-variant;\$<LINK_ONLY:kernels>"
+  INTERFACE_LINK_LIBRARIES "gsl::gsl-lite;mpark_variant::mpark_variant;\$<LINK_ONLY:kernels>"
 )
 
 # Create imported target nncaseruntime
@@ -69,7 +69,7 @@ add_library(nncaseruntime STATIC IMPORTED)
 
 set_target_properties(nncaseruntime PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
-  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:kernels>;\$<LINK_ONLY:runtime>;\$<LINK_ONLY:runtime_stackvm>;CONAN_PKG::gsl-lite;CONAN_PKG::mpark-variant"
+  INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:kernels>;\$<LINK_ONLY:runtime>;\$<LINK_ONLY:runtime_stackvm>;gsl::gsl-lite;mpark_variant::mpark_variant"
 )
 
 # Create imported target runtime_stackvm

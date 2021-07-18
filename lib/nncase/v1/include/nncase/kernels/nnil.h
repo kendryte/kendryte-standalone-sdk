@@ -1,4 +1,4 @@
-/* Copyright 2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 #pragma once
+#include <nncase/kernels/kernel_context.h>
 #include <nncase/runtime/datatypes.h>
 #include <nncase/runtime/error.h>
 #include <nncase/runtime/result.h>
-#include <nncase/kernels/kernel_context.h>
 
 BEGIN_NS_NNCASE_KERNELS
 

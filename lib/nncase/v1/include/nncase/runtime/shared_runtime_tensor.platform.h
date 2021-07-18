@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ struct NNCASE_API physical_memory_block
     physical_memory_block &operator=(const physical_memory_block &) = delete;
     physical_memory_block &operator=(physical_memory_block &&other) noexcept;
 
-    result<void> free() noexcept;
+    void free(NNCASE_UNUSED host_memory_block &block) noexcept;
 
     static result<void> acknowledge(host_memory_block &block) noexcept;
     static result<void> allocate(host_memory_block &block) noexcept;

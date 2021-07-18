@@ -1,4 +1,4 @@
-/* Copyright 2019-2020 Canaan Inc.
+/* Copyright 2019-2021 Canaan Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ struct host_memory_block
 
     host_memory_block() = default;
     host_memory_block(const host_memory_block &) = delete;
-    host_memory_block(host_memory_block && other) noexcept;
+    host_memory_block(host_memory_block &&other) noexcept;
     host_memory_block &operator=(const host_memory_block &) = delete;
-    host_memory_block &operator=(host_memory_block && other) noexcept;
+    host_memory_block &operator=(host_memory_block &&other) noexcept;
 
     ~host_memory_block()
     {
@@ -52,6 +52,7 @@ struct host_memory_block
         if (auto d = std::move(deleter))
             d(reinterpret_cast<gsl::byte *>(virtual_address));
         deleter = {};
+        physical_block.free(*this);
     }
 
     gsl::span<gsl::byte> virtual_buffer() const noexcept
