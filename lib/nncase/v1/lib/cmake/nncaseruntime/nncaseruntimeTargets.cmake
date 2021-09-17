@@ -4,7 +4,7 @@ if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" LESS 2.5)
    message(FATAL_ERROR "CMake >= 2.6.0 required")
 endif()
 cmake_policy(PUSH)
-cmake_policy(VERSION 2.6...3.18)
+cmake_policy(VERSION 2.6...3.19)
 #----------------------------------------------------------------
 # Generated CMake target import file.
 #----------------------------------------------------------------
@@ -16,7 +16,7 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set(_targetsDefined)
 set(_targetsNotDefined)
 set(_expectedTargets)
-foreach(_expectedTarget kernels runtime nncaseruntime runtime_stackvm kernels_k210 runtime_k210 nncase_rt_modules_k210)
+foreach(_expectedTarget kernels runtime nncaseruntime runtime_stackvm kernels_k210 kendryte runtime_k210 nncase_rt_modules_k210)
   list(APPEND _expectedTargets ${_expectedTarget})
   if(NOT TARGET ${_expectedTarget})
     list(APPEND _targetsNotDefined ${_expectedTarget})
@@ -83,14 +83,17 @@ set_target_properties(runtime_stackvm PROPERTIES
 add_library(kernels_k210 INTERFACE IMPORTED)
 
 set_target_properties(kernels_k210 PROPERTIES
-  INTERFACE_LINK_LIBRARIES "nncaseruntime"
+  INTERFACE_LINK_LIBRARIES "nncaseruntime;\$<LINK_ONLY:kendryte>"
 )
+
+# Create imported target kendryte
+add_library(kendryte STATIC IMPORTED)
 
 # Create imported target runtime_k210
 add_library(runtime_k210 INTERFACE IMPORTED)
 
 set_target_properties(runtime_k210 PROPERTIES
-  INTERFACE_LINK_LIBRARIES "nncaseruntime"
+  INTERFACE_LINK_LIBRARIES "nncaseruntime;\$<LINK_ONLY:kernels_k210>;\$<LINK_ONLY:kendryte>"
 )
 
 # Create imported target nncase_rt_modules_k210

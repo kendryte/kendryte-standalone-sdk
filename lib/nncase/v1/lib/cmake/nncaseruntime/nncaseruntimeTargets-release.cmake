@@ -15,6 +15,16 @@ set_target_properties(nncaseruntime PROPERTIES
 list(APPEND _IMPORT_CHECK_TARGETS nncaseruntime )
 list(APPEND _IMPORT_CHECK_FILES_FOR_nncaseruntime "${_IMPORT_PREFIX}/lib/libnncase.runtime.a" )
 
+# Import target "kendryte" for configuration "Release"
+set_property(TARGET kendryte APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+set_target_properties(kendryte PROPERTIES
+  IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "C"
+  IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/lib/libkendryte.a"
+  )
+
+list(APPEND _IMPORT_CHECK_TARGETS kendryte )
+list(APPEND _IMPORT_CHECK_FILES_FOR_kendryte "${_IMPORT_PREFIX}/lib/libkendryte.a" )
+
 # Import target "nncase_rt_modules_k210" for configuration "Release"
 set_property(TARGET nncase_rt_modules_k210 APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(nncase_rt_modules_k210 PROPERTIES

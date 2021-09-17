@@ -6,5 +6,3 @@ endif()
 if(NOT TARGET gsl-lite)
     find_package(gsl-lite REQUIRED)
 endif()
-
-

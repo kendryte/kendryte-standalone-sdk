@@ -25,7 +25,7 @@
 #define NNCASE_API
 #endif
 #else
-#define NNCASE_API
+#define NNCASE_API __attribute__((visibility("default")))
 #endif
 
 #if defined(_MSC_VER)
@@ -71,16 +71,17 @@ using invoke_result_t = std::result_of_t<Callable(Args...)>;
     }                         \
     }
 
-#define BEGIN_NS_NNCASE_RT_STACKVM \
-    namespace nncase               \
-    {                              \
-        namespace runtime          \
-        {                          \
-            namespace stackvm      \
+#define BEGIN_NS_NNCASE_RT_MODULE(MODULE) \
+    namespace nncase                      \
+    {                                     \
+        namespace runtime                 \
+        {                                 \
+            namespace MODULE              \
             {
-#define END_NS_NNCASE_RT_STACKVM \
-    }                            \
-    }                            \
+
+#define END_NS_NNCASE_RT_MODULE \
+    }                           \
+    }                           \
     }
 
 #define BEGIN_NS_NNCASE_KERNELS \

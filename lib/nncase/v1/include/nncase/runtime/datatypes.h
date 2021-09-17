@@ -15,6 +15,7 @@
 #pragma once
 #include "bfloat16.h"
 #include "compiler_defs.h"
+#include "half.h"
 #include "small_vector.hpp"
 #include <array>
 #include <cmath>
@@ -114,7 +115,7 @@ struct value_range
 
     static constexpr value_range<T> full() noexcept
     {
-        if (std::is_floating_point<T>::value || std::is_same<T, bfloat16>::value)
+        if (std::is_floating_point<T>::value || std::is_same<T, bfloat16>::value || std::is_same<T, half>::value)
             return { -std::numeric_limits<T>::infinity(), std::numeric_limits<T>::infinity() };
         else
             return { std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max() };
@@ -324,6 +325,8 @@ NNCASE_INLINE_VAR constexpr memory_location_t mem_input = 0;
 NNCASE_INLINE_VAR constexpr memory_location_t mem_output = 1;
 NNCASE_INLINE_VAR constexpr memory_location_t mem_rdata = 2;
 NNCASE_INLINE_VAR constexpr memory_location_t mem_data = 3;
+NNCASE_INLINE_VAR constexpr memory_location_t mem_shared_data = 4;
+NNCASE_INLINE_VAR constexpr memory_location_t mem_private_base = 64;
 
 using runtime_shape_t = itlib::small_vector<size_t, 4>;
 using runtime_axis_t = itlib::small_vector<int32_t, 4>;
@@ -378,6 +381,12 @@ struct scalar
         as<bfloat16>() = value;
     }
 
+    scalar(half value) noexcept
+    {
+        type = dt_float16;
+        as<half>() = value;
+    }
+
     scalar(float value) noexcept
     {
         type = dt_float32;
@@ -395,7 +404,7 @@ struct memory_range
 {
     memory_location_t memory_location;
     datatype_t datatype;
-    uint16_t reserved0;
+    uint16_t shared_module;
     uint32_t start;
     uint32_t size;
 };
@@ -456,3 +465,16 @@ inline bool operator!=(const scalar &lhs, const scalar &rhs) noexcept
     return lhs.type != rhs.type || memcmp(&lhs.storage, &rhs.storage, valid_bytes);
 }
 }
+
+template <>
+struct std::hash<nncase::module_type_t>
+{
+    auto operator()(const nncase::module_type_t &key) const noexcept
+    {
+        size_t result = 0;
+        const size_t prime = 31;
+        for (auto c : key)
+            result = c + (result * prime);
+        return result;
+    }
+};

@@ -14,4 +14,4 @@
  */
 #pragma once
 #define NNCASE_VERSION "1.0.0"
-#define NNCASE_VERSION_SUFFIX "-8c384a4"
+#define NNCASE_VERSION_SUFFIX "-9fd39f9"
