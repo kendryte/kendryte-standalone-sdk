@@ -83,17 +83,14 @@ set_target_properties(runtime_stackvm PROPERTIES
 add_library(kernels_k210 INTERFACE IMPORTED)
 
 set_target_properties(kernels_k210 PROPERTIES
-  INTERFACE_LINK_LIBRARIES "nncaseruntime;\$<LINK_ONLY:kendryte>"
+  INTERFACE_LINK_LIBRARIES "nncaseruntime"
 )
-
-# Create imported target kendryte
-add_library(kendryte STATIC IMPORTED)
 
 # Create imported target runtime_k210
 add_library(runtime_k210 INTERFACE IMPORTED)
 
 set_target_properties(runtime_k210 PROPERTIES
-  INTERFACE_LINK_LIBRARIES "nncaseruntime;\$<LINK_ONLY:kernels_k210>;\$<LINK_ONLY:kendryte>"
+  INTERFACE_LINK_LIBRARIES "nncaseruntime;\$<LINK_ONLY:kernels_k210>"
 )
 
 # Create imported target nncase_rt_modules_k210
